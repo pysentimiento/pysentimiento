@@ -1,0 +1,19 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+fire = "*"
+jupyter = "*"
+jupyterlab = "*"
+numpy = "*"
+pandas = "*"
+seaborn = "*"
+
+[packages]
+torch = "==1.4.0"
+torchtext = "==0.5.0"
+
+[requires]
+python_version = "3.8"
