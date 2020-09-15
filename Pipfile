@@ -10,10 +10,19 @@ jupyterlab = "*"
 numpy = "*"
 pandas = "*"
 seaborn = "*"
+ipdb = "*"
+tensorboard = "*"
 
 [packages]
 torch = "==1.4.0"
 torchtext = "==0.5.0"
+transformers = "*"
+jupyterlab = "*"
+jupyter = "*"
+nlp = "*"
+datasets = "*"
+ipywidgets = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.8"

@@ -111,3 +111,5 @@ embeddings/*
 *.pt
 notebooks/**/.data
 models/*
+logs/*
+**/logs/*
