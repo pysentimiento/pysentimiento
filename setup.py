@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pysentimiento", # Replace with your own username
-    version="0.0.1",
+    version="0.0.1.1",
     author="Juan Manuel Pérez, Juan Carlos Giudici, Franco Luque",
     author_email="jmperez@dc.uba.ar",
     description="A Transformer-based library for Sentiment Analysis in Spanish",
@@ -20,6 +20,6 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "transformers>=3.5",
+        "transformers>=3.5.1",
     ]
 )
