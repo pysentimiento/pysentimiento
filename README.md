@@ -2,7 +2,7 @@
 
 A simple Transformer-based library for Spanish.
 
-Just install with `pip install pysentimiento` and start using it:
+Just do `pip install pysentimiento` and start using it:
 
 
 
