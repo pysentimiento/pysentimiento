@@ -1,4 +1,4 @@
-# PySent: Sentiment Analysis in Spanish
+# PySentimiento: Sentiment Analysis in Spanish
 
 
 

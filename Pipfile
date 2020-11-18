@@ -12,6 +12,7 @@ pandas = "*"
 seaborn = "*"
 ipdb = "*"
 tensorboard = "*"
+tweepyrate = {git = "https://github.com/finiteautomata/tweepyrate"}
 
 [packages]
 torch = "==1.4.0"
@@ -23,6 +24,7 @@ nlp = "*"
 datasets = "*"
 ipywidgets = "*"
 sklearn = "*"
+pysentimiento = {editable = true, path = "."}
 
 [requires]
 python_version = "3.8"
