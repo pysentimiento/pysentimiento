@@ -13,11 +13,11 @@ analyzer.predict("Esto es pésimo")
 # returns 'NEG'
 analyzer.predict("Qué es esto?")
 # returns 'NEU'
-analyzer.predict_probas("Qué es esta cosa?")
 
-# returns {'NEG': 0.7448181509971619,
-# 'NEU': 0.22246581315994263,
-# 'POS': 0.032716117799282074}
+analyzer.predict_probas("Dónde estamos?")
+# returns {'NEG': 0.10235335677862167,
+# 'NEU': 0.8503277897834778,
+# 'POS': 0.04731876030564308}
 ```
 
 Also, you might use pretrained models directly with [`transformers`](https://github.com/huggingface/transformers) library.
