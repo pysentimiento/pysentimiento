@@ -47,3 +47,7 @@ model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-
 * Upload some other models
 * Train in other languages
 * Write brief paper with description
+
+## Suggestions and bugfixes
+
+Please use the repository [issue tracker](https://github.com/finiteautomata/pysentimiento/issues) to point out bugs and make suggestions (new models, use another datasets, some other languages, etc)
