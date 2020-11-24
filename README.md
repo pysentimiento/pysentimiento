@@ -4,7 +4,7 @@ A simple Transformer-based library for Sentiment Analysis in Spanish (some other
 
 Just do `pip install pysentimiento` and start using it:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ItS0-ZPXGcEeVmRmHaneX3w8eq6Vhdde?usp=sharing)
+[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ItS0-ZPXGcEeVmRmHaneX3w8eq6Vhdde?usp=sharing)
 
 ```python
 from pysentimiento import SentimentAnalyzer
@@ -38,7 +38,7 @@ model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-
 
 ## Instructions for developers
 
-1. First, download TASS 2020 data to `data/tass2020`
+1. First, download TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
 2. Run notebooks to train models
 3. Upload models to Huggingface's Model Hub
 
