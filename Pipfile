@@ -25,6 +25,7 @@ datasets = "*"
 ipywidgets = "*"
 sklearn = "*"
 pysentimiento = {editable = true, path = "."}
+aiofiles = "*"
 
 [requires]
 python_version = "3.8"
