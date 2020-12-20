@@ -13,7 +13,7 @@ from datasets import load_dataset
 
 
 def finetune_lm(
-    model_name, path_to_tweets, epochs=3, eval_steps=1000, eval_files_ratio=0.95,
+    model_name, path_to_tweets, epochs=3, eval_steps=12_000, eval_files_ratio=0.99,
     base_model_name='dccuchile/bert-base-spanish-wwm-cased', max_length=128,
     file_limit=None, batch_size=48, eval_batch_size=16
     ):
@@ -34,7 +34,7 @@ def finetune_lm(
 
     if file_limit:
         tweet_files = tweet_files[:file_limit]
-    limit = int(eval_files_ratio * len(tweet_files))
+    limit = int(eval_files_ratio * len(tweet_files)) - 1
 
     train_files = tweet_files[:limit]
     dev_files = tweet_files[limit:]
@@ -45,6 +45,8 @@ def finetune_lm(
 
     print(f"Train: {len(train_dataset):e} instances")
     print(f"Dev: {len(test_dataset):e} instances")
+    print(f"Batch size: {batch_size} train {eval_batch_size} eval")
+
 
     print("\nTokenizing...")
     def tokenize(batch):
@@ -66,9 +68,9 @@ def finetune_lm(
         num_train_epochs=epochs,
         evaluation_strategy="steps",
         eval_steps=eval_steps,
+        save_steps=eval_steps,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        save_steps=2000,
         do_eval= True,
     )
 
