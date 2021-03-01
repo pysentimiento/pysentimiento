@@ -1,14 +1,12 @@
-import os
-from glob import glob
+import fire
 import torch
+from glob import glob
 from transformers import (
     BertForSequenceClassification, BertTokenizer,
-    Trainer, TrainingArguments
+    Trainer, TrainingArguments, set_seed
 )
-from datasets import Dataset, Value, ClassLabel, Features
 import pandas as pd
-from pysentimiento.preprocessing import preprocess_tweet
-import fire
+from pysentimiento.tass import load_datasets, id2label, label2id, load_model
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 def compute_metrics(pred):
@@ -26,83 +24,13 @@ def compute_metrics(pred):
         'recall': recall
     }
 
-def get_lang(file):
-    return os.path.splitext(os.path.basename(file))[0]
-
-"""
-Lo pongo así por huggingface
-"""
-id2label = {0: 'N', 1: 'NEU', 2: 'P'}
-label2id = {v:k for k,v in id2label.items()}
-
-def load_df(file):
-    #dialect = get_lang(file)
-
-    df = pd.read_table(file, names=["id", "text", "polarity"], index_col=0)
-    #df["dialect"] = dialect
-
-    for label, idx in label2id.items():
-        df.loc[df["polarity"] == label, "label"] = idx
-    return df
 
 
 
 
-def load_datasets():
-    """
-    Return train, dev, test datasets
-    """
-    train_files = glob("data/tass2020/train/*.tsv")
-    dev_files = glob("data/tass2020/dev/*.tsv")
-    test_files = glob("data/tass2020/test1.1/*.tsv")
-
-    train_dfs = {get_lang(file):load_df(file) for file in train_files}
-    dev_dfs = {get_lang(file):load_df(file) for file in dev_files}
-    test_dfs = {get_lang(file):load_df(file) for file in test_files}
-
-    train_df = pd.concat(train_dfs.values())
-    dev_df = pd.concat(dev_dfs.values())
-    test_df = pd.concat(test_dfs.values())
-
-    print(len(train_df), len(dev_df), len(test_df))
-
-
-    train_df["text"] = train_df["text"].apply(preprocess_tweet)
-    dev_df["text"] = dev_df["text"].apply(preprocess_tweet)
-    test_df["text"] = test_df["text"].apply(preprocess_tweet)
-
-    features = Features({
-        'text': Value('string'),
-        'label': ClassLabel(num_classes=3, names=["neg", "neu", "pos"])
-    })
-
-    train_dataset = Dataset.from_pandas(train_df[["text", "label"]], features=features)
-    dev_dataset = Dataset.from_pandas(dev_df[["text", "label"]], features=features)
-    test_dataset = Dataset.from_pandas(test_df[["text", "label"]], features=features)
-
-    return train_dataset, dev_dataset, test_dataset
-
-def load_model(base_model, device):
-    """
-    Loads model and tokenizer
-    """
-    print(f"Loading model {base_model}")
-    model = BertForSequenceClassification.from_pretrained(base_model, return_dict=True, num_labels=3)
-
-    tokenizer = BertTokenizer.from_pretrained(base_model)
-    tokenizer.model_max_length = 128
-
-    model.config.hidden_dropout_prob = 0.20
-    model.config.id2label = id2label
-    model.config.label2id = label2id
-
-    model = model.to(device)
-    model.train()
-
-    return model, tokenizer
-
-
-def run_sentiment_experiments(base_model, times=5, epochs=5):
+def run_sentiment_experiments(
+    base_model, times=5, epochs=5, batch_size=64, eval_batch_size=16
+):
     """
     """
     print("Loading dataset")
@@ -116,8 +44,6 @@ def run_sentiment_experiments(base_model, times=5, epochs=5):
     def tokenize(batch):
         return tokenizer(batch['text'], padding='max_length', truncation=True)
 
-    batch_size = 64
-    eval_batch_size = 16
 
     train_dataset = train_dataset.map(tokenize, batched=True, batch_size=batch_size)
     dev_dataset = dev_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
@@ -134,8 +60,6 @@ def run_sentiment_experiments(base_model, times=5, epochs=5):
     test_dataset = format_dataset(test_dataset)
 
 
-    epochs = 5
-
     total_steps = (epochs * len(train_dataset)) // batch_size
     warmup_steps = total_steps // 10
     training_args = TrainingArguments(
@@ -148,11 +72,14 @@ def run_sentiment_experiments(base_model, times=5, epochs=5):
         do_eval=False,
         weight_decay=0.01,
         logging_dir='./logs',
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_f1",
     )
 
     results = []
 
     for run in range(times):
+        set_seed(2020 + run)
         print("="*80)
         print(f"Run {run+1}")
         model, _ = load_model(base_model, device)
@@ -166,11 +93,14 @@ def run_sentiment_experiments(base_model, times=5, epochs=5):
         )
 
         trainer.train()
+        run_results = trainer.evaluate()
+        run_results["run"] = run + 1
+        results.append(run_results)
 
-        results.append({
-            **trainer.evaluate(),
-            **{"run": run+1}
-        })
+        print(f"Macro F1: {run_results['eval_f1']}")
+
+        f1_scores = torch.Tensor([r["eval_f1"] for r in results])
+        print(f"Results so far -- Macro F1: {f1_scores.mean():.3f} +- {f1_scores.std():.3f}")
 
     f1_scores = torch.Tensor([r["eval_f1"] for r in results])
     print(f"Macro F1: {f1_scores.mean():.3f} +- {f1_scores.std():.3f}")
