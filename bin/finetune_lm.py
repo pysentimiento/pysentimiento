@@ -13,7 +13,7 @@ from datasets import load_dataset
 
 
 def finetune_lm(
-    model_name, path_to_tweets, epochs=3, eval_steps=12_000, eval_files_ratio=0.99,
+    model_name, path_to_tweets, output_path, epochs=3, eval_steps=12_000, eval_files_ratio=0.99,
     base_model_name='dccuchile/bert-base-spanish-wwm-cased', max_length=128,
     file_limit=None, batch_size=48, eval_batch_size=16
     ):
@@ -60,10 +60,8 @@ def finetune_lm(
         tokenizer=tokenizer, mlm=True, mlm_probability=0.15
     )
 
-    model_path = f"./models/{model_name}"
-
     training_args = TrainingArguments(
-        output_dir=model_path,
+        output_dir=output_path,
         overwrite_output_dir=True,
         num_train_epochs=epochs,
         evaluation_strategy="steps",
@@ -86,8 +84,8 @@ def finetune_lm(
     trainer.train()
 
     print("Saving...")
-    trainer.save_model(model_path)
-    tokenizer.save_pretrained(model_path)
+    trainer.save_model(output_path)
+    tokenizer.save_pretrained(output_path)
 
 if __name__ == '__main__':
     fire.Fire(finetune_lm)

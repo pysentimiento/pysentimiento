@@ -39,7 +39,15 @@ model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-
 ## Instructions for developers
 
 1. First, download TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
-2. Run notebooks to train models
+
+Labels must be placed under `data/tass2020/test1.1/labels`
+
+2. Run script to train models
+
+```
+python bin/train.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 3
+```
+
 3. Upload models to Huggingface's Model Hub
 
 ## TODO:

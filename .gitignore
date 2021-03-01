@@ -115,5 +115,5 @@ logs/*
 **/logs/*
 runs/*
 **/runs/*
-results/*
+**/results/*
 .vscode/*

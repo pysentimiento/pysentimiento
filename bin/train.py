@@ -6,18 +6,14 @@ from transformers import (
     Trainer, TrainingArguments, set_seed
 )
 import pandas as pd
+from pysentimiento import compute_metrics
 from pysentimiento.tass import (
     load_datasets, id2label, label2id, load_model,
-    compute_metrics
 )
 
 
-
-
-
-
-def run_sentiment_experiments(
-    base_model, times=5, epochs=5, batch_size=64, eval_batch_size=16
+def train(
+    base_model, output_path, epochs=5, batch_size=32, eval_batch_size=16
 ):
     """
     """
@@ -63,35 +59,29 @@ def run_sentiment_experiments(
         metric_for_best_model="eval_f1",
     )
 
-    results = []
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        compute_metrics=compute_metrics,
+        train_dataset=train_dataset,
+        eval_dataset=dev_dataset,
+    )
 
-    for run in range(times):
-        set_seed(2020 + run)
-        print("="*80)
-        print(f"Run {run+1}")
-        model, _ = load_model(base_model, device)
+    trainer.train()
 
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            compute_metrics=compute_metrics,
-            train_dataset=train_dataset,
-            eval_dataset=dev_dataset,
-        )
+    test_results = trainer.evaluate(test_dataset)
+    print("\n\n")
+    print("Test results")
+    print("============")
+    for k, v in test_results.items():
+        print(f"{k:<16} : {v:.3f}")
 
-        trainer.train()
-        run_results = trainer.evaluate()
-        run_results["run"] = run + 1
-        results.append(run_results)
+    path = "../models/beto-sentiment-analysis"
 
-        print(f"Macro F1: {run_results['eval_f1']}")
-
-        f1_scores = torch.Tensor([r["eval_f1"] for r in results])
-        print(f"Results so far -- Macro F1: {f1_scores.mean():.3f} +- {f1_scores.std():.3f}")
-
-    f1_scores = torch.Tensor([r["eval_f1"] for r in results])
-    print(f"Macro F1: {f1_scores.mean():.3f} +- {f1_scores.std():.3f}")
+    print(f"Saving model to {output_path}")
+    model.save_pretrained(output_path)
+    tokenizer.save_pretrained(output_path)
 
 
 if __name__ == "__main__":
-    fire.Fire(run_sentiment_experiments)
+    fire.Fire(train)
