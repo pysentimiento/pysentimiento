@@ -1,6 +1,6 @@
 # PySentimiento: Sentiment Analysis in Spanish
 
-A simple Transformer-based library for Sentiment Analysis in Spanish (some other languages coming soon!).
+A simple Transformer-based library for Sentiment Analysis in Spanish (other languages coming soon!).
 
 Just do `pip install pysentimiento` and start using it:
 
