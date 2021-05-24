@@ -32,6 +32,27 @@ tokenizer = AutoTokenizer.from_pretrained("finiteautomata/beto-sentiment-analysi
 model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-sentiment-analysis")
 ```
 
+## Preprocessing
+
+`pysentimiento` features a tweet preprocessor specially suited for tweet classification with transformer-based models.
+
+```python
+from pysentimiento.preprocessing import preprocess_tweet
+
+# Replaces user handles and URLs by special tokens
+preprocess_tweet("@perezjotaeme debería cambiar esto http://bit.ly/sarasa") # "[USER] debería cambiar esto [URL]"
+
+# Shortens repeated characters
+preprocess_tweet("no entiendo naaaaaaaadaaaaaaaa", shorten=2) # "no entiendo naadaa"
+
+# Normalizes laughters
+preprocess_tweet("jajajajaajjajaajajaja no lo puedo creer ajajaj") # "jaja no lo puedo creer jaja"
+
+# Handles hashtags
+preprocess_tweet("esto es #UnaGenialidad") # "esto es una genialidad"
+
+```
+
 ## Trained models so far
 
 - [`beto-sentiment-analysis`](https://huggingface.co/finiteautomata/beto-sentiment-analysis)
