@@ -1,0 +1,20 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Run tests
+        run: |
+          pipenv install --dev
+          pipenv run pytest

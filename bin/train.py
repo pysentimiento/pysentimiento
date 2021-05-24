@@ -8,7 +8,7 @@ from transformers import (
 import pandas as pd
 from pysentimiento import compute_metrics
 from pysentimiento.tass import (
-    load_datasets, id2label, label2id, load_model,
+    load_datasets, load_model,
 )
 
 
@@ -22,7 +22,10 @@ def train(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model, tokenizer = load_model(base_model, device)
+    model, tokenizer = load_model(base_model)
+
+    model = model.to(device)
+    model.train()
 
     def tokenize(batch):
         return tokenizer(batch['text'], padding='max_length', truncation=True)

@@ -1,5 +1,8 @@
 # PySentimiento: Sentiment Analysis in Spanish
 
+
+![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
+
 A simple Transformer-based library for Sentiment Analysis in Spanish (other languages coming soon!).
 
 Just do `pip install pysentimiento` and start using it:
