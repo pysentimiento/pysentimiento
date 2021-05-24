@@ -69,7 +69,10 @@ Labels must be placed under `data/tass2020/test1.1/labels`
 2. Run script to train models
 
 ```
-python bin/train.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5
+python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5
+
+python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-emotion-analysis/ --epochs 5
+
 ```
 
 3. Upload models to Huggingface's Model Hub

@@ -1,5 +1,6 @@
 import torch
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from .datasets import id2label
 
 def compute_metrics(pred):
     """
