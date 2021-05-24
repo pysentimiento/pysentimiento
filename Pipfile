@@ -13,6 +13,7 @@ seaborn = "*"
 ipdb = "*"
 tensorboard = "*"
 tweepyrate = {git = "https://github.com/finiteautomata/tweepyrate"}
+pytest = "*"
 
 [packages]
 torch = "==1.4.0"
@@ -26,6 +27,7 @@ ipywidgets = "*"
 sklearn = "*"
 pysentimiento = {editable = true, path = "."}
 aiofiles = "*"
+emoji = "*"
 
 [requires]
 python_version = "3.8"
