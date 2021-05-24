@@ -4,13 +4,13 @@ from transformers import (
 from ..preprocessing import special_tokens
 from .datasets import load_datasets, id2label, label2id
 
-def load_model(base_model):
+def load_model(base_model, id2label=id2label, label2id=label2id):
     """
     Loads model and tokenizer
     """
     print(f"Loading model {base_model}")
     model = AutoModelForSequenceClassification.from_pretrained(
-        base_model, return_dict=True, num_labels=3
+        base_model, return_dict=True, num_labels=len(id2label)
     )
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)

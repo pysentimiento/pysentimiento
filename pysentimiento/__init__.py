@@ -1,4 +1,3 @@
-from .analyzer import SentimentAnalyzer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 def compute_metrics(pred):

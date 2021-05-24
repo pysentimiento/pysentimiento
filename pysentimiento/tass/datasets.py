@@ -9,7 +9,7 @@ from ..preprocessing import preprocess_tweet
 """
 Lo pongo así por huggingface
 """
-id2label = {0: 'N', 1: 'NEU', 2: 'P'}
+id2label = {0: 'NEG', 1: 'NEU', 2: 'POS'}
 label2id = {v:k for k,v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent.parent
