@@ -3,7 +3,13 @@
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
 
-A simple Transformer-based library for Sentiment Analysis in Spanish (other languages coming soon!).
+A Transformer-based library for SocialNLP classification tasks. 
+
+Currently supports:
+
+- Sentiment Analysis (Spanish)
+- Emotion Analysis (Spanish)
+
 
 Just do `pip install pysentimiento` and start using it:
 
@@ -59,6 +65,7 @@ preprocess_tweet("esto es #UnaGenialidad") # "esto es una genialidad"
 ## Trained models so far
 
 - [`beto-sentiment-analysis`](https://huggingface.co/finiteautomata/beto-sentiment-analysis)
+- [`beto-emotion-analysis`](https://huggingface.co/finiteautomata/beto-emotion-analysis)
 
 ## Instructions for developers
 
