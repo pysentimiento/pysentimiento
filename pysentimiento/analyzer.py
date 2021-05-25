@@ -3,11 +3,11 @@ from .preprocessing import preprocess_tweet
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.nn import functional as F
 
-class SentimentAnalyzer:
+class Analyzer:
     """
     Wrapper to use sentiment analysis models as black-box
     """
-    def __init__(self, model_name="finiteautomata/beto-sentiment-analysis"):
+    def __init__(self, model_name):
         """
         Constructor for SentimentAnalyzer class
         """
@@ -34,3 +34,18 @@ class SentimentAnalyzer:
         output = self.model(idx)
         probs = F.softmax(output.logits, dim=1).view(-1)
         return {self.id2label[i]:probs[i].item() for i in self.id2label}
+
+class SentimentAnalyzer(Analyzer):
+    """
+    Dummy class for sentiment analyzer
+    """
+    def __init__(self, model_name="finiteautomata/beto-sentiment-analysis"):
+        super().__init__(model_name)
+
+class EmotionAnalyzer(Analyzer):
+    """
+    Dummy class for emotion analyzer
+    """
+    def __init__(self, model_name="finiteautomata/beto-emotion-analysis"):
+        super().__init__(model_name)
+
