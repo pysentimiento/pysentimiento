@@ -3,7 +3,7 @@
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
 
-A Transformer-based library for SocialNLP classification tasks. 
+A Transformer-based library for SocialNLP classification tasks.
 
 Currently supports:
 
@@ -76,7 +76,9 @@ Labels must be placed under `data/tass2020/test1.1/labels`
 2. Run script to train models
 
 ```
-python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5
+python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5 --lang es
+python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/bert-base-sentiment-analysis/ --epochs 10 --lang en
+python bin/train_sentiment.py "vinai/bertweet-base" models/bertweet-base-sentiment-analysis/ --epochs 10 --lang en
 
 python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-emotion-analysis/ --epochs 5
 

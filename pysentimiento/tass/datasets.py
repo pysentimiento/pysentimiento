@@ -45,7 +45,9 @@ def load_df(path, test=False):
     df["lang"] = dialect
 
     for label, idx in label2id.items():
-        df.loc[df["polarity"] == label, "label"] = idx
+        polarity_label = {"NEG": "N", "NEU": "NEU", "POS": "P"}[label]
+        df.loc[df["polarity"] == polarity_label, "label"] = idx
+
     return df
 
 
