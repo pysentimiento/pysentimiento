@@ -52,6 +52,34 @@ def test_replaces_odd_quotation_marks():
     assert preprocess_tweet(text) == 'Pero pará un poco, "loquita"'
 
 
+def test_replaces_emoji():
+    """
+
+    Replaces “ -> "
+
+    """
+    text = "🤣"
+    assert preprocess_tweet(text) == '[EMOJI] cara revolviéndose de la risa [EMOJI]'
+
+
+def test_replaces_emoji_in_english():
+    """
+
+    Replaces “ -> "
+
+    """
+    text = "🤣"
+    assert preprocess_tweet(text, lang="en") == '[EMOJI] rolling on the floor laughing [EMOJI]'
+
+def test_shortens_laughters():
+    """
+    Replaces laughters
+    """
+
+    text = "hahahhahaha can't believe it ahahahahahah"
+    assert preprocess_tweet(text, lang="en") == "haha can't believe it haha"
+
+
 def test_preprocessing_handles_hashtags():
     """
     Replaces hashtags with text

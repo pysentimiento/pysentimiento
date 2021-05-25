@@ -35,7 +35,6 @@ def camel_to_human(s, lower=True):
     return ret
 
 emoji_regex = re.compile(r"\|([^\|]+)\|")
-laughter_regex = re.compile("[ja][ja]+aj[ja]+")
 
 def convert_emoji_to_text(x):
     """
@@ -73,11 +72,11 @@ replacements = {
     "☠": None,
     "☹": None,
     "☺": None,
-    "☻": "[EMOJI] carita feliz [EMOJI]",
+    "☻": "😃",
     "♀": None,
     "♂": None,
-    "♡": "corazón",
-    "♥": "corazón",
+    "♡": "❤️",
+    "♥": "❤️",
     "⚰": None,
     "⛱": None,
     "⛹": None,
@@ -89,19 +88,67 @@ replacements = {
     "🛰": None,
 }
 
+laughter_conf = {
+    "es": {
+        "regex": re.compile("[ja][ja]+aj[ja]+"),
+        "replacement": "jaja",
+    },
+    "en": {
+        "regex": re.compile("[ha][ha]+ah[ha]+"),
+        "replacement": "haha",
+    }
+}
+
+
 
 def preprocess_tweet(
-    text, user_token="[USER]", url_token="[URL]", preprocess_hashtags=True, hashtag_token=None,
+    text, lang="es", user_token="[USER]", url_token="[URL]", preprocess_hashtags=True, hashtag_token=None,
     demoji=True, shorten=3, normalize_laughter=True):
     """
     Basic preprocessing
 
     Arguments:
     ---------
-    shorten: int (default: 3)
 
-    Convert all occurrences of a character *shorten* or more times to just *shorten* times
+    text: str
+        Text to preprocess
+
+    lang: str (default 'es')
+        Language used in the preprocessing. This is used for the demoji functionality and laughter preprocessing
+
+    user_token: str (default "[USER]")
+        Token used to replace user handles
+
+    url_token: str (default "[URL]")
+        Token used to replace urls
+
+    preprocess_hashtags: boolean (default True)
+        If true, applies preprocessing to hashtag, trying to split camel cases
+
+    hashtag_token: str (default None)
+        If preprocess_hashtags is True, adds hashtag_token before the preprocessed content of the hashtag
+
+    shorten: int (default: 3)
+        If not none, all occurrences of shorten or more characters are cut to this number
+
+    demoji: boolean (default True)
+        If true, converts emoji to text representations using `emoji` library, and wraps this with "[EMOJI]" strings
+
+    normalize_laughter: boolean (default True)
+        Normalizes laughters. Uses different regular expressions depending on the lang argument.
     """
+
+
+    ret = ""
+    for char in text:
+        if char in replacements:
+            replacement = replacements[char]
+            if replacement:
+                ret += replacement
+        else:
+            ret += char
+    text = ret
+
     text = user_regex.sub(user_token, text)
     text = url_regex.sub(url_token, text)
 
@@ -110,17 +157,18 @@ def preprocess_tweet(
         text = repeated_regex.sub(r"\1"*shorten, text)
 
     if demoji:
-        text = emoji.demojize(text, language="es", delimiters=("|", "|"))
-
-
+        text = emoji.demojize(text, language=lang, delimiters=("|", "|"))
         text = emoji_regex.sub(
             convert_emoji_to_text,
             text
         )
 
     if normalize_laughter:
+        laughter_regex = laughter_conf[lang]["regex"]
+        replacement = laughter_conf[lang]["replacement"]
+
         text = laughter_regex.sub(
-            "jaja",
+            replacement,
             text
         )
 
@@ -147,14 +195,5 @@ def preprocess_tweet(
             text
         )
 
-    ret = ""
-    for char in text:
-        if char in replacements:
-            replacement = replacements[char]
-            if replacement:
-                ret += replacement
-        else:
-            ret += char
-    text = ret
 
     return text
