@@ -55,10 +55,13 @@ def train(
     dev_dataset = dev_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
     test_dataset = test_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
 
-
     def format_dataset(dataset):
         dataset = dataset.map(lambda examples: {'labels': examples['label']})
-        dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+        columns = ['input_ids', 'attention_mask', 'labels']
+        if 'token_type_ids' in dataset.features:
+            columns.append('token_type_ids')
+        dataset.set_format(type='torch', columns=columns)
+        print(columns)
         return dataset
 
     train_dataset = format_dataset(train_dataset)
