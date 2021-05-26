@@ -71,7 +71,7 @@ def eval_emotion(
 
     print(tokenizer.decode(test_dataset[0]["input_ids"]), "\n\n")
 
-    print("\n\nTraining\n")
+    print("\n\nEvaluating\n")
 
 
     training_args = TrainingArguments(
