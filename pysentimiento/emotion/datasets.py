@@ -75,6 +75,6 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}):
 
     train_dataset = Dataset.from_pandas(train_df, features=features)
     dev_dataset = Dataset.from_pandas(dev_df, features=features)
-    test_dataset = Dataset.from_pandas(dev_df, features=features)
+    test_dataset = Dataset.from_pandas(test_df, features=features)
 
     return train_dataset, dev_dataset, test_dataset

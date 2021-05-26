@@ -34,7 +34,7 @@ def load_model(base_model, id2label=id2label, label2id=label2id, max_length=128)
 
             Hay una interfaz diferente acá, no entiendo bien por qué
             """
-            if type(tokenizer) is BertTokenizerFast:
+            if hasattr(tokenizer, "is_fast") and tokenizer.is_fast:
                 tokenizer.add_special_tokens({'additional_special_tokens': new_tokens_to_add})
             else:
                 tokenizer.add_special_tokens(new_tokens_to_add)
