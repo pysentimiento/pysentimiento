@@ -105,7 +105,7 @@ def train(
     total_steps = (epochs * len(train_dataset)) // batch_size
     warmup_steps = total_steps // 10
     training_args = TrainingArguments(
-        output_dir='./results',
+        output_dir='./results/' + output_path,
         num_train_epochs=epochs,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,
