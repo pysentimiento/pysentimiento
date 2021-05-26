@@ -42,10 +42,12 @@ extra_args = {
 
 
 def train(
-    base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=16, warmup_proportion=0.1
+    base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=16, warmup_proportion=0.1, limit=None,
 ):
     """
     """
+    print("="*80 + '\n', "="*80 + '\n')
+    print(f"Training {base_model} in language {lang}", "\n" * 2)
     print("Loading dataset")
     if lang not in lang_conf.keys():
         print("lang must be one of ", lang_conf.keys())
@@ -59,6 +61,15 @@ def train(
     load_extra_args = extra_args[base_model] if base_model in extra_args else {}
 
     train_dataset, dev_dataset, test_dataset = load_datasets(**load_extra_args)
+
+    if limit:
+        """
+        Smoke test
+        """
+        print("\n\n", f"Limiting to {limit} instances")
+        train_dataset = train_dataset.select(range(limit))
+        dev_dataset = dev_dataset.select(range(limit))
+        test_dataset = test_dataset.select(range(limit))
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 

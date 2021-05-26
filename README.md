@@ -86,6 +86,12 @@ python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-
 
 3. Upload models to Huggingface's Model Hub
 
+## Smoke test
+
+```
+python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --epochs 5 --limit 500 && python bin/train_sentiment.py "bert-base-uncased" models/test/ --epochs 5 --limit 500 --lang en && rm -Rf models/test/
+```
+
 ## TODO:
 
 * Upload some other models
