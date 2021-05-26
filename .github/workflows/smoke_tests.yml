@@ -1,0 +1,23 @@
+name: smoke_tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Run tests
+        run: |
+          pipenv install --dev
+          pipenv run python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --epochs 5 --limit 500
+          pipenv run python bin/train_sentiment.py "bert-base-uncased" models/test/ --epochs 5 --limit 500 --lang en
+          pipenv run python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --lang es --epochs 3 --limit 500
+          pipenv run python bin/train_emotion.py "bert-base-uncased" models/test/ --lang en --epochs 3 --limit
