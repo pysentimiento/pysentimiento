@@ -1,4 +1,6 @@
 {
+    "lang": "es",
+    "model": "models/beto-sentiment-analysis/",
     "predictions": [
         [
             4.59019660949707,
@@ -43602,7 +43604,7 @@
         "test_macro_precision": 0.6726292967796326,
         "test_macro_recall": 0.666760265827179,
         "test_acc": 0.6722191629955947,
-        "test_runtime": 36.6054,
-        "test_samples_per_second": 198.441
+        "test_runtime": 41.9681,
+        "test_samples_per_second": 173.084
     }
 }

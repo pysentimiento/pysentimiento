@@ -1,4 +1,6 @@
 {
+    "lang": "en",
+    "model": "models/bertweet-base-sentiment-analysis/",
     "predictions": [
         [
             -3.598585844039917,
@@ -123810,7 +123812,7 @@
         "test_macro_precision": 0.9188560843467712,
         "test_macro_recall": 0.9338058829307556,
         "test_acc": 0.9294784800310197,
-        "test_runtime": 152.3812,
-        "test_samples_per_second": 135.397
+        "test_runtime": 112.1716,
+        "test_samples_per_second": 183.933
     }
 }
