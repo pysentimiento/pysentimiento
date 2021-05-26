@@ -9,13 +9,28 @@ from pysentimiento.tass import load_model
 from pysentimiento.emotion import load_datasets
 from pysentimiento.emotion.datasets import id2label, label2id
 from pysentimiento.metrics import compute_metrics
-
+from sklearn.utils.class_weight import compute_class_weight
 
 extra_args = {
     "vinai/bertweet-base": {
         "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
     }
 }
+
+
+class MultiLabelTrainer(Trainer):
+    def __init__(self, class_weight, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_weight = class_weight
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
+        num_labels = self.model.config.num_labels
+        loss = loss_fct(logits, labels)
+        return (loss, outputs) if return_outputs else loss
 
 
 def train(
@@ -48,7 +63,11 @@ def train(
         dev_dataset = dev_dataset.select(range(limit))
         test_dataset = test_dataset.select(range(limit))
 
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    class_weight = torch.Tensor(
+        compute_class_weight('balanced', list(id2label), y=train_dataset["label"])
+    ).to(device)
 
     model, tokenizer = load_model(base_model,
         id2label=id2label,
@@ -81,6 +100,8 @@ def train(
 
     print("\n\nTraining\n")
 
+
+
     total_steps = (epochs * len(train_dataset)) // batch_size
     warmup_steps = total_steps // 10
     training_args = TrainingArguments(
@@ -97,7 +118,8 @@ def train(
         metric_for_best_model="macro_f1",
     )
 
-    trainer = Trainer(
+    trainer = MultiLabelTrainer(
+        class_weight=class_weight,
         model=model,
         args=training_args,
         compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
@@ -106,6 +128,7 @@ def train(
     )
 
     trainer.train()
+
 
     test_results = trainer.evaluate(test_dataset)
     print("\n\n")
