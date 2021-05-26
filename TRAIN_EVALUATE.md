@@ -26,13 +26,13 @@ python bin/train_emotion.py "distilbert-base-multilingual-cased" models/distilbe
 python bin/train_emotion.py "bert-base-multilingual-cased" models/mbert-en-emotion-analysis/ --epochs 5 --lang en
 
 python bin/train_emotion.py "bert-base-uncased" models/bert-base-emotion-analysis/ --epochs 5 --lang en
-python bin/train_emotion.py "roberta-base" models/roberta-base-emotion-analysis/ --epochs 10 --lang en
+python bin/train_emotion.py "roberta-base" models/roberta-base-emotion-analysis/ --epochs 5 --lang en
 python bin/train_emotion.py "vinai/bertweet-base" models/bertweet-base-emotion-analysis/ --epochs 5 --lang en
 ```
 
 ## Evaluation
 
-```
+```bash
 python bin/eval_sentiment.py models/beto-sentiment-analysis/ evaluations/sentiment_beto.json --lang es
 python bin/eval_sentiment.py models/distilbert-es-sentiment-analysis/ evaluations/sentiment_distilbert_es.json --lang es
 python bin/eval_sentiment.py models/mbert-es-sentiment-analysis/ evaluations/sentiment_mbert_es.json --lang es
@@ -48,7 +48,10 @@ python bin/eval_emotion.py models/beto-emotion-analysis/ evaluations/emotion_bet
 python bin/eval_emotion.py models/distilbert-es-emotion-analysis/ evaluations/emotion_distilbert_es.json --lang es
 python bin/eval_emotion.py models/mbert-es-emotion-analysis/ evaluations/emotion_mbert_es.json --lang es
 
+# Emotion English
 python bin/eval_emotion.py models/distilbert-en-emotion-analysis/ evaluations/emotion_distilbert_en.json --lang en
+python bin/eval_emotion.py models/mbert-en-emotion-analysis/ evaluations/emotion_mbert_en.json --lang en
+
 python bin/eval_emotion.py models/bert-base-emotion-analysis/ evaluations/emotion_bert_base.json --lang en
 python bin/eval_emotion.py models/bertweet-base-emotion-analysis/ evaluations/emotion_bertweet_base.json --lang en
 python bin/eval_emotion.py models/roberta-base-emotion-analysis/ evaluations/emotion_roberta.json --lang en
