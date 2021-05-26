@@ -10,6 +10,14 @@ from pysentimiento.emotion import load_datasets
 from pysentimiento.emotion.datasets import id2label, label2id
 from pysentimiento.metrics import compute_metrics
 
+
+extra_args = {
+    "vinai/bertweet-base": {
+        "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+    }
+}
+
+
 def train(
     base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=16,
     warmup_proportion=.1, limit=None
@@ -25,7 +33,10 @@ def train(
         sys.exit(1)
 
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(lang=lang)
+
+    load_extra_args = extra_args[base_model] if base_model in extra_args else {}
+
+    train_dataset, dev_dataset, test_dataset = load_datasets(lang=lang, **load_extra_args)
 
 
     if limit:
