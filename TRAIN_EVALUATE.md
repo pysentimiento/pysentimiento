@@ -37,6 +37,8 @@ python bin/eval_sentiment.py models/beto-sentiment-analysis/ evaluations/sentime
 python bin/eval_sentiment.py models/distilbert-es-sentiment-analysis/ evaluations/sentiment_distilbert_es.json --lang es
 python bin/eval_sentiment.py models/mbert-es-sentiment-analysis/ evaluations/sentiment_mbert_es.json --lang es
 
+
+python bin/eval_sentiment.py models/mbert-en-sentiment-analysis/ evaluations/sentiment_mbert_en.json --lang en
 python bin/eval_sentiment.py models/distilbert-en-sentiment-analysis/ evaluations/sentiment_distilbert_en.json --lang en
 python bin/eval_sentiment.py models/bert-base-sentiment-analysis/ evaluations/sentiment_bert_base.json --lang en
 python bin/eval_sentiment.py models/bertweet-base-sentiment-analysis/ evaluations/sentiment_bertweet_base.json --lang en
