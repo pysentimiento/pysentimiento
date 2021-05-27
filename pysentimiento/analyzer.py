@@ -36,11 +36,14 @@ class BaseOutput:
         self.sentence = sentence
         self.idx = idx
         self.probas = probas
-        self.output = max(probas.items(), key=lambda x: x[1])
+        self.output = max(probas.items(), key=lambda x: x[1])[0]
 
     def __repr__(self):
         ret = f"{self.__class__.__name__}"
-        ret += f"(output={self.output}, probas={self.probas})"
+        formatted_probas = sorted(self.probas.items(), key=lambda x: -x[1])
+        formatted_probas = [f"{k}: {v:.3f}" for k, v in formatted_probas]
+        formatted_probas = "{" + ", ".join(formatted_probas) + "}"
+        ret += f"(output={self.output}, probas={formatted_probas})"
 
         return ret
 
