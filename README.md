@@ -78,8 +78,18 @@ preprocess_tweet("🎉🎉", lang="en")
 
 ## Trained models so far
 
+Check [CLASSIFIERS.md](CLASSIFIERS.md) for details on the reported performances of each model.
+
+### Spanish models
+
 - [`beto-sentiment-analysis`](https://huggingface.co/finiteautomata/beto-sentiment-analysis)
 - [`beto-emotion-analysis`](https://huggingface.co/finiteautomata/beto-emotion-analysis)
+
+### English models
+
+- [`bertweet-base-sentiment-analysis`](https://huggingface.co/finiteautomata/bertweet-base-sentiment-analysis)
+- [`bertweet-base-emotion-analysis`](https://huggingface.co/finiteautomata/bertweet-base-emotion-analysis)
+
 
 ## Instructions for developers
 

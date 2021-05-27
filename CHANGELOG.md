@@ -11,6 +11,7 @@
 ## 0.1.1
 
 - Improve preprocessing
+- Add tests
 
 ## 0.1.0
 

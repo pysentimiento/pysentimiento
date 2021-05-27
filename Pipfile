@@ -14,6 +14,7 @@ ipdb = "*"
 tensorboard = "*"
 tweepyrate = {git = "https://github.com/finiteautomata/tweepyrate"}
 pytest = "*"
+tabulate = "*"
 
 [packages]
 torch = "==1.8.1"
