@@ -17,18 +17,28 @@ Just do `pip install pysentimiento` and start using it:
 
 ```python
 from pysentimiento import SentimentAnalyzer
-analyzer = SentimentAnalyzer()
-analyzer.predict("Qué gran jugador es Messi")
-# returns 'POS'
-analyzer.predict("Esto es pésimo")
-# returns 'NEG'
-analyzer.predict("Qué es esto?")
-# returns 'NEU'
+analyzer = SentimentAnalyzer(lang="es")
 
-analyzer.predict_probas("Dónde estamos?")
-# returns {'NEG': 0.10235335677862167,
-# 'NEU': 0.8503277897834778,
-# 'POS': 0.04731876030564308}
+analyzer.predict("Qué gran jugador es Messi")
+# returns SentimentOutput(output=POS, probas={POS: 0.998, NEG: 0.002, NEU: 0.000})
+analyzer.predict("Esto es pésimo")
+# returns SentimentOutput(output=NEG, probas={NEG: 0.999, POS: 0.001, NEU: 0.000})
+analyzer.predict("Qué es esto?")
+# returns SentimentOutput(output=NEU, probas={NEU: 0.993, NEG: 0.005, POS: 0.002})
+
+analyzer.predict("jejeje no te creo mucho")
+# SentimentOutput(output=NEG, probas={NEG: 0.587, NEU: 0.408, POS: 0.005})
+"""
+Emotion Analysis in English
+"""
+
+emotion_analyzer = EmotionAnalyzer(lang="en")
+
+emotion_analyzer.predict("yayyy")
+# returns EmotionOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
+emotion_analyzer.predict("fuck off")
+# returns EmotionOutput(output=anger, probas={anger: 0.798, surprise: 0.055, fear: 0.040, disgust: 0.036, joy: 0.028, others: 0.023, sadness: 0.019})
+
 ```
 
 Also, you might use pretrained models directly with [`transformers`](https://github.com/huggingface/transformers) library.
@@ -58,8 +68,12 @@ preprocess_tweet("no entiendo naaaaaaaadaaaaaaaa", shorten=2) # "no entiendo naa
 preprocess_tweet("jajajajaajjajaajajaja no lo puedo creer ajajaj") # "jaja no lo puedo creer jaja"
 
 # Handles hashtags
-preprocess_tweet("esto es #UnaGenialidad") # "esto es una genialidad"
+preprocess_tweet("esto es #UnaGenialidad")
+# "esto es una genialidad"
 
+# Handles emojis
+preprocess_tweet("🎉🎉", lang="en")
+# '[EMOJI] party popper [EMOJI][EMOJI] party popper [EMOJI]'
 ```
 
 ## Trained models so far
@@ -75,35 +89,12 @@ Labels must be placed under `data/tass2020/test1.1/labels`
 
 2. Run script to train models
 
-```
-# Sentiment
-python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5 --lang es
-
-
-python bin/train_sentiment.py "bert-base-uncased" models/bert-base-sentiment-analysis/ --epochs 10 --lang en
-python bin/train_sentiment.py "roberta-base" models/roberta-base-sentiment-analysis/ --epochs 10 --lang en
-
-python bin/train_sentiment.py "vinai/bertweet-base" models/bertweet-base-sentiment-analysis/ --epochs 10 --lang en
-
-# Emotion
-
-python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-emotion-analysis/ --epochs 5 --lang es
-
-python bin/train_emotion.py "bert-base-uncased" models/bert-base-emotion-analysis/ --epochs 5 --lang en
-python bin/train_emotion.py "vinai/bertweet-base" models/bertweet-base-emotion-analysis/ --epochs 5 --lang es
-
-```
+Check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
 
 3. Upload models to Huggingface's Model Hub
 
-## Smoke test
+Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sharing.html) instructions in `huggingface` docs.
 
-```
-python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --epochs 5 --limit 500 && python bin/train_sentiment.py "bert-base-uncased" models/test/ --epochs 5 --limit 500 --lang en && rm -Rf models/test/
-
-# Emotion
-python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --lang es --epochs 3 --limit 500 && python bin/train_emotion.py "vinai/bertweet-base" models/test/ --lang en --epochs 3 --limit 500 && rm -Rf models/test/
-```
 
 ## TODO:
 

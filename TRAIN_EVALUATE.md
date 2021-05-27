@@ -59,3 +59,12 @@ python bin/eval_emotion.py models/bertweet-base-emotion-analysis/ evaluations/em
 python bin/eval_emotion.py models/roberta-base-emotion-analysis/ evaluations/emotion_roberta.json --lang en
 ```
 
+
+## Smoke test
+
+```
+python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --epochs 5 --limit 500 && python bin/train_sentiment.py "bert-base-uncased" models/test/ --epochs 5 --limit 500 --lang en && rm -Rf models/test/
+
+# Emotion
+python bin/train_emotion.py "dccuchile/bert-base-spanish-wwm-cased" models/test/ --lang es --epochs 3 --limit 500 && python bin/train_emotion.py "vinai/bertweet-base" models/test/ --lang en --epochs 3 --limit 500 && rm -Rf models/test/
+```
