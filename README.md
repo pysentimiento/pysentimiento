@@ -7,8 +7,8 @@ A Transformer-based library for SocialNLP classification tasks.
 
 Currently supports:
 
-- Sentiment Analysis (Spanish)
-- Emotion Analysis (Spanish)
+- Sentiment Analysis (Spanish, English)
+- Emotion Analysis (Spanish, English)
 
 
 Just do `pip install pysentimiento` and start using it:
