@@ -73720,11 +73720,12 @@
         "test_pos_f1": 0.6657206568011352,
         "test_pos_precision": 0.6419077404222049,
         "test_pos_recall": 0.6913684210526316,
+        "test_micro_f1": 0.6858515141647672,
         "test_macro_f1": 0.6836448311805725,
         "test_macro_precision": 0.6782293319702148,
         "test_macro_recall": 0.6901989579200745,
         "test_acc": 0.6858515141647672,
-        "test_runtime": 62.7816,
-        "test_samples_per_second": 195.662
+        "test_runtime": 63.0409,
+        "test_samples_per_second": 194.858
     }
 }

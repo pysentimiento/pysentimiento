@@ -16798,11 +16798,12 @@
         "test_fear_f1": 0.5333333333333333,
         "test_fear_precision": 0.4444444444444444,
         "test_fear_recall": 0.6666666666666666,
+        "test_micro_f1": 0.6875372689326178,
         "test_macro_f1": 0.5475055575370789,
         "test_macro_precision": 0.541120707988739,
         "test_macro_recall": 0.5682130455970764,
         "test_acc": 0.6875372689326178,
-        "test_runtime": 10.6171,
-        "test_samples_per_second": 157.953
+        "test_runtime": 12.2388,
+        "test_samples_per_second": 137.024
     }
 }

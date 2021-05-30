@@ -29,7 +29,10 @@ def compute_metrics(pred, id2label):
         ret[cat.lower()+"_precision"] = precision
         ret[cat.lower()+"_recall"] = recall
 
-
+    _, _, micro_f1, _ = precision_recall_fscore_support(
+        labels, preds, average="micro"
+    )
+    ret["micro_f1"] = micro_f1
     ret["macro_f1"] = torch.Tensor(f1s).mean()
     ret["macro_precision"] = torch.Tensor(precs).mean()
     ret["macro_recall"] = torch.Tensor(recalls).mean()
