@@ -1,4 +1,4 @@
-# PySentimiento: A Python toolkit for Sentiment Analysis and Social NLP tasks
+# pysentimiento: A Python toolkit for Sentiment Analysis and Social NLP tasks
 
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
