@@ -36,10 +36,10 @@ def camel_to_human(s, lower=True):
 
 emoji_regex = re.compile(r"\|([^\|]+)\|")
 
-def convert_emoji_to_text(x):
+def convert_emoji_to_text(x, emoji_wrapper="[EMOJI]"):
     """
     """
-    return "[EMOJI] " + " ".join(x.groups()[0].split("_")) + " [EMOJI]"
+    return f"{emoji_wrapper} " + " ".join(x.groups()[0].split("_")) + f" {emoji_wrapper}"
 
 
 replacements = {
@@ -103,7 +103,7 @@ laughter_conf = {
 
 def preprocess_tweet(
     text, lang="es", user_token="[USER]", url_token="[URL]", preprocess_hashtags=True, hashtag_token=None,
-    demoji=True, shorten=3, normalize_laughter=True):
+    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="[EMOJI]"):
     """
     Basic preprocessing
 
@@ -159,7 +159,7 @@ def preprocess_tweet(
     if demoji:
         text = emoji.demojize(text, language=lang, delimiters=("|", "|"))
         text = emoji_regex.sub(
-            convert_emoji_to_text,
+            lambda x: convert_emoji_to_text(x, emoji_wrapper=emoji_wrapper),
             text
         )
 
