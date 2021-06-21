@@ -105,12 +105,25 @@ Check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
 
 Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sharing.html) instructions in `huggingface` docs.
 
+## Citation
+
+If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.org/abs/2106.09462)
+
+```
+@misc{perez2021pysentimiento,
+      title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks}, 
+      author={Juan Manuel Pérez and Juan Carlos Giudici and Franco Luque},
+      year={2021},
+      eprint={2106.09462},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
 
 ## TODO:
 
 * Upload some other models
 * Train in other languages
-* Write brief paper with description
 
 ## Suggestions and bugfixes
 
