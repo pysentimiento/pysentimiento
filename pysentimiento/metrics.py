@@ -9,6 +9,10 @@ def compute_metrics(pred, id2label):
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
 
+    return get_metrics(preds, labels, id2label)
+
+
+def get_metrics(preds, labels, id2label):
     ret = {}
 
     f1s = []
@@ -18,7 +22,7 @@ def compute_metrics(pred, id2label):
     for i, cat in id2label.items():
         cat_labels, cat_preds = labels == i, preds == i
         precision, recall, f1, _ = precision_recall_fscore_support(
-            cat_labels, cat_preds, average='binary'
+            cat_labels, cat_preds, average='binary', zero_division=0,
         )
 
         f1s.append(f1)
@@ -40,4 +44,3 @@ def compute_metrics(pred, id2label):
     ret["acc"] = accuracy_score(labels, preds)
 
     return ret
-

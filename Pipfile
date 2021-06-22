@@ -29,6 +29,7 @@ sklearn = "*"
 pysentimiento = {editable = true, path = "."}
 aiofiles = "*"
 emoji = "*"
+pytorch-lightning = "*"
 
 [requires]
 python_version = "3.8"

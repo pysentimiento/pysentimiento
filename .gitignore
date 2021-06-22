@@ -117,3 +117,4 @@ runs/*
 **/runs/*
 **/results/*
 .vscode/*
+**/lightning_logs/*
