@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.2.1
+
+- Add missing dependencies to `setup.py`
+- Add `emoji_wrapper` argument to `preprocess_tweet`
+
 ## 0.2.0
 
 - Add Emotion Analyzer model
