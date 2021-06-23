@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.2
+
+- Add surrounding spaces in emoji preprocessing
+
 ## 0.2.1
 
 - Add missing dependencies to `setup.py`
