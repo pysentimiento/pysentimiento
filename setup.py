@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pysentimiento", # Replace with your own username
-    version="0.2.1",
+    version="0.2.2",
     author="Juan Manuel Pérez, Juan Carlos Giudici, Franco Luque",
     author_email="jmperez@dc.uba.ar",
     description="A Transformer-based library for Sentiment Analysis in Spanish",

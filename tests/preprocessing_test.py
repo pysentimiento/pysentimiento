@@ -59,7 +59,7 @@ def test_replaces_emoji():
 
     """
     text = "🤣"
-    assert preprocess_tweet(text) == '[EMOJI] cara revolviéndose de la risa [EMOJI]'
+    assert preprocess_tweet(text) == ' [EMOJI] cara revolviéndose de la risa [EMOJI] '
 
 
 def test_replaces_emoji_in_english():
@@ -69,7 +69,7 @@ def test_replaces_emoji_in_english():
 
     """
     text = "🤣"
-    assert preprocess_tweet(text, lang="en") == '[EMOJI] rolling on the floor laughing [EMOJI]'
+    assert preprocess_tweet(text, lang="en") == ' [EMOJI] rolling on the floor laughing [EMOJI] '
 
 def test_shortens_laughters():
     """

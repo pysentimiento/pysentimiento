@@ -39,7 +39,7 @@ emoji_regex = re.compile(r"\|([^\|]+)\|")
 def convert_emoji_to_text(x, emoji_wrapper="[EMOJI]"):
     """
     """
-    return f"{emoji_wrapper} " + " ".join(x.groups()[0].split("_")) + f" {emoji_wrapper}"
+    return f" {emoji_wrapper} " + " ".join(x.groups()[0].split("_")) + f" {emoji_wrapper} "
 
 
 replacements = {
