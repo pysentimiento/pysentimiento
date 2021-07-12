@@ -51,7 +51,7 @@ def load_df(path, test=False):
     return df
 
 
-def load_datasets(preprocess_args={}):
+def load_datasets(preprocess_args={}, preprocess=True, return_df=False):
     """
     Return train, dev, test datasets
     """
@@ -79,11 +79,15 @@ def load_datasets(preprocess_args={}):
     Tokenize tweets
     """
 
-    preprocess_with_args = lambda x: preprocess_tweet(x, **preprocess_args)
+    if preprocess:
+        preprocess_with_args = lambda x: preprocess_tweet(x, **preprocess_args)
 
-    train_df["text"] = train_df["text"].apply(preprocess_with_args)
-    dev_df["text"] = dev_df["text"].apply(preprocess_with_args)
-    test_df["text"] = test_df["text"].apply(preprocess_with_args)
+        train_df["text"] = train_df["text"].apply(preprocess_with_args)
+        dev_df["text"] = dev_df["text"].apply(preprocess_with_args)
+        test_df["text"] = test_df["text"].apply(preprocess_with_args)
+
+    if return_df:
+        return train_df, dev_df, test_df
 
     features = Features({
         'text': Value('string'),
