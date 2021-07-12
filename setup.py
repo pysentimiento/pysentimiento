@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "transformers==4.6.1",
+        "transformers",
         "emoji",
         "torch",
         "sklearn",
