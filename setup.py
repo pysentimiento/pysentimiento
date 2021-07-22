@@ -24,5 +24,6 @@ setuptools.setup(
         "emoji",
         "torch",
         "sklearn",
+        "datasets"
     ]
 )
