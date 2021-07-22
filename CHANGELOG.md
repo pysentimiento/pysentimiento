@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.5
+
+- Fix dependency issue
+
 ## 0.2.4
 
 - Enhance batch prediction
