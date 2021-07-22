@@ -1,11 +1,7 @@
 import emoji
 import re
 
-special_tokens = [
-    "[USER]",
-    "[HASHTAG]",
-    "[EMOJI]",
-]
+special_tokens = ["@usuario", "url", "hashtag", "emoji"]
 
 
 user_regex = re.compile(r"@[a-zA-Z0-9_]{0,15}")

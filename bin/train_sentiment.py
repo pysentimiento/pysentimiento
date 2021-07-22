@@ -1,18 +1,10 @@
-from pysentimiento.emotion.datasets import load_datasets
 import sys
 import fire
 import torch
-from glob import glob
-from transformers import (
-    Trainer, TrainingArguments, set_seed
-)
-import pandas as pd
-from pysentimiento import compute_metrics
 from pysentimiento.tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
-    load_model,
 )
-
+from pysentimiento.training import load_model, train_model
 from pysentimiento.semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
@@ -42,7 +34,7 @@ extra_args = {
 
 
 def train(
-    base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=16, warmup_proportion=0.1, limit=None,
+    base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=32, warmup_proportion=0.1, limit=None,
 ):
     """
     """
@@ -79,57 +71,16 @@ def train(
     model.train()
 
     def tokenize(batch):
-        return tokenizer(batch['text'], padding='max_length', truncation=True)
+        return tokenizer(batch['text'], padding=False, truncation=True)
 
 
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=batch_size)
-    dev_dataset = dev_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
-
-    def format_dataset(dataset):
-        dataset = dataset.map(lambda examples: {'labels': examples['label']})
-        columns = ['input_ids', 'attention_mask', 'labels']
-        if 'token_type_ids' in dataset.features:
-            columns.append('token_type_ids')
-        dataset.set_format(type='torch', columns=columns)
-        print(columns)
-        return dataset
-
-    train_dataset = format_dataset(train_dataset)
-    dev_dataset = format_dataset(dev_dataset)
-    test_dataset = format_dataset(test_dataset)
 
 
-    print("\n\nTraining\n")
-
-
-    total_steps = (epochs * len(train_dataset)) // batch_size
-    warmup_steps = int(warmup_proportion * total_steps)
-    training_args = TrainingArguments(
-        output_dir='./results/' + output_path,
-        num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=eval_batch_size,
-        warmup_steps=warmup_steps,
-        evaluation_strategy="epoch",
-        do_eval=False,
-        weight_decay=0.01,
-        logging_dir='./logs',
-        load_best_model_at_end=True,
-        metric_for_best_model="macro_f1",
+    _, test_results = train_model(
+        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+        epochs=epochs, batch_size=batch_size
     )
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
-        train_dataset=train_dataset,
-        eval_dataset=dev_dataset,
-    )
-
-    trainer.train()
-
-    test_results = trainer.evaluate(test_dataset)
     print("\n\n")
     print("Test results")
     print("============")

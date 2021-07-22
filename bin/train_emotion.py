@@ -5,7 +5,7 @@ from transformers import (
     Trainer, TrainingArguments,
 )
 import pandas as pd
-from pysentimiento.tass import load_model
+from pysentimiento.training import train_model, load_model
 from pysentimiento.emotion import load_datasets
 from pysentimiento.emotion.datasets import id2label, label2id
 from pysentimiento.metrics import compute_metrics
@@ -17,20 +17,6 @@ extra_args = {
     }
 }
 
-
-class MultiLabelTrainer(Trainer):
-    def __init__(self, class_weight, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.class_weight = class_weight
-
-    def compute_loss(self, model, inputs, return_outputs=False):
-        labels = inputs.pop("labels")
-        outputs = model(**inputs)
-        logits = outputs.logits
-        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
-        num_labels = self.model.config.num_labels
-        loss = loss_fct(logits, labels)
-        return (loss, outputs) if return_outputs else loss
 
 
 def train(
@@ -64,73 +50,21 @@ def train(
         test_dataset = test_dataset.select(range(limit))
 
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     class_weight = torch.Tensor(
         compute_class_weight('balanced', list(id2label), y=train_dataset["label"])
-    ).to(device)
+    )
 
     model, tokenizer = load_model(base_model,
         id2label=id2label,
         label2id=label2id
     )
 
-    model = model.to(device)
-    model.train()
 
-    def tokenize(batch):
-        return tokenizer(batch['text'], padding='max_length', truncation=True)
-
-
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=batch_size)
-    dev_dataset = dev_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
-
-    def format_dataset(dataset):
-        dataset = dataset.map(lambda examples: {'labels': examples['label']})
-        columns = ['input_ids', 'attention_mask', 'labels']
-        if 'token_type_ids' in dataset.features:
-            columns.append('token_type_ids')
-        dataset.set_format(type='torch', columns=columns)
-        print(columns)
-        return dataset
-
-    train_dataset = format_dataset(train_dataset)
-    dev_dataset = format_dataset(dev_dataset)
-    test_dataset = format_dataset(test_dataset)
-
-    print("\n\nTraining\n")
-
-
-
-    total_steps = (epochs * len(train_dataset)) // batch_size
-    warmup_steps = total_steps // 10
-    training_args = TrainingArguments(
-        output_dir='./results/' + output_path,
-        num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=eval_batch_size,
-        warmup_steps=warmup_steps,
-        evaluation_strategy="epoch",
-        do_eval=False,
-        weight_decay=0.01,
-        logging_dir='./logs',
-        load_best_model_at_end=True,
-        metric_for_best_model="macro_f1",
+    _, test_results = train_model(
+        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+        epochs=epochs, batch_size=batch_size, class_weight=class_weight
     )
 
-    trainer = MultiLabelTrainer(
-        class_weight=class_weight,
-        model=model,
-        args=training_args,
-        compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
-        train_dataset=train_dataset,
-        eval_dataset=dev_dataset,
-    )
-
-    trainer.train()
-
-
-    test_results = trainer.evaluate(test_dataset)
     print("\n\n")
     print("Test results")
     print("============")

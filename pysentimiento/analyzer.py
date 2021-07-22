@@ -72,7 +72,7 @@ class Analyzer:
         Return most likely class for the sentence
         """
         sentence = preprocess_tweet(sentence, **self.preprocessing_args)
-        idx = torch.LongTensor(self.tokenizer.encode(sentence)).view(1, -1)
+        idx = torch.LongTensor(self.tokenizer.encode(sentence, max_length=self.tokenizer.max_length)).view(1, -1)
         output = self.model(idx)
         probs = F.softmax(output.logits, dim=1).view(-1)
         probas = {self.id2label[i]:probs[i].item() for i in self.id2label}
