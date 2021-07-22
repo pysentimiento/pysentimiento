@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.4
+
+- Enhance batch prediction
+
 ## 0.2.3
 
 - Fix issue with
