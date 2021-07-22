@@ -102,8 +102,8 @@ laughter_conf = {
 
 
 def preprocess_tweet(
-    text, lang="es", user_token="[USER]", url_token="[URL]", preprocess_hashtags=True, hashtag_token=None,
-    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="[EMOJI]"):
+    text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None,
+    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji"):
     """
     Basic preprocessing
 
@@ -195,5 +195,4 @@ def preprocess_tweet(
             text
         )
 
-
-    return text
+    return text.strip()

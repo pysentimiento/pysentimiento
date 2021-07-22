@@ -7,7 +7,7 @@ def test_preprocessing_replaces_users():
     """
     text = "@perezjotaeme debería cambiar esto"
 
-    assert preprocess_tweet(text) == "[USER] debería cambiar esto"
+    assert preprocess_tweet(text) == "@usuario debería cambiar esto"
 
 def test_preprocessing_replaces_users_twice():
     """
@@ -15,7 +15,7 @@ def test_preprocessing_replaces_users_twice():
     """
     text = "@perezjotaeme @perezjotaeme debería cambiar esto"
 
-    assert preprocess_tweet(text) == "[USER] [USER] debería cambiar esto"
+    assert preprocess_tweet(text) == "@usuario @usuario debería cambiar esto"
 
 def test_preprocessing_replaces_urls():
     """
@@ -23,7 +23,7 @@ def test_preprocessing_replaces_urls():
     """
     text = "esto es muy bueno http://bit.ly/sarasa"
 
-    assert preprocess_tweet(text) == "esto es muy bueno [URL]"
+    assert preprocess_tweet(text) == "esto es muy bueno url"
 
 def test_shortens_repeated_characters():
     """
@@ -38,7 +38,7 @@ def test_shortens_laughters():
     Replaces laughters
     """
 
-    text = "jajajajaajjajaajajaja no lo puedo creer ajajaj"
+    text = "jajajajaajjjajaajajaja no lo puedo creer ajajaj"
     assert preprocess_tweet(text) == "jaja no lo puedo creer jaja"
 
 def test_replaces_odd_quotation_marks():
@@ -55,21 +55,21 @@ def test_replaces_odd_quotation_marks():
 def test_replaces_emoji():
     """
 
-    Replaces “ -> "
+    Replaces an emoji
 
     """
     text = "🤣"
-    assert preprocess_tweet(text) == ' [EMOJI] cara revolviéndose de la risa [EMOJI] '
+    assert preprocess_tweet(text) == 'emoji cara revolviéndose de la risa emoji'
 
 
 def test_replaces_emoji_in_english():
     """
 
-    Replaces “ -> "
+    Replaces an emoji (in English)
 
     """
     text = "🤣"
-    assert preprocess_tweet(text, lang="en") == ' [EMOJI] rolling on the floor laughing [EMOJI] '
+    assert preprocess_tweet(text, lang="en") == 'emoji rolling on the floor laughing emoji'
 
 def test_shortens_laughters():
     """
