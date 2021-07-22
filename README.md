@@ -13,7 +13,7 @@ Currently supports:
 
 Just do `pip install pysentimiento` and start using it:
 
-[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/finiteautomata/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
+[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
 ```python
 from pysentimiento import SentimentAnalyzer
@@ -111,7 +111,7 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 
 ```
 @misc{perez2021pysentimiento,
-      title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks}, 
+      title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks},
       author={Juan Manuel Pérez and Juan Carlos Giudici and Franco Luque},
       year={2021},
       eprint={2106.09462},
