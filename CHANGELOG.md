@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.2.3
+
+- Fix issue with
+- Improve training scripts
+- Change tokenization and special tokens
+
+Now we use @usuario, hashtag, emoji, url
+
 ## 0.2.2
 
 - Add surrounding spaces in emoji preprocessing
