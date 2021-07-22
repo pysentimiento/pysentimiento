@@ -104,6 +104,7 @@ def train_model(
 
     if class_weight is not None:
         class_weight = class_weight.to(device)
+        print(f"Using class weight = {class_weight}")
         trainer = MultiLabelTrainer(
             class_weight=class_weight,
             model=model,
