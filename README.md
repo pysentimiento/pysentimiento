@@ -110,7 +110,7 @@ Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sha
 `pysentimiento` is an open-source library for non-commercial use and scientific research purposes only. Please be aware that models are trained with third-party datasets and are subject to their respective licenses. 
 
 1. [TASS Dataset license](http://tass.sepln.org/tass_data/download.php)
-2. [SEMEval 2017 Dataset license]()
+2. [SEMEval 2017 Dataset license](https://www.dropbox.com/s/byzr8yoda6bua1b/2017_English_final.zip?file_subpath=%2F2017_English_final%2FDOWNLOAD%2FREADME.txt)
 
 ## Citation
 
