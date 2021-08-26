@@ -59,7 +59,7 @@ model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-
 from pysentimiento.preprocessing import preprocess_tweet
 
 # Replaces user handles and URLs by special tokens
-preprocess_tweet("@perezjotaeme debería cambiar esto http://bit.ly/sarasa") # "[USER] debería cambiar esto [URL]"
+preprocess_tweet("@perezjotaeme debería cambiar esto http://bit.ly/sarasa") # "@usuario debería cambiar esto url"
 
 # Shortens repeated characters
 preprocess_tweet("no entiendo naaaaaaaadaaaaaaaa", shorten=2) # "no entiendo naadaa"
@@ -73,7 +73,7 @@ preprocess_tweet("esto es #UnaGenialidad")
 
 # Handles emojis
 preprocess_tweet("🎉🎉", lang="en")
-# '[EMOJI] party popper [EMOJI][EMOJI] party popper [EMOJI]'
+# 'emoji party popper emoji emoji party popper emoji'
 ```
 
 ## Trained models so far
@@ -107,7 +107,7 @@ Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sha
 
 ## License
 
-`pysentimiento` is an open-source library for non-commercial use and scientific research purposes only. Please be aware that models are trained with third-party datasets and are subject to their respective licenses. 
+`pysentimiento` is an open-source library. However, please be aware that models are trained with third-party datasets and are subject to their respective licenses, many of which are for non-commercial use
 
 1. [TASS Dataset license](http://tass.sepln.org/tass_data/download.php) (License for Sentiment Analysis in Spanish, Emotion Analysis in Spanish & English)
 2. [SEMEval 2017 Dataset license](https://www.dropbox.com/s/byzr8yoda6bua1b/2017_English_final.zip?file_subpath=%2F2017_English_final%2FDOWNLOAD%2FREADME.txt) (Sentiment Analysis in English)
