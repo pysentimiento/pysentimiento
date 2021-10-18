@@ -135,7 +135,6 @@ class Analyzer:
         dataset = Dataset.from_dict({"text": sentences})
         dataset = dataset.map(self._tokenize, batched=True, batch_size=self.batch_size)
 
-        print(len(dataset))
 
         output = self.eval_trainer.predict(dataset)
         logits = torch.tensor(output.predictions)

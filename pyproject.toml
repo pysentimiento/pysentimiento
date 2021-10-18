@@ -13,6 +13,7 @@ sklearn = "^0.0"
 datasets = "^1.13.3"
 
 [tool.poetry.dev-dependencies]
+ipython = "^7.28.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
