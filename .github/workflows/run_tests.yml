@@ -8,13 +8,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - name: Install pipenv
-        uses: dschep/install-pipenv-action@v1
+          python-version: 3.7
       - name: Run tests
         run: |
-          pipenv install --dev
-          pipenv run pytest
+          pip install poetry
+          poetry install
+          poetry run pytest
