@@ -5,8 +5,10 @@ Run hatEval experiments
 import pandas as pd
 import os
 import pathlib
+import torch
 import logging
 from datasets import Dataset, Value, ClassLabel, Features
+from sklearn.metrics import precision_recall_fscore_support
 from .preprocessing import preprocess_tweet, extra_args
 from .training import load_model, train_model
 
@@ -16,25 +18,18 @@ logging.basicConfig()
 logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
-id2label = {
-    0: 'ok',
-    1: 'hateful',
-}
-
-label2id = {v:k for k, v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data", "hate")
 
 
 
-def load_datasets(lang, train_path=None, dev_path=None, test_path=None, limit=None,
+def load_datasets(lang,
+    train_path=None, dev_path=None, test_path=None, limit=None,
     random_state=2021, preprocessing_args={} ):
     """
     Load emotion recognition datasets
     """
-
-
 
     train_path = train_path or os.path.join(data_dir, f"hateval2019_{lang}_train.csv")
     dev_path = dev_path or os.path.join(data_dir, f"hateval2019_{lang}_dev.csv")
@@ -52,14 +47,14 @@ def load_datasets(lang, train_path=None, dev_path=None, test_path=None, limit=No
     preprocess = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
 
     for df in [train_df, dev_df, test_df]:
-        df["label"] = df["HS"].astype(int)
         df["text"] = df["text"].apply(preprocess)
 
 
     features = Features({
         'text': Value('string'),
-        'label': ClassLabel(num_classes=len(id2label), names=[id2label[k] for k in sorted(id2label.keys())]),
-        'TR': ClassLabel(num_classes=len(id2label), names=["GROUP", "INDIVIDUAL"]),
+        'HS': ClassLabel(num_classes=2, names=["OK", "HATEFUL"]),
+        'TR': ClassLabel(num_classes=2, names=["GROUP", "INDIVIDUAL"]),
+        "AG": ClassLabel(num_classes=2, names=["NOT AGGRESSIVE", "AGGRESSIVE"])
     })
 
     train_dataset = Dataset.from_pandas(train_df, features=features)
@@ -77,12 +72,14 @@ def load_datasets(lang, train_path=None, dev_path=None, test_path=None, limit=No
         test_dataset = test_dataset.select(range(min(limit, len(test_dataset))))
 
 
+
     return train_dataset, dev_dataset, test_dataset
+
 
 
 def train(
     base_model, lang, epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, accumulation_steps=1,
+    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False,
     **kwargs,
     ):
     """
@@ -104,15 +101,42 @@ def train(
         dev_dataset = dev_dataset.select(range(limit))
         test_dataset = test_dataset.select(range(limit))
 
+    if task_b:
+        id2label = {
+            0: "hateful",
+            1: "targeted",
+            2: "aggressive",
+        }
+    else:
+        id2label = {
+            0: 'ok',
+            1: 'hateful',
+        }
+
+
+    label2id = {v:k for k, v in id2label.items()}
 
     model, tokenizer = load_model(base_model,
         id2label=id2label,
         label2id=label2id
     )
 
+    model.config.problem_type = "multi_label_classification" if task_b else "single_label_classification"
+
+
+    def format_dataset(dataset):
+        def get_labels(examples):
+            labels = ["HS", "TR", "AG"] if task_b else ["HS"]
+            return {'labels': torch.Tensor([examples[k] for k in labels])}
+        dataset = dataset.map(get_labels)
+
+        return dataset
+
+
 
     return train_model(
-        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+        model, tokenizer,
+        train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
         epochs=epochs, batch_size=batch_size, class_weight=None,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
     )

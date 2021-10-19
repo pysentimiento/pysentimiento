@@ -25,7 +25,7 @@ logger.setLevel(logging.INFO)
 def train(
     base_model, output_path, task, lang="es",
     epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None
+    warmup_ratio=.1, limit=None, **kwargs
 ):
     """
     Script to train models
@@ -52,6 +52,7 @@ def train(
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 
+    logger.info(kwargs)
     logger.info(f"Training {base_model} for {task} in lang {lang}")
 
     task_fun = train_fun[task][lang]
@@ -59,7 +60,8 @@ def train(
     trainer, test_results = task_fun(
         base_model, lang,
         epochs=epochs, batch_size=batch_size, eval_batch_size=eval_batch_size,
-        warmup_ratio=warmup_ratio, limit=limit
+        warmup_ratio=warmup_ratio, limit=limit,
+        **kwargs
     )
 
     logger.info("Test results")

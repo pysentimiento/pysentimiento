@@ -33,9 +33,15 @@ python bin/train_emotion.py "vinai/bertweet-base" models/bertweet-base-emotion-a
 ## Hate Speech
 
 ```bash
-python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es
+# Task A
+python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es --task_b
+# Task B
+# With task_b flag, you train a classifier for task B of Hate Speech using a multi-label approach
+# This is more general than task A
+python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es --task_b
 
 python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en
+python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en --task_b
 ```
 
 

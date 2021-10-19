@@ -79,10 +79,10 @@ def train_model(
         if not format_dataset:
             raise ValueError("Must provide format_dataset if not using dynamic padding")
 
+    if format_dataset:
         train_dataset = format_dataset(train_dataset)
         dev_dataset = format_dataset(dev_dataset)
         test_dataset = format_dataset(test_dataset)
-
 
     output_path = tempfile.mkdtemp()
     training_args = TrainingArguments(
