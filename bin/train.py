@@ -12,12 +12,13 @@ Training functions
 train_fun = {
     "hate_speech": {
         "es": train_hate,
+        "en": train_hate,
     }
 }
 
 logging.basicConfig()
 
-logger = logging.getLogger('example')
+logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
 

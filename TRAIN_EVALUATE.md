@@ -30,6 +30,15 @@ python bin/train_emotion.py "roberta-base" models/roberta-base-emotion-analysis/
 python bin/train_emotion.py "vinai/bertweet-base" models/bertweet-base-emotion-analysis/ --epochs 5 --lang en
 ```
 
+## Hate Speech
+
+```bash
+python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es
+
+python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en
+```
+
+
 ## Evaluation
 
 ```bash

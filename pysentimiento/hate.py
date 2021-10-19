@@ -5,9 +5,16 @@ Run hatEval experiments
 import pandas as pd
 import os
 import pathlib
+import logging
 from datasets import Dataset, Value, ClassLabel, Features
 from .preprocessing import preprocess_tweet, extra_args
 from .training import load_model, train_model
+
+
+logging.basicConfig()
+
+logger = logging.getLogger('pysentimiento')
+logger.setLevel(logging.INFO)
 
 id2label = {
     0: 'ok',
@@ -20,6 +27,7 @@ project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data", "hate")
 
 
+
 def load_datasets(lang, train_path=None, dev_path=None, test_path=None, limit=None,
     random_state=2021, preprocessing_args={} ):
     """
@@ -28,9 +36,13 @@ def load_datasets(lang, train_path=None, dev_path=None, test_path=None, limit=No
 
 
 
-    train_path = train_path or os.path.join(data_dir, "hateval2019_es_train.csv")
-    dev_path = dev_path or os.path.join(data_dir, "hateval2019_es_dev.csv")
-    test_path = test_path or os.path.join(data_dir, "hateval2019_es_test.csv")
+    train_path = train_path or os.path.join(data_dir, f"hateval2019_{lang}_train.csv")
+    dev_path = dev_path or os.path.join(data_dir, f"hateval2019_{lang}_dev.csv")
+    test_path = test_path or os.path.join(data_dir, f"hateval2019_{lang}_test.csv")
+
+    logger.info(f"Train path = {train_path}")
+    logger.info(f"Dev path = {dev_path}")
+    logger.info(f"Test path = {test_path}")
 
 
     train_df = pd.read_csv(train_path)
