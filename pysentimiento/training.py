@@ -57,7 +57,7 @@ class MultiLabelTrainer(Trainer):
 def train_model(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
     epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1,
-    **kwargs):
+    metrics_fun=None, **kwargs):
     """
     Run experiments experiments
     """
@@ -103,6 +103,9 @@ def train_model(
         **kwargs,
     )
 
+    if not metrics_fun:
+        metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
+
     if class_weight is not None:
         class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
@@ -110,7 +113,7 @@ def train_model(
             class_weight=class_weight,
             model=model,
             args=training_args,
-            compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
+            compute_metrics=metrics_fun,
             train_dataset=train_dataset,
             eval_dataset=dev_dataset,
             tokenizer=tokenizer,
@@ -120,7 +123,7 @@ def train_model(
         trainer = Trainer(
             model=model,
             args=training_args,
-            compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
+            compute_metrics=metrics_fun,
             train_dataset=train_dataset,
             eval_dataset=dev_dataset,
             data_collator=data_collator,

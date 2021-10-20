@@ -8,9 +8,10 @@ import pathlib
 import torch
 import logging
 from datasets import Dataset, Value, ClassLabel, Features
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
 from .training import load_model, train_model
+
 
 
 logging.basicConfig()
@@ -75,6 +76,57 @@ def load_datasets(lang,
 
     return train_dataset, dev_dataset, test_dataset
 
+def get_task_b_metrics(predictions):
+    ret = {}
+
+    f1s = []
+    precs = []
+    recalls = []
+
+
+    outputs = predictions.predictions
+    labels = predictions.label_ids
+
+    for i, cat in enumerate(["HS", "TR", "AG"]):
+        cat_labels, cat_preds = labels[:, i], outputs[:, i]
+
+        cat_preds = cat_preds > 0
+
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            cat_labels, cat_preds, average='binary', zero_division=0,
+        )
+
+        f1s.append(f1)
+        precs.append(precision)
+        recalls.append(recall)
+
+        ret[cat.lower()+"_f1"] = f1
+        ret[cat.lower()+"_precision"] = precision
+        ret[cat.lower()+"_recall"] = recall
+
+
+
+    neg_hs_f1_score = f1_score(1-(outputs[:, 0] > 0), 1 - labels[:, 0])
+
+    ret["macro_hs_f1_score"] = (f1s[0] + neg_hs_f1_score) / 2
+    #
+    # We calculate EMR in a gated way
+    # Block TR and AG if HS is False
+    #
+    emr_preds = outputs > 0
+    ret["emr_no_gating"] = accuracy_score(labels, emr_preds)
+    emr_preds[:, 1] = emr_preds[:, 0] & emr_preds[:, 1]
+    emr_preds[:, 2] = emr_preds[:, 0] & emr_preds[:, 2]
+
+    ret["emr"] = accuracy_score(labels, emr_preds)
+
+    ret["macro_f1"] = torch.Tensor(f1s).mean()
+    ret["macro_precision"] = torch.Tensor(precs).mean()
+    ret["macro_recall"] = torch.Tensor(recalls).mean()
+
+
+    return ret
+
 
 
 def train(
@@ -102,12 +154,14 @@ def train(
         test_dataset = test_dataset.select(range(limit))
 
     if task_b:
+        metrics_fun = get_task_b_metrics
         id2label = {
             0: "hateful",
             1: "targeted",
             2: "aggressive",
         }
     else:
+        metrics_fun = None
         id2label = {
             0: 'ok',
             1: 'hateful',
@@ -139,4 +193,5 @@ def train(
         train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
         epochs=epochs, batch_size=batch_size, class_weight=None,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
+        metrics_fun=metrics_fun
     )
