@@ -3,6 +3,8 @@ import sys
 import fire
 import os
 import logging
+import time
+import transformers
 from pysentimiento.hate import train as train_hate
 from transformers.trainer_utils import set_seed
 
@@ -136,6 +138,7 @@ def train(
             logger.info(f"{i+1} Iteration")
 
             for task_name in tasks:
+                set_seed(int(time.time()))
                 logger.info(f"Training {base_model} for {task_name} in lang {lang}")
                 task_fun = lang_fun[lang][task_name]
                 _, test_results = task_fun(

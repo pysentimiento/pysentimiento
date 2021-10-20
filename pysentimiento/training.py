@@ -8,6 +8,7 @@ from transformers import (
     Trainer, TrainingArguments
 )
 from .preprocessing import special_tokens
+from sklearn.utils.class_weight import compute_class_weight
 
 dont_add_tokens = {
     "vinai/bertweet-base"
@@ -49,8 +50,10 @@ class MultiLabelTrainer(Trainer):
         labels = inputs.pop("labels")
         outputs = model(**inputs)
         logits = outputs.logits
-        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
-        num_labels = self.model.config.num_labels
+        if self.model.config.problem_type == "multi_label_classification":
+            loss_fct = torch.nn.BCEWithLogitsLoss(pos_weight=self.class_weight)
+        else:
+            loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
         loss = loss_fct(logits, labels)
         return (loss, outputs) if return_outputs else loss
 
@@ -107,6 +110,7 @@ def train_model(
         metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
 
     if class_weight is not None:
+
         class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
         trainer = MultiLabelTrainer(

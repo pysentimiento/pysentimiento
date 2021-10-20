@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import pathlib
 import torch
+import numpy as np
 import logging
 from datasets import Dataset, Value, ClassLabel, Features
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
@@ -131,7 +132,7 @@ def get_task_b_metrics(predictions):
 
 def train(
     base_model, lang, epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False,
+    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=False,
     **kwargs,
     ):
     """
@@ -186,12 +187,15 @@ def train(
 
         return dataset
 
+    if class_weight:
+        class_weight = torch.Tensor([train_dataset[k] for k in ["HS", "TR", "AG"]])
+        class_weight = 1 / (2* class_weight.mean(1))
 
 
     return train_model(
         model, tokenizer,
         train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
-        epochs=epochs, batch_size=batch_size, class_weight=None,
+        epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
-        metrics_fun=metrics_fun
+        metrics_fun=metrics_fun,
     )
