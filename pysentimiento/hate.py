@@ -89,10 +89,13 @@ def get_task_b_metrics(predictions):
     outputs = predictions.predictions
     labels = predictions.label_ids
 
-    for i, cat in enumerate(["HS", "TR", "AG"]):
-        cat_labels, cat_preds = labels[:, i], outputs[:, i]
+    preds = outputs > 0
+    preds[:, 1] = preds[:, 0] & preds[:, 1]
+    preds[:, 2] = preds[:, 0] & preds[:, 2]
 
-        cat_preds = cat_preds > 0
+    for i, cat in enumerate(["HS", "TR", "AG"]):
+        cat_labels, cat_preds = labels[:, i], preds[:, i]
+
 
         precision, recall, f1, _ = precision_recall_fscore_support(
             cat_labels, cat_preds, average='binary', zero_division=0,
@@ -108,19 +111,15 @@ def get_task_b_metrics(predictions):
 
 
 
-    neg_hs_f1_score = f1_score(1-(outputs[:, 0] > 0), 1 - labels[:, 0])
+    neg_hs_f1_score = f1_score(1-(preds[:, 0] > 0), 1 - labels[:, 0])
 
     ret["macro_hs_f1_score"] = (f1s[0] + neg_hs_f1_score) / 2
     #
     # We calculate EMR in a gated way
     # Block TR and AG if HS is False
     #
-    emr_preds = outputs > 0
-    ret["emr_no_gating"] = accuracy_score(labels, emr_preds)
-    emr_preds[:, 1] = emr_preds[:, 0] & emr_preds[:, 1]
-    emr_preds[:, 2] = emr_preds[:, 0] & emr_preds[:, 2]
-
-    ret["emr"] = accuracy_score(labels, emr_preds)
+    ret["emr_no_gating"] = accuracy_score(labels, outputs > 0)
+    ret["emr"] = accuracy_score(labels, preds)
 
     ret["macro_f1"] = torch.Tensor(f1s).mean()
     ret["macro_precision"] = torch.Tensor(precs).mean()

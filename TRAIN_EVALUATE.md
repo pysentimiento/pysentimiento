@@ -45,6 +45,13 @@ python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_spee
 ```
 
 
+## Benchmarking
+
+To run benchmarks you can use also `bin/train.py` passing the `--benchmark`
+
+```
+
+
 ## Evaluation
 
 ```bash
