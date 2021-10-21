@@ -9,6 +9,7 @@ import torch
 import numpy as np
 import logging
 from datasets import Dataset, Value, ClassLabel, Features
+from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
 from .training import load_model, train_model
@@ -130,10 +131,33 @@ def get_task_b_metrics(predictions):
 
 
 
+class HierarchicalTrainer(Trainer):
+    """
+    Hierarchical Cross Entropy loss
+    """
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        loss_fct = torch.nn.BCEWithLogitsLoss(reduction='none')
+        unmasked_loss = loss_fct(logits, labels)
+        mask = labels[:, 0].view(-1, 1).expand(labels.shape[0], 2)
+
+        first_stage_loss = unmasked_loss[:, 0]
+        # Mask only the second stage
+        second_stage_loss = (unmasked_loss[:, 1:] * mask).sum(1)
+        loss = (first_stage_loss + second_stage_loss).sum()
+        return (loss, outputs) if return_outputs else loss
+
+
+
+
 def train(
-    base_model, lang, epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=False,
-    **kwargs,
+    base_model, lang, epochs=5, batch_size=32,
+    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=None,
+    hierarchical=False, **kwargs,
     ):
     """
     Train function
@@ -154,6 +178,7 @@ def train(
         dev_dataset = dev_dataset.select(range(limit))
         test_dataset = test_dataset.select(range(limit))
 
+    trainer_class = None
     if task_b:
         metrics_fun = get_task_b_metrics
         id2label = {
@@ -161,6 +186,8 @@ def train(
             1: "targeted",
             2: "aggressive",
         }
+
+        trainer_class = HierarchicalTrainer if hierarchical else None
     else:
         metrics_fun = None
         id2label = {
@@ -197,5 +224,5 @@ def train(
         train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
         epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
-        metrics_fun=metrics_fun,
+        metrics_fun=metrics_fun, trainer_class=trainer_class
     )

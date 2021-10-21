@@ -117,6 +117,7 @@ def train(
         Benchmark mode
         """
         logger.info(f"Benchmarking {base_model} for {task} in {lang}")
+        tasks = [task] if task else lang_fun[lang].keys()
 
         if os.path.exists(benchmark_output_path):
             with open(benchmark_output_path, "r") as f:
@@ -124,7 +125,7 @@ def train(
 
             results[task] = []
         else:
-            tasks = [task] if task else lang_fun[lang].keys()
+
             results = {
                 "model": base_model,
                 "lang": lang,
