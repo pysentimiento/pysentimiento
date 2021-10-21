@@ -49,8 +49,10 @@ python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_spee
 
 To run benchmarks you can use also `bin/train.py` passing the `--benchmark`
 
+```bash
+python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased" --lang es --task hate_speech\
+ --benchmark --task_b --benchmark_output_path evaluations/hate_speech/beto-taskb-hier.json --task_b --hierarchical
 ```
-
 
 ## Evaluation
 
