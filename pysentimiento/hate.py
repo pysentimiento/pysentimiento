@@ -135,6 +135,22 @@ class HierarchicalTrainer(Trainer):
     Hierarchical Cross Entropy loss
     """
 
+    def __init__(self, gamma=0, *args, **kwargs):
+        """
+        Gamma is the hyperparameter of this loss
+
+        B(y) = (1 - y) γ + y * 1
+
+        such that
+
+        L(y, ypred) = L(y_HS, ypred_HS) + B(y_HS) (L(y_TR, ypred_TR) + L(y_AG, ypred_AG))
+
+        If γ = 1, this is equal to standard sum of binary cross-entropies
+        If equals to zero, it only sums the losses of the second-stage variables if the previous is one
+        """
+        super().__init__(*args, **kwargs)
+        self.gamma = gamma
+
     def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.pop("labels")
         outputs = model(**inputs)
@@ -142,7 +158,10 @@ class HierarchicalTrainer(Trainer):
 
         loss_fct = torch.nn.BCEWithLogitsLoss(reduction='none')
         unmasked_loss = loss_fct(logits, labels)
-        mask = labels[:, 0].view(-1, 1).expand(labels.shape[0], 2)
+        # Expand to two columns, as this is the dimension of the second stage
+        mask = labels[:, 0].view(-1, 1).expand(labels.shape[0], 2).clone()
+        # Esto está mal porque floats pero bueno
+        mask[mask < 1] = self.gamma
 
         first_stage_loss = unmasked_loss[:, 0]
         # Mask only the second stage
@@ -156,7 +175,7 @@ class HierarchicalTrainer(Trainer):
 def train(
     base_model, lang, epochs=5, batch_size=32,
     warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=None,
-    hierarchical=False, **kwargs,
+    hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1", **kwargs,
     ):
     """
     Train function
@@ -167,6 +186,9 @@ def train(
         preprocessing_args=extra_args.get(base_model, {})
     )
 
+
+    if dev:
+        test_dataset = dev_dataset
 
     if limit:
         """
@@ -186,7 +208,7 @@ def train(
             2: "aggressive",
         }
 
-        trainer_class = HierarchicalTrainer if hierarchical else None
+        trainer_class = lambda *args, **kwargs: HierarchicalTrainer(*args, gamma=gamma, **kwargs) if hierarchical else None
     else:
         metrics_fun = None
         id2label = {
@@ -223,5 +245,6 @@ def train(
         train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
         epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
-        metrics_fun=metrics_fun, trainer_class=trainer_class
+        metrics_fun=metrics_fun, trainer_class=trainer_class, metric_for_best_model=metric_for_best_model,
+        **kwargs
     )

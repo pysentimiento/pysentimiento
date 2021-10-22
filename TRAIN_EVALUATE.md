@@ -44,6 +44,19 @@ python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_spee
 python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en --task_b
 ```
 
+### Parameter fine-tuning
+for gamma in {0.95,0.9,0.8,0.75,0.5,0.25,0.125}
+do
+    output_path="evaluations/hate_speech/dev/beto-taskb-hier-${gamma}.json"
+    echo $output_path
+    python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+        --lang es --task hate_speech --task_b \
+        --benchmark --benchmark_output_path $output_path \
+        --task_b --hierarchical --gamma $gamma --dev \
+        --metric_for_best_model "emr" --times 5
+done
+
+
 
 ## Benchmarking
 
