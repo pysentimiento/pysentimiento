@@ -44,17 +44,38 @@ python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_spee
 python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en --task_b
 ```
 
+
+```bash
+
+# Hierarchical
+output_path="evaluations/hate_speech/task_b/beto-hierarchical-gamma-0.1.json"
+python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma $gamma 0.1
+
+output_path="evaluations/hate_speech/task_b/beto.json"
+python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+```
+
 ### Parameter fine-tuning
-for gamma in {0.95,0.9,0.8,0.75,0.5,0.25,0.125}
+
+```bash
+for gamma in {1.0,0.9,0.8,0.7,0.5.0.4,0.3,0.2,0.1,0.05,0.01,0.005,0.00}
 do
-    output_path="evaluations/hate_speech/dev/beto-taskb-hier-${gamma}.json"
+    output_path="evaluations/hate_speech/dev/emr/beto-taskb-hier-${gamma}.json"
     echo $output_path
     python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
         --lang es --task hate_speech --task_b \
         --benchmark --benchmark_output_path $output_path \
-        --task_b --hierarchical --gamma $gamma --dev \
-        --metric_for_best_model "emr" --times 5
+        --metric_for_best_model "emr" \
+        --task_b --hierarchical --gamma $gamma --dev
 done
+```
 
 
 

@@ -208,7 +208,7 @@ def train(
             2: "aggressive",
         }
 
-        trainer_class = lambda *args, **kwargs: HierarchicalTrainer(*args, gamma=gamma, **kwargs) if hierarchical else None
+        trainer_class = (lambda *args, **kwargs: HierarchicalTrainer(*args, gamma=gamma, **kwargs)) if hierarchical else None
     else:
         metrics_fun = None
         id2label = {
