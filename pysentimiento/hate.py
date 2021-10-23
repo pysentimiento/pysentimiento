@@ -78,18 +78,14 @@ def load_datasets(lang,
 
     return train_dataset, dev_dataset, test_dataset
 
-def get_task_b_metrics(predictions):
+def _get_b_metrics(preds, labels):
     ret = {}
 
     f1s = []
     precs = []
     recalls = []
+    original_preds = preds.copy()
 
-
-    outputs = predictions.predictions
-    labels = predictions.label_ids
-
-    preds = outputs > 0
     preds[:, 1] = preds[:, 0] & preds[:, 1]
     preds[:, 2] = preds[:, 0] & preds[:, 2]
 
@@ -118,15 +114,43 @@ def get_task_b_metrics(predictions):
     # We calculate EMR in a gated way
     # Block TR and AG if HS is False
     #
-    ret["emr_no_gating"] = accuracy_score(labels, outputs > 0)
+    ret["emr_no_gating"] = accuracy_score(labels, original_preds)
     ret["emr"] = accuracy_score(labels, preds)
 
     ret["macro_f1"] = torch.Tensor(f1s).mean()
     ret["macro_precision"] = torch.Tensor(precs).mean()
     ret["macro_recall"] = torch.Tensor(recalls).mean()
 
-
     return ret
+
+def get_task_b_metrics(predictions):
+
+    outputs = predictions.predictions
+    labels = predictions.label_ids
+
+    return _get_b_metrics(outputs > 0, labels)
+# Maps combinations to classes
+
+combinatorial_mapping = {
+    (0, 0, 0): 0, # not hateful
+    (1, 0, 0): 1, # hs, not tr, not ag
+    (1, 0, 1): 2, # hs, not tr, ag
+    (1, 1, 0): 3, # hs, tr    , not ag
+    (1, 1, 1): 4, # hs, tr    , ag
+}
+
+inverse_combinatorial_mapping = {v:k for k, v in combinatorial_mapping.items()}
+
+def get_combinatorial_metrics(predictions):
+    outputs = predictions.predictions
+    labels = predictions.label_ids
+
+    preds = outputs.argmax(1)
+
+    normalized_preds = np.array([inverse_combinatorial_mapping[k] for k in preds])
+    normalized_labels = np.array([inverse_combinatorial_mapping[k] for k in labels])
+    return _get_b_metrics(normalized_preds, normalized_labels)
+
 
 
 
@@ -175,10 +199,28 @@ class HierarchicalTrainer(Trainer):
 def train(
     base_model, lang, epochs=5, batch_size=32,
     warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=None,
-    hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1", **kwargs,
+    hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1",
+    combinatorial=False, **kwargs,
     ):
     """
     Train function
+
+    Arguments:
+    ---------
+
+    task_b: bool (default False)
+        If true, trains model for task_b
+
+    combinatorial: bool (default False)
+        If task_b true, whether to train a model in a combinatorial fashion
+
+        That is, instead of training a different output for each predicted label,
+        train a classifier for 5 possible combinations:
+            0: not hateful
+            1: HS, not TR, not AG
+            2: HS, not TR, AG
+            3: HS, TR, not AG
+            4: HS, TR, AG
     """
 
     train_dataset, dev_dataset, test_dataset = load_datasets(
@@ -200,13 +242,25 @@ def train(
         test_dataset = test_dataset.select(range(limit))
 
     trainer_class = None
+    metrics_fun = None
     if task_b:
-        metrics_fun = get_task_b_metrics
-        id2label = {
-            0: "hateful",
-            1: "targeted",
-            2: "aggressive",
-        }
+        if combinatorial:
+            id2label = {
+                0: "not hateful",
+                1: "hateful, not tr, not ag",
+                2: "hateful, not tr, ag",
+                3: "hateful, targeted, not ag",
+                4: "hateful, targeted, ag",
+            }
+
+            metrics_fun = get_combinatorial_metrics
+        else:
+            metrics_fun = get_task_b_metrics
+            id2label = {
+                0: "hateful",
+                1: "targeted",
+                2: "aggressive",
+            }
 
         trainer_class = (lambda *args, **kwargs: HierarchicalTrainer(*args, gamma=gamma, **kwargs)) if hierarchical else None
     else:
@@ -224,20 +278,25 @@ def train(
         label2id=label2id
     )
 
-    model.config.problem_type = "multi_label_classification" if task_b else "single_label_classification"
+    model.config.problem_type = "multi_label_classification" if (task_b and not combinatorial) else "single_label_classification"
 
-
+    labels_order = ["HS", "TR", "AG"]
     def format_dataset(dataset):
         def get_labels(examples):
             if task_b:
-                return {'labels': torch.Tensor([examples[k] for k in ["HS", "TR", "AG"]])}
+                if combinatorial:
+                    # Convert to a single label
+                    return {'labels': combinatorial_mapping[
+                        tuple(examples[k] for k in labels_order)
+                    ]}
+                return {'labels': torch.Tensor([examples[k] for k in labels_order])}
             else:
                 return {'labels': examples["HS"]}
         dataset = dataset.map(get_labels)
         return dataset
 
     if class_weight:
-        class_weight = torch.Tensor([train_dataset[k] for k in ["HS", "TR", "AG"]])
+        class_weight = torch.Tensor([train_dataset[k] for k in labels_order])
         class_weight = 1 / (2* class_weight.mean(1))
 
 

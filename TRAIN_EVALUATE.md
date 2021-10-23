@@ -80,6 +80,7 @@ python bin/train.py --base_model $model_name\
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr"
 
+
 output_path="evaluations/hate_speech/task_b/robertuito-hierarchical-gamma-0.1.json"
 model_name="finiteautomata/robertuito-base-uncased"
 python bin/train.py --base_model $model_name\
@@ -93,22 +94,25 @@ python bin/train.py --base_model $model_name\
     --lang es --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr"
+# Combinatorial
 
 
-### No best
+
+output_path="evaluations/hate_speech/task_b/beto-combi.json"
 model_name="dccuchile/bert-base-spanish-wwm-uncased"
-output_path="evaluations/hate_speech/task_b/no_best/beto.json"
 python bin/train.py --base_model $model_name\
     --lang es --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
-    --load_best_model_at_end=False
+    --metric_for_best_model "emr" --combinatorial
 
-output_path="evaluations/hate_speech/task_b/no_best/beto-hierarchical-0.1.json"
+
+
+output_path="evaluations/hate_speech/task_b/robertuito-combi.json"
+model_name="finiteautomata/robertuito-base-uncased"
 python bin/train.py --base_model $model_name\
     --lang es --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
-    --load_best_model_at_end=False \
-    --hierarchical --gamma 0.1
+    --metric_for_best_model "emr" --combinatorial
 
 ```
 
