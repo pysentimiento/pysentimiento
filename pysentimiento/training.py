@@ -8,6 +8,7 @@ from transformers import (
     Trainer, TrainingArguments
 )
 from .preprocessing import special_tokens
+from sklearn.utils.class_weight import compute_class_weight
 
 dont_add_tokens = {
     "vinai/bertweet-base"
@@ -49,15 +50,17 @@ class MultiLabelTrainer(Trainer):
         labels = inputs.pop("labels")
         outputs = model(**inputs)
         logits = outputs.logits
-        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
-        num_labels = self.model.config.num_labels
+        if self.model.config.problem_type == "multi_label_classification":
+            loss_fct = torch.nn.BCEWithLogitsLoss(pos_weight=self.class_weight)
+        else:
+            loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
         loss = loss_fct(logits, labels)
         return (loss, outputs) if return_outputs else loss
 
 def train_model(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
-    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1,
-    **kwargs):
+    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True,
+    metrics_fun=None, metric_for_best_model="macro_f1", **kwargs):
     """
     Run experiments experiments
     """
@@ -79,10 +82,10 @@ def train_model(
         if not format_dataset:
             raise ValueError("Must provide format_dataset if not using dynamic padding")
 
+    if format_dataset:
         train_dataset = format_dataset(train_dataset)
         dev_dataset = format_dataset(dev_dataset)
         test_dataset = format_dataset(test_dataset)
-
 
     output_path = tempfile.mkdtemp()
     training_args = TrainingArguments(
@@ -97,36 +100,35 @@ def train_model(
         do_eval=False,
         weight_decay=0.01,
         logging_dir='./logs',
-        load_best_model_at_end=True,
-        metric_for_best_model="macro_f1",
+        load_best_model_at_end=load_best_model_at_end,
+        metric_for_best_model=metric_for_best_model,
         group_by_length=group_by_length,
         **kwargs,
     )
 
+    if not metrics_fun:
+        metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
+
+    trainer_args = {
+        "model": model,
+        "args": training_args,
+        "compute_metrics": metrics_fun,
+        "train_dataset": train_dataset,
+        "eval_dataset": dev_dataset,
+        "data_collator": data_collator,
+        "tokenizer": tokenizer,
+    }
+
     if class_weight is not None:
+
         class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
-        trainer = MultiLabelTrainer(
-            class_weight=class_weight,
-            model=model,
-            args=training_args,
-            compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
-            train_dataset=train_dataset,
-            eval_dataset=dev_dataset,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-        )
+        trainer_class = MultiLabelTrainer
+        trainer_args["class_weight"]=class_weight,
     else:
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            compute_metrics=lambda x: compute_metrics(x, id2label=id2label),
-            train_dataset=train_dataset,
-            eval_dataset=dev_dataset,
-            data_collator=data_collator,
-            tokenizer=tokenizer,
-        )
+        trainer_class = trainer_class or Trainer
 
+    trainer = trainer_class(**trainer_args)
 
     trainer.train()
 

@@ -5,7 +5,7 @@ description = "A Transformer-based library for SocialNLP tasks"
 authors = ["Juan Manuel Pérez <jmperez@dc.uba.ar>", "Juan Carlos Giudici <jgiudici@dc.uba.ar>", ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.7,<3.10"
 transformers = "^4.11.3"
 emoji = "^1.6.1"
 torch = "^1.9.0"
@@ -19,6 +19,7 @@ jupyter = "^1.0.0"
 jupyterlab = "^3.2.0"
 fire = "^0.4.0"
 pytest = "^6.2.5"
+seaborn = "^0.11.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

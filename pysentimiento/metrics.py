@@ -1,15 +1,15 @@
 import torch
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from torch.cuda import ipc_collect
 
 
-def compute_metrics(pred, id2label):
+def compute_metrics(preds, id2label):
     """
     Compute metrics for Trainer
     """
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
+    labels = preds.label_ids
 
-    return get_metrics(preds, labels, id2label)
+    return get_metrics(preds.predictions, labels, id2label)
 
 
 def get_metrics(preds, labels, id2label):
@@ -19,8 +19,18 @@ def get_metrics(preds, labels, id2label):
     precs = []
     recalls = []
 
+    is_multi_label = len(labels.shape) > 1 and labels.shape[-1] > 1
+
+    preds = preds.argmax(-1)
     for i, cat in id2label.items():
-        cat_labels, cat_preds = labels == i, preds == i
+
+        if is_multi_label:
+            cat_labels, cat_preds = labels[:, i], preds[:, i]
+
+            cat_preds = cat_preds > 0
+        else:
+            cat_labels, cat_preds = labels == i, preds == i
+
         precision, recall, f1, _ = precision_recall_fscore_support(
             cat_labels, cat_preds, average='binary', zero_division=0,
         )
@@ -33,14 +43,18 @@ def get_metrics(preds, labels, id2label):
         ret[cat.lower()+"_precision"] = precision
         ret[cat.lower()+"_recall"] = recall
 
-    _, _, micro_f1, _ = precision_recall_fscore_support(
-        labels, preds, average="micro"
-    )
-    ret["micro_f1"] = micro_f1
+    if not is_multi_label:
+        _, _, micro_f1, _ = precision_recall_fscore_support(
+            labels, preds, average="micro"
+        )
+        ret["micro_f1"] = micro_f1
+        ret["acc"] = accuracy_score(labels, preds)
+    else:
+        ret["emr"] = accuracy_score(labels, preds > 0)
+
     ret["macro_f1"] = torch.Tensor(f1s).mean()
     ret["macro_precision"] = torch.Tensor(precs).mean()
     ret["macro_recall"] = torch.Tensor(recalls).mean()
 
-    ret["acc"] = accuracy_score(labels, preds)
 
     return ret

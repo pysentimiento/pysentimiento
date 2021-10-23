@@ -2,8 +2,9 @@ import emoji
 import re
 
 extra_args = {
-    "vinai/bertweet-base": {
-        "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+    "vinai/bertweet-base":  {
+        "user_token": "@USER",
+        "url_token": "HTTPURL",
     }
 }
 

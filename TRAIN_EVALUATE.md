@@ -30,6 +30,118 @@ python bin/train_emotion.py "roberta-base" models/roberta-base-emotion-analysis/
 python bin/train_emotion.py "vinai/bertweet-base" models/bertweet-base-emotion-analysis/ --epochs 5 --lang en
 ```
 
+## Hate Speech
+
+```bash
+# Task A
+python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es
+# Task B
+# With task_b flag, you train a classifier for task B of Hate Speech using a multi-label approach
+# This is more general than task A
+python bin/train.py "dccuchile/bert-base-spanish-wwm-uncased" models/beto-hate-speech/ hate_speech --lang es --task_b
+
+python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en
+python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en --task_b
+```
+
+## Results
+
+### Task A
+
+```bash
+output_path="evaluations/hate_speech/task_a/beto.json"
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech \
+    --benchmark --benchmark_output_path $output_path
+
+output_path="evaluations/hate_speech/task_a/robertuito.json"
+model_name="finiteautomata/robertuito-base-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech \
+    --benchmark --benchmark_output_path $output_path
+```
+
+### Task B
+
+```bash
+# Hierarchical
+output_path="evaluations/hate_speech/task_b/beto-hierarchical-gamma-0.1.json"
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma 0.1
+
+output_path="evaluations/hate_speech/task_b/beto.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
+
+output_path="evaluations/hate_speech/task_b/robertuito-hierarchical-gamma-0.1.json"
+model_name="finiteautomata/robertuito-base-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma 0.1
+
+output_path="evaluations/hate_speech/task_b/robertuito.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+# Combinatorial
+
+
+
+output_path="evaluations/hate_speech/task_b/beto-combi.json"
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" --combinatorial
+
+
+
+output_path="evaluations/hate_speech/task_b/robertuito-combi.json"
+model_name="finiteautomata/robertuito-base-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" --combinatorial
+
+```
+
+### Parameter fine-tuning
+
+```bash
+for gamma in {1.0,0.9,0.8,0.7,0.5.0.4,0.3,0.2,0.1,0.05,0.01,0.005,0.00}
+do
+    output_path="evaluations/hate_speech/dev/emr/beto-taskb-hier-${gamma}.json"
+    echo $output_path
+    python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+        --lang es --task hate_speech --task_b \
+        --benchmark --benchmark_output_path $output_path \
+        --metric_for_best_model "emr" \
+        --task_b --hierarchical --gamma $gamma --dev
+done
+```
+
+
+
+## Benchmarking
+
+To run benchmarks you can use also `bin/train.py` passing the `--benchmark`
+
+```bash
+python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased" --lang es --task hate_speech\
+ --benchmark --task_b --benchmark_output_path evaluations/hate_speech/beto-taskb-hier.json --task_b --hierarchical
+```
+
 ## Evaluation
 
 ```bash
