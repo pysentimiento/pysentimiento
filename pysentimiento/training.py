@@ -59,7 +59,7 @@ class MultiLabelTrainer(Trainer):
 
 def train_model(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
-    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None,
+    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True,
     metrics_fun=None, metric_for_best_model="macro_f1", **kwargs):
     """
     Run experiments experiments
@@ -100,7 +100,7 @@ def train_model(
         do_eval=False,
         weight_decay=0.01,
         logging_dir='./logs',
-        load_best_model_at_end=True,
+        load_best_model_at_end=load_best_model_at_end,
         metric_for_best_model=metric_for_best_model,
         group_by_length=group_by_length,
         **kwargs,

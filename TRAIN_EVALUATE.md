@@ -44,22 +44,72 @@ python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_spee
 python bin/train.py "vinai/bertweet-base" models/bertweet-hate-speech/ hate_speech --lang en --task_b
 ```
 
+## Results
+
+### Task A
 
 ```bash
+output_path="evaluations/hate_speech/task_a/beto.json"
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech \
+    --benchmark --benchmark_output_path $output_path
 
+output_path="evaluations/hate_speech/task_a/robertuito.json"
+model_name="finiteautomata/robertuito-base-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech \
+    --benchmark --benchmark_output_path $output_path
+```
+
+### Task B
+
+```bash
 # Hierarchical
 output_path="evaluations/hate_speech/task_b/beto-hierarchical-gamma-0.1.json"
-python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+python bin/train.py --base_model $model_name\
     --lang es --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" \
-    --hierarchical --gamma $gamma 0.1
+    --hierarchical --gamma 0.1
 
 output_path="evaluations/hate_speech/task_b/beto.json"
-python bin/train.py --base_model "dccuchile/bert-base-spanish-wwm-uncased"\
+python bin/train.py --base_model $model_name\
     --lang es --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr"
+
+output_path="evaluations/hate_speech/task_b/robertuito-hierarchical-gamma-0.1.json"
+model_name="finiteautomata/robertuito-base-uncased"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma 0.1
+
+output_path="evaluations/hate_speech/task_b/robertuito.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
+
+### No best
+model_name="dccuchile/bert-base-spanish-wwm-uncased"
+output_path="evaluations/hate_speech/task_b/no_best/beto.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --load_best_model_at_end=False
+
+output_path="evaluations/hate_speech/task_b/no_best/beto-hierarchical-0.1.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --load_best_model_at_end=False \
+    --hierarchical --gamma 0.1
+
 ```
 
 ### Parameter fine-tuning

@@ -19,8 +19,9 @@ def get_metrics(preds, labels, id2label):
     precs = []
     recalls = []
 
-    is_multi_label = labels.shape[-1] > 1
+    is_multi_label = len(labels.shape) > 1 and labels.shape[-1] > 1
 
+    preds = preds.argmax(-1)
     for i, cat in id2label.items():
 
         if is_multi_label:
@@ -28,7 +29,6 @@ def get_metrics(preds, labels, id2label):
 
             cat_preds = cat_preds > 0
         else:
-            preds = preds.predictions.argmax(-1)
             cat_labels, cat_preds = labels == i, preds == i
 
         precision, recall, f1, _ = precision_recall_fscore_support(

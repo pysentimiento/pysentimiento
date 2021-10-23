@@ -229,10 +229,11 @@ def train(
 
     def format_dataset(dataset):
         def get_labels(examples):
-            labels = ["HS", "TR", "AG"] if task_b else ["HS"]
-            return {'labels': torch.Tensor([examples[k] for k in labels])}
+            if task_b:
+                return {'labels': torch.Tensor([examples[k] for k in ["HS", "TR", "AG"]])}
+            else:
+                return {'labels': examples["HS"]}
         dataset = dataset.map(get_labels)
-
         return dataset
 
     if class_weight:
