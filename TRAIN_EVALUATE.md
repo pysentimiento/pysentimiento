@@ -82,6 +82,13 @@ python bin/train.py --base_model $model_name\
 
 ```bash
 # Hierarchical
+
+output_path="evaluations/hate_speech/task_b/beto.json"
+python bin/train.py --base_model $model_name\
+    --lang es --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
 output_path="evaluations/hate_speech/task_b/beto-hierarchical-gamma-0.1.json"
 model_name="dccuchile/bert-base-spanish-wwm-uncased"
 python bin/train.py --base_model $model_name\
@@ -89,12 +96,6 @@ python bin/train.py --base_model $model_name\
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" \
     --hierarchical --gamma 0.1
-
-output_path="evaluations/hate_speech/task_b/beto.json"
-python bin/train.py --base_model $model_name\
-    --lang es --task hate_speech --task_b \
-    --benchmark --benchmark_output_path $output_path \
-    --metric_for_best_model "emr"
 
 
 output_path="evaluations/hate_speech/task_b/robertuito-hierarchical-gamma-0.1.json"
@@ -121,12 +122,55 @@ python bin/train.py --base_model $model_name\
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" --combinatorial
 
+### English
 
 
-output_path="evaluations/hate_speech/task_b/robertuito-combi.json"
-model_name="finiteautomata/robertuito-base-uncased"
+model_name="bert-base-uncased"
+lang="en"
+output_path="evaluations/hate_speech/task_b/bert.json"
 python bin/train.py --base_model $model_name\
-    --lang es --task hate_speech --task_b \
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
+lang="en"
+gamma=0.2
+model_name="bert-base-uncased"
+output_path="evaluations/hate_speech/task_b/bert-hier.json"
+
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma $gamma
+
+output_path="evaluations/hate_speech/task_b/bert-combi.json"
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" --combinatorial
+
+lang="en"
+model_name="vinai/bertweet-base"
+output_path="evaluations/hate_speech/task_b/bertweet.json"
+
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
+model_name="vinai/bertweet-base"
+output_path="evaluations/hate_speech/task_b/bertweet-hier.json"
+
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma $gamma
+
+output_path="evaluations/hate_speech/task_b/bertweet-combi.json"
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" --combinatorial
 
