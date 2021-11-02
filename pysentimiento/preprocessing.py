@@ -142,6 +142,12 @@ def preprocess_tweet(
     normalize_laughter: boolean (default True)
         Normalizes laughters. Uses different regular expressions depending on the lang argument.
     """
+    if lang == "en" and user_token == "@usuario":
+        """
+        If it is english and we didn't set any defaults, we set the vinai/bertweet-base defaults
+        """
+        user_token = "@USER"
+        url_token = "HTTPURL"
 
 
     ret = ""
