@@ -150,9 +150,15 @@ python bin/train.py --base_model $model_name\
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" --combinatorial
 
+#
+#
+# vinai/bertweet
+#
+#
 lang="en"
 model_name="vinai/bertweet-base"
 output_path="evaluations/hate_speech/task_b/bertweet.json"
+gamma=0.24
 
 python bin/train.py --base_model $model_name\
     --lang $lang --task hate_speech --task_b \
@@ -173,6 +179,35 @@ python bin/train.py --base_model $model_name\
     --lang $lang --task hate_speech --task_b \
     --benchmark --benchmark_output_path $output_path \
     --metric_for_best_model "emr" --combinatorial
+#
+#
+# roberta-base
+#
+#
+lang="en"
+model_name="roberta-base"
+output_path="evaluations/hate_speech/task_b/roberta.json"
+gamma=0.2
+
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr"
+
+output_path="evaluations/hate_speech/task_b/roberta-hier.json"
+
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" \
+    --hierarchical --gamma $gamma
+
+output_path="evaluations/hate_speech/task_b/roberta-combi.json"
+python bin/train.py --base_model $model_name\
+    --lang $lang --task hate_speech --task_b \
+    --benchmark --benchmark_output_path $output_path \
+    --metric_for_best_model "emr" --combinatorial
+
 
 ```
 

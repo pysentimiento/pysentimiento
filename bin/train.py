@@ -40,7 +40,7 @@ def train(
     output_path=None,
     benchmark=False, times=10, benchmark_output_path=None,
     epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, **kwargs
+    warmup_ratio=.1, limit=None, predict=False, **kwargs
 ):
     """
     Script to train models
@@ -133,6 +133,9 @@ def train(
                 "evaluations": {k: [] for k in tasks},
             }
 
+            if predict:
+                results["predictions"] = {k: [] for k in tasks}
+
         logger.info(results)
 
         for i in range(times):
@@ -142,16 +145,21 @@ def train(
                 set_seed(int(time.time()))
                 logger.info(f"Training {base_model} for {task_name} in lang {lang}")
                 task_fun = lang_fun[lang][task_name]
-                _, test_results = task_fun(
+                trainer, test_results = task_fun(
                     base_model, lang,
                     **train_args
                 )
 
-                results["evaluations"][task_name].append(test_results)
+
+                if predict:
+                    results["predictions"][task_name].append(test_results.predictions.tolist())
+
+                metrics = test_results.metrics
+                results["evaluations"][task_name].append(metrics)
 
                 logger.info("Test results")
                 logger.info("=" * 50)
-                for k, v in test_results.items():
+                for k, v in metrics.items():
                     logger.info(f"{k:<16} : {v:.3f}")
 
                 with open(benchmark_output_path, "w+") as f:
