@@ -4,7 +4,7 @@ import pathlib
 from glob import glob
 from datasets import Dataset, Value, ClassLabel, Features
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
-from ..preprocessing import preprocess_tweet
+from .preprocessing import preprocess_tweet
 
 """
 Lo pongo así por huggingface
@@ -12,7 +12,7 @@ Lo pongo así por huggingface
 id2label = {0: 'NEG', 1: 'NEU', 2: 'POS'}
 label2id = {v:k for k,v in id2label.items()}
 
-project_dir = pathlib.Path(os.path.dirname(__file__)).parent.parent
+project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
 tass_dir = os.path.join(data_dir, "tass2020")
 
