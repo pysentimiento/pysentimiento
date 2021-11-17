@@ -20,8 +20,10 @@ def get_metrics(preds, labels, id2label):
     recalls = []
 
     is_multi_label = len(labels.shape) > 1 and labels.shape[-1] > 1
+    
+    if not is_multi_label:
+        preds = preds.argmax(-1)
 
-    preds = preds.argmax(-1)
     for i, cat in id2label.items():
 
         if is_multi_label:
