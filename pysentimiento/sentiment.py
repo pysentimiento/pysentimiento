@@ -1,5 +1,3 @@
-import sys
-import fire
 import torch
 from pysentimiento.tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
@@ -9,7 +7,6 @@ from pysentimiento.semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
 )
-
 
 
 lang_conf = {
@@ -32,19 +29,12 @@ extra_args = {
 }
 
 
-
 def train(
-    base_model, output_path, lang="es", epochs=5, batch_size=32, eval_batch_size=32, warmup_proportion=0.1, limit=None,
+    base_model, lang="es", epochs=5, batch_size=32,
+    limit=None, **kwargs
 ):
     """
     """
-    print("="*80 + '\n', "="*80 + '\n')
-    print(f"Training {base_model} in language {lang}", "\n" * 2)
-    print("Loading dataset")
-    if lang not in lang_conf.keys():
-        print("lang must be one of ", lang_conf.keys())
-        sys.exit(1)
-
     load_datasets = lang_conf[lang]["load_datasets"]
     id2label = lang_conf[lang]["id2label"]
     label2id = lang_conf[lang]["label2id"]
@@ -70,28 +60,7 @@ def train(
     model = model.to(device)
     model.train()
 
-    def tokenize(batch):
-        return tokenizer(batch['text'], padding=False, truncation=True)
-
-
-
-
-    _, test_results = train_model(
-        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
-        epochs=epochs, batch_size=batch_size
+    return train_model(
+        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label, epochs=epochs, batch_size=batch_size,
+        **kwargs
     )
-
-    print("\n\n")
-    print("Test results")
-    print("============")
-    for k, v in test_results.items():
-        print(f"{k:<16} : {v:.3f}")
-
-
-    print(f"Saving model to {output_path}")
-    model.save_pretrained(output_path)
-    tokenizer.save_pretrained(output_path)
-
-
-if __name__ == "__main__":
-    fire.Fire(train)

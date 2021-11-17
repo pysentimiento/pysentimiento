@@ -6,6 +6,7 @@ import logging
 import time
 import transformers
 from pysentimiento.hate import train as train_hate
+from pysentimiento.sentiment import train as train_sentiment
 from transformers.trainer_utils import set_seed
 
 """
@@ -15,6 +16,10 @@ train_fun = {
     "hate_speech": {
         "es": train_hate,
         "en": train_hate,
+    },
+    "sentiment": {
+        "es": train_sentiment,
+        "en": train_sentiment,
     }
 }
 
@@ -102,10 +107,9 @@ def train(
             base_model, lang,
             **train_args
         )
-
         logger.info("Test results")
         logger.info("=" * 50)
-        for k, v in test_results.items():
+        for k, v in test_results.metrics.items():
             print(f"{k:<16} : {v:.3f}")
 
 

@@ -1,7 +1,15 @@
 
 ## Train
 
+
+
+
 ```bash
+python bin/train.py "dccuchile/bert-base-spanish-wwm-cased" \
+    --output_path models/beto-sentiment-analysis/ \
+    --task sentiment \
+    --epochs 5 --lang es
+
 python bin/train_sentiment.py "dccuchile/bert-base-spanish-wwm-cased" models/beto-sentiment-analysis/ --epochs 5 --lang es
 python bin/train_sentiment.py "distilbert-base-multilingual-cased" models/distilbert-es-sentiment-analysis/ --epochs 5 --lang es
 python bin/train_sentiment.py "bert-base-multilingual-cased" models/mbert-es-sentiment-analysis/ --epochs 5 --lang es

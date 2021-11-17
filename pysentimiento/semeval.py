@@ -4,7 +4,7 @@ import os
 import pathlib
 from datasets import Dataset, Value, ClassLabel, Features
 from sklearn.model_selection import train_test_split
-from ..preprocessing import preprocess_tweet
+from .preprocessing import preprocess_tweet
 
 """
 Lo pongo así por huggingface
