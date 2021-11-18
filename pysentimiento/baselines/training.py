@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from datasets import concatenate_datasets
 from torchtext.data.utils import get_tokenizer
-from pysentimiento.baselines.models import RNNModel
+from pysentimiento.baselines.models import FFNModel, RNNModel
 from pysentimiento.baselines.utils import build_vocab, build_embedding_matrix
 
 class EvalResults(object):
@@ -90,3 +90,43 @@ def train_rnn_model(train_dataset, dev_dataset, test_dataset, lang, id2label, em
         metrics=trainer.test(model, test_dataloader)[0]
     )
     return trainer, results
+
+def train_ffn_model(train_dataset, dev_dataset, test_dataset, lang, id2label, embeddings_path, batch_size=32, epochs=5, bidirectional=False, hidden_units=512, **kwargs):
+    """
+    Train an RNN model
+    """
+
+    tokenizer = get_tokenizer("spacy", lang)
+    vocab = build_vocab(concatenate_datasets([train_dataset, dev_dataset, test_dataset]), tokenizer)
+
+
+    train_dataset = tokenize_and_format(tokenizer, vocab, train_dataset)
+    dev_dataset = tokenize_and_format(tokenizer, vocab, dev_dataset)
+    test_dataset = tokenize_and_format(tokenizer, vocab, test_dataset)
+
+
+    PAD_IDX = vocab.get_stoi()["<pad>"]
+
+    train_dataloader = get_dataloader(train_dataset, batch_size=batch_size, pad_idx=PAD_IDX)
+    dev_dataloader = get_dataloader(dev_dataset, batch_size=batch_size, pad_idx=PAD_IDX)
+    test_dataloader = get_dataloader(test_dataset, batch_size=batch_size, pad_idx=PAD_IDX)
+
+    emb_matrix = build_embedding_matrix(vocab, fasttext.load_model(embeddings_path))
+
+    model = FFNModel(
+        vocab_size=len(vocab), embedding_dim=emb_matrix.shape[-1], pad_idx=PAD_IDX,
+        hidden_units=hidden_units,
+        embedding_matrix=emb_matrix, freeze_embeddings=True, num_labels=len(id2label),
+    )
+
+    trainer = pl.Trainer(
+        max_epochs=epochs,
+        gpus=1
+    )
+    trainer.fit(model, train_dataloader, dev_dataloader)
+    results = EvalResults(
+        predictions=torch.cat(trainer.predict(model, test_dataloader)),
+        metrics=trainer.test(model, test_dataloader)[0]
+    )
+    return trainer, results
+

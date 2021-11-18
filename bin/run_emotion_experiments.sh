@@ -35,3 +35,4 @@ python bin/train.py --base_model $model_name\
     --benchmark --benchmark_output_path $output_path \
     --overwrite
 
+rm lightning_logs -Rf
