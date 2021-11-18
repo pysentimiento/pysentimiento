@@ -3,7 +3,6 @@ import os
 import pathlib
 from glob import glob
 from datasets import Dataset, Value, ClassLabel, Features
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from .preprocessing import preprocess_tweet
 
 """

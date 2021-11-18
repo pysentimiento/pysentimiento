@@ -6,6 +6,8 @@ import logging
 import time
 import transformers
 from pysentimiento.hate import train as train_hate
+from pysentimiento.sentiment import train as train_sentiment
+from pysentimiento.emotion import train as train_emotion
 from transformers.trainer_utils import set_seed
 
 """
@@ -15,6 +17,14 @@ train_fun = {
     "hate_speech": {
         "es": train_hate,
         "en": train_hate,
+    },
+    "sentiment": {
+        "es": train_sentiment,
+        "en": train_sentiment,
+    },
+    "emotion": {
+        "es": train_emotion,
+        "en": train_emotion,
     }
 }
 
@@ -40,7 +50,7 @@ def train(
     output_path=None,
     benchmark=False, times=10, benchmark_output_path=None,
     epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, predict=False, **kwargs
+    warmup_ratio=.1, limit=None, predict=False, overwrite=False, **kwargs
 ):
     """
     Script to train models
@@ -102,10 +112,9 @@ def train(
             base_model, lang,
             **train_args
         )
-
         logger.info("Test results")
         logger.info("=" * 50)
-        for k, v in test_results.items():
+        for k, v in test_results.metrics.items():
             print(f"{k:<16} : {v:.3f}")
 
 
@@ -119,7 +128,7 @@ def train(
         logger.info(f"Benchmarking {base_model} for {task} in {lang}")
         tasks = [task] if task else lang_fun[lang].keys()
 
-        if os.path.exists(benchmark_output_path):
+        if os.path.exists(benchmark_output_path) and not overwrite:
             with open(benchmark_output_path, "r") as f:
                 results = json.load(f)
 
