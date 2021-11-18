@@ -8,6 +8,7 @@ import transformers
 from pysentimiento.hate import train as train_hate
 from pysentimiento.sentiment import train as train_sentiment
 from pysentimiento.emotion import train as train_emotion
+from pysentimiento.irony import train as train_irony
 from transformers.trainer_utils import set_seed
 
 """
@@ -25,6 +26,10 @@ train_fun = {
     "emotion": {
         "es": train_emotion,
         "en": train_emotion,
+    },
+
+    "irony": {
+        "es": train_irony,
     }
 }
 
@@ -46,7 +51,7 @@ logger.setLevel(logging.INFO)
 
 
 def train(
-    base_model, task, lang="es",
+    base_model, task=None, lang="es",
     output_path=None,
     benchmark=False, times=10, benchmark_output_path=None,
     epochs=5, batch_size=32, eval_batch_size=16,
@@ -75,11 +80,15 @@ def train(
     times: int (default 10)
         If benchmark is true, this argument determines the number of times the
     """
-    if task not in train_fun:
+    if task is None and not benchmark:
+        logger.error(f"Must provide task if not in benchmark mode")
+        sys.exit(1)
+
+    if task is not None and task not in train_fun:
         logger.error(f"task ({task} was provided) must be one of {list(train_fun.keys())}")
         sys.exit(1)
 
-    if lang not in train_fun[task]:
+    if task and lang not in train_fun[task]:
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 
@@ -89,7 +98,6 @@ def train(
 
     logger.info(kwargs)
 
-    task_fun = train_fun[task][lang]
     train_args = {
         **{
             "epochs": epochs,
@@ -105,6 +113,9 @@ def train(
         """
         Training!
         """
+
+        task_fun = train_fun[task][lang]
+
         logger.info(f"Training {base_model} for {task} in lang {lang}")
 
 
