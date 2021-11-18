@@ -91,3 +91,36 @@ class RNNModel(BaseModel):
         mean = s.sum(dim=1) / text_lens.view(-1, 1)
 
         return self.fc(mean)
+
+class FFNModel(BaseModel):
+    def __init__(self, vocab_size, embedding_dim, pad_idx, hidden_units, num_labels,
+                 dropout=0.25, embedding_matrix=None, freeze_embeddings=True):
+
+        super().__init__()
+
+        if embedding_matrix is not None:
+            self.embedding = nn.Embedding.from_pretrained(
+                embedding_matrix, padding_idx=pad_idx,
+                freeze=freeze_embeddings
+            )
+        else:
+            self.embedding = nn.Embedding(
+                vocab_size, embedding_dim,
+                padding_idx = pad_idx)
+
+        self.encoder = nn.Linear(embedding_dim, hidden_units)
+
+        self.dropout = nn.Dropout(dropout)
+
+        self.fc = nn.Linear(hidden_units, num_labels)
+
+    def forward(self, text, text_lens):
+        #text = [batch_size, text len]
+        #permuted = text.permute(1, 0)
+        # permuted shape [batch_size, sent len]
+        embedded = self.embedding(text)
+        mean_embedding = embedded.mean(dim=1)
+
+        encoded = self.encoder(mean_embedding)
+        encoded = self.dropout(encoded)
+        return self.fc(encoded)

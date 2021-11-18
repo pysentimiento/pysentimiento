@@ -7,8 +7,8 @@ from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
     Trainer, TrainingArguments
 )
+from .baselines.training import train_rnn_model
 from .preprocessing import special_tokens
-from sklearn.utils.class_weight import compute_class_weight
 
 dont_add_tokens = {
     "vinai/bertweet-base"
@@ -57,7 +57,7 @@ class MultiLabelTrainer(Trainer):
         loss = loss_fct(logits, labels)
         return (loss, outputs) if return_outputs else loss
 
-def train_model(
+def train_huggingface(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
     epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1",
     **kwargs):
@@ -140,3 +140,43 @@ def train_model(
     os.system(f"rm -Rf {output_path}")
 
     return trainer, test_results
+
+
+def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
+    lang, limit=None, **kwargs):
+    """
+    Base function
+    """
+    if limit:
+        """
+        Smoke test
+        """
+        print("\n\n", f"Limiting to {limit} instances")
+        train_dataset = train_dataset.select(range(limit))
+        dev_dataset = dev_dataset.select(range(limit))
+        test_dataset = test_dataset.select(range(limit))
+
+    label2id = {v:k for k,v in id2label.items()}
+
+    if base_model == "rnn":
+        return train_rnn_model(
+            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label,
+            **kwargs
+        )
+    else:
+        """
+        Transformer classifier
+        """
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model, tokenizer = load_model(
+            base_model, label2id=label2id, id2label=id2label,
+            datasets=[train_dataset, dev_dataset, test_dataset], lang=lang,
+            **kwargs,
+        )
+
+        model = model.to(device)
+        model.train()
+
+        return train_model(
+            model, tokenizer, train_dataset, dev_dataset, test_dataset, **kwargs
+        )
