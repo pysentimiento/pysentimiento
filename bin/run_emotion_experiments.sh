@@ -1,5 +1,5 @@
 embeddings_path="embeddings/cc.es.300.bin"
-task="sentiment"
+task="emotion"
 model_name="rnn"
 
 output_path="evaluations/${task}/es/rnn_cc.json"

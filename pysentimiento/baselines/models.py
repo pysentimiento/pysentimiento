@@ -5,7 +5,45 @@ import pytorch_lightning as pl
 from pysentimiento.tass import id2label
 from pysentimiento.metrics import get_metrics
 
-class RNNModel(pl.LightningModule):
+
+class BaseModel(pl.LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, lens, y = batch
+        outs = self.forward(x, lens)
+        loss = F.cross_entropy(outs, y)
+        self.log('train_loss', loss, prog_bar=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, lens, y = batch
+        outs = self.forward(x, lens)
+        loss = F.cross_entropy(outs, y)
+        preds = outs.cpu()
+        metrics = get_metrics(preds, y.cpu(), id2label)
+        self.log('val_loss', loss, prog_bar=True, on_epoch=True)
+
+        for k, v in metrics.items():
+            self.log("val_"+k, v, prog_bar=True, on_epoch=True)
+
+    def test_step(self, batch, batch_idx):
+        x, lens, y = batch
+        outs = self.forward(x, lens)
+        preds = outs.cpu()
+        metrics = get_metrics(preds, y.cpu(), id2label)
+
+        for k, v in metrics.items():
+            self.log("test_"+k, v, prog_bar=True, on_epoch=True)
+
+    def predict_step(self, batch, batch_idx):
+        x, lens, y = batch
+        return self.forward(x, lens)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        return optimizer
+
+
+class RNNModel(BaseModel):
     def __init__(self, vocab_size, embedding_dim, pad_idx, rnn_units, num_labels, num_layers=1,
                  bidirectional=False, dropout=0.25, embedding_matrix=None, freeze_embeddings=True):
 
@@ -53,38 +91,3 @@ class RNNModel(pl.LightningModule):
         mean = s.sum(dim=1) / text_lens.view(-1, 1)
 
         return self.fc(mean)
-
-    def training_step(self, batch, batch_idx):
-        x, lens, y = batch
-        outs = self.forward(x, lens)
-        loss = F.cross_entropy(outs, y)
-        self.log('train_loss', loss, prog_bar=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        x, lens, y = batch
-        outs = self.forward(x, lens)
-        loss = F.cross_entropy(outs, y)
-        preds = outs.cpu()
-        metrics = get_metrics(preds, y.cpu(), id2label)
-        self.log('val_loss', loss, prog_bar=True, on_epoch=True)
-
-        for k, v in metrics.items():
-            self.log("val_"+k, v, prog_bar=True, on_epoch=True)
-
-    def test_step(self, batch, batch_idx):
-        x, lens, y = batch
-        outs = self.forward(x, lens)
-        preds = outs.cpu()
-        metrics = get_metrics(preds, y.cpu(), id2label)
-
-        for k, v in metrics.items():
-            self.log("test_"+k, v, prog_bar=True, on_epoch=True)
-
-    def predict_step(self, batch, batch_idx):
-        x, lens, y = batch
-        return self.forward(x, lens)
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        return optimizer
