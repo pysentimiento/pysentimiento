@@ -143,7 +143,7 @@ def train_huggingface(
 
 
 def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
-    lang, limit=None, **kwargs):
+    lang, limit=None, problem_type="single_label_classification", **kwargs):
     """
     Base function
     """

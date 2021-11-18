@@ -2,24 +2,43 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 import pytorch_lightning as pl
-from pysentimiento.tass import id2label
 from pysentimiento.metrics import get_metrics
 
 
 class BaseModel(pl.LightningModule):
+    def __init__(self, id2label):
+        super().__init__()
+        self.problem_type = None
+        self.id2label = id2label
+        self.loss_fun = None
+
+    def _set_loss_and_problem_type(self, y):
+        if not self.problem_type:
+            if y.dim() > 1 and y.shape[-1] > 1:
+                self.problem_type = "multi_label_classification"
+                self.loss_fun = F.binary_cross_entropy_with_logits
+            else:
+                self.problem_type = "single_label_classification"
+                self.loss_fun = F.cross_entropy
+
     def training_step(self, batch, batch_idx):
         x, lens, y = batch
+
+        self._set_loss_and_problem_type(y)
+
         outs = self.forward(x, lens)
-        loss = F.cross_entropy(outs, y)
+        loss = self.loss_fun(outs, y)
         self.log('train_loss', loss, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, lens, y = batch
+        self._set_loss_and_problem_type(y)
+
         outs = self.forward(x, lens)
-        loss = F.cross_entropy(outs, y)
+        loss = self.loss_fun(outs, y)
         preds = outs.cpu()
-        metrics = get_metrics(preds, y.cpu(), id2label)
+        metrics = get_metrics(preds, y.cpu(), self.id2label)
         self.log('val_loss', loss, prog_bar=True, on_epoch=True)
 
         for k, v in metrics.items():
@@ -29,7 +48,7 @@ class BaseModel(pl.LightningModule):
         x, lens, y = batch
         outs = self.forward(x, lens)
         preds = outs.cpu()
-        metrics = get_metrics(preds, y.cpu(), id2label)
+        metrics = get_metrics(preds, y.cpu(), self.id2label)
 
         for k, v in metrics.items():
             self.log("test_"+k, v, prog_bar=True, on_epoch=True)
@@ -44,10 +63,10 @@ class BaseModel(pl.LightningModule):
 
 
 class RNNModel(BaseModel):
-    def __init__(self, vocab_size, embedding_dim, pad_idx, rnn_units, num_labels, num_layers=1,
+    def __init__(self, vocab_size, embedding_dim, pad_idx, rnn_units, num_labels, id2label, num_layers=1,
                  bidirectional=False, dropout=0.25, embedding_matrix=None, freeze_embeddings=True):
 
-        super().__init__()
+        super().__init__(id2label)
 
         if embedding_matrix is not None:
             self.embedding = nn.Embedding.from_pretrained(
@@ -93,10 +112,8 @@ class RNNModel(BaseModel):
         return self.fc(mean)
 
 class FFNModel(BaseModel):
-    def __init__(self, vocab_size, embedding_dim, pad_idx, hidden_units, num_labels,
-                 dropout=0.25, embedding_matrix=None, freeze_embeddings=True):
-
-        super().__init__()
+    def __init__(self, vocab_size, embedding_dim, pad_idx, hidden_units, num_labels, id2label, dropout=0.25, embedding_matrix=None, freeze_embeddings=True):
+        super().__init__(id2label)
 
         if embedding_matrix is not None:
             self.embedding = nn.Embedding.from_pretrained(

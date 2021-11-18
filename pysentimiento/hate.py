@@ -198,7 +198,7 @@ class HierarchicalTrainer(Trainer):
 
 def train(
     base_model, lang, epochs=5, batch_size=32,
-    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=False, class_weight=None,
+    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=True, class_weight=None,
     hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1",
     combinatorial=False, **kwargs,
     ):
@@ -273,12 +273,8 @@ def train(
 
     label2id = {v:k for k, v in id2label.items()}
 
-    model, tokenizer = load_model(base_model,
-        id2label=id2label,
-        label2id=label2id
-    )
 
-    model.config.problem_type = "multi_label_classification" if (task_b and not combinatorial) else "single_label_classification"
+    problem_type = "multi_label_classification" if (task_b and not combinatorial) else "single_label_classification"
 
     labels_order = ["HS", "TR", "AG"]
     def format_dataset(dataset):
@@ -301,8 +297,8 @@ def train(
 
 
     return train_model(
-        model, tokenizer,
-        train_dataset, dev_dataset, test_dataset, id2label, format_dataset=format_dataset,
+        base_model, train_dataset, dev_dataset, test_dataset, id2label,
+        format_dataset=format_dataset, lang=lang,
         epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
         metrics_fun=metrics_fun, trainer_class=trainer_class, metric_for_best_model=metric_for_best_model,

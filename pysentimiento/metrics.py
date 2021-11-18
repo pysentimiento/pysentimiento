@@ -1,6 +1,5 @@
 import torch
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
-from torch.cuda import ipc_collect
 
 
 def compute_metrics(preds, id2label):
@@ -20,7 +19,7 @@ def get_metrics(preds, labels, id2label):
     recalls = []
 
     is_multi_label = len(labels.shape) > 1 and labels.shape[-1] > 1
-    
+
     if not is_multi_label:
         preds = preds.argmax(-1)
 
