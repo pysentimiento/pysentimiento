@@ -91,7 +91,7 @@ def train_rnn_model(train_dataset, dev_dataset, test_dataset, lang, id2label, em
     )
     return trainer, results
 
-def train_ffn_model(train_dataset, dev_dataset, test_dataset, lang, id2label, embeddings_path, batch_size=32, epochs=5, bidirectional=False, hidden_units=512, **kwargs):
+def train_ffn_model(train_dataset, dev_dataset, test_dataset, lang, id2label, embeddings_path, batch_size=32, epochs=5, hidden_units=512, **kwargs):
     """
     Train an RNN model
     """
