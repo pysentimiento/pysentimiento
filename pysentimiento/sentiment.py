@@ -3,6 +3,7 @@ from pysentimiento.tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
 from pysentimiento.training import load_model, train_model
+from pysentimiento.baselines.training import train_rnn_model
 from pysentimiento.semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
@@ -54,13 +55,22 @@ def train(
         test_dataset = test_dataset.select(range(limit))
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if base_model == "rnn":
+        return train_rnn_model(
+            train_dataset, dev_dataset, test_dataset, id2label=id2label, lang=lang, **kwargs)
+    else:
+        """
+        Transformer classifier
+        """
+        model, tokenizer = load_model(
+            base_model, label2id=label2id, id2label=id2label,
+            datasets=[train_dataset, dev_dataset, test_dataset], lang=lang,
+        )
 
-    model, tokenizer = load_model(base_model, label2id=label2id, id2label=id2label)
+        model = model.to(device)
+        model.train()
 
-    model = model.to(device)
-    model.train()
-
-    return train_model(
-        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label, epochs=epochs, batch_size=batch_size,
-        **kwargs
-    )
+        return train_model(
+            model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label, epochs=epochs, batch_size=batch_size,
+            **kwargs
+        )

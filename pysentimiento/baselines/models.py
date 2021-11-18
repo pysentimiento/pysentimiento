@@ -81,7 +81,10 @@ class RNNModel(pl.LightningModule):
         for k, v in metrics.items():
             self.log("test_"+k, v, prog_bar=True, on_epoch=True)
 
-    
+    def predict_step(self, batch, batch_idx):
+        x, lens, y = batch
+        return self.forward(x, lens)
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
