@@ -59,7 +59,7 @@ class MultiLabelTrainer(Trainer):
 
 def train_huggingface(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
-    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=16, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1",
+    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1",
     **kwargs):
     """
     Run experiments experiments
@@ -106,9 +106,6 @@ def train_huggingface(
         **kwargs,
     )
 
-    if not metrics_fun:
-        metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
-
     trainer_args = {
         "model": model,
         "args": training_args,
@@ -143,7 +140,7 @@ def train_huggingface(
 
 
 def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
-    lang, limit=None, problem_type="single_label_classification", **kwargs):
+    lang, limit=None, max_length=128, problem_type="single_label_classification", metrics_fun=None, **kwargs):
     """
     Base function
     """
@@ -158,14 +155,17 @@ def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
 
     label2id = {v:k for k,v in id2label.items()}
 
+    if not metrics_fun:
+        metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
+
     if base_model == "rnn":
         return train_rnn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label,
+            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun
             **kwargs
         )
     elif base_model == "ffn":
         return train_ffn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label,
+            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun
             **kwargs
         )
     else:
@@ -175,13 +175,13 @@ def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model, tokenizer = load_model(
             base_model, label2id=label2id, id2label=id2label,
-            datasets=[train_dataset, dev_dataset, test_dataset], lang=lang,
-            **kwargs,
+            max_length=max_length,
         )
 
         model = model.to(device)
         model.train()
 
-        return train_model(
-            model, tokenizer, train_dataset, dev_dataset, test_dataset, **kwargs
+        return train_huggingface(
+            model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+            metrics_fun=metrics_fun, **kwargs
         )
