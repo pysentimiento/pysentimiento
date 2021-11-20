@@ -56,7 +56,7 @@ def load_df(path):
     return df
 
 
-def load_datasets(lang="es", random_state=2021, preprocessing_args={}):
+def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preprocess=True):
     """
     Load emotion recognition datasets
     """
@@ -72,11 +72,12 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}):
         df["label"] = df["label"].astype(int)
 
 
-    preprocess = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
+    if preprocess:
+        preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
 
-    train_df.loc[:, "text"] = train_df["text"].apply(preprocess)
-    dev_df.loc[:, "text"] = dev_df["text"].apply(preprocess)
-    test_df.loc[:, "text"] = test_df["text"].apply(preprocess)
+        train_df.loc[:, "text"] = train_df["text"].apply(preprocess_fn)
+        dev_df.loc[:, "text"] = dev_df["text"].apply(preprocess_fn)
+        test_df.loc[:, "text"] = test_df["text"].apply(preprocess_fn)
 
     features = Features({
         'text': Value('string'),

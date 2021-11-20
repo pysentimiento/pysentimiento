@@ -29,7 +29,7 @@ id2label = {
 label2id = {v:k for k, v in id2label.items()}
 
 
-def load_datasets(lang, data_path=None, limit=None, random_state=20202021, preprocess_data=True, preprocess_args={}):
+def load_datasets(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
     """
     Load sentiment datasets
     """
@@ -43,7 +43,7 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
     df["label"] = df["is_ironic"]
 
 
-    if preprocess_data:
+    if preprocess:
 
         preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocess_args)
         df["text"] = df["text"].apply(preprocess_fn)
