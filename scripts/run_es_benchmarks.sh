@@ -30,5 +30,11 @@ python bin/train.py --base_model "bertin-project/bertin-roberta-base-spanish" \
     --benchmark --benchmark_output_path $output_path \
     --overwrite
 
+output_path="evaluations/es/robertuito.json"
+python bin/train.py --base_model "finiteautomata/robertuito-base-uncased" \
+    --lang es \
+    --benchmark --benchmark_output_path $output_path \
+    --overwrite
+
 
 rm -Rf lightning_logs
