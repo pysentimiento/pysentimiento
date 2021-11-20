@@ -138,6 +138,6 @@ class FFNModel(BaseModel):
         embedded = self.embedding(text)
         mean_embedding = embedded.mean(dim=1)
 
-        encoded = self.encoder(mean_embedding)
+        encoded = F.relu(self.encoder(mean_embedding))
         encoded = self.dropout(encoded)
         return self.fc(encoded)

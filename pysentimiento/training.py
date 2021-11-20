@@ -160,12 +160,12 @@ def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
 
     if base_model == "rnn":
         return train_rnn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun
+            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
         )
     elif base_model == "ffn":
         return train_ffn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun
+            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
         )
     else:
