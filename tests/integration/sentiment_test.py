@@ -1,14 +1,14 @@
 import pytest
-from pysentimiento import SentimentAnalyzer
+from pysentimiento import create_analyzer
 
 
 @pytest.fixture
 def analyzer_es():
-    return SentimentAnalyzer(lang="es")
+    return create_analyzer(task="sentiment", lang="es")
 
 @pytest.fixture
 def analyzer_en():
-    return SentimentAnalyzer(lang="en")
+    return create_analyzer(task="sentiment", lang="en")
 
 
 def test_analyze_negative_sent(analyzer_es):

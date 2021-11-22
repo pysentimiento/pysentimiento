@@ -1,16 +1,15 @@
 import pytest
-from pysentimiento import SentimentAnalyzer
-from pysentimiento.analyzer import EmotionAnalyzer
+from pysentimiento import create_analyzer
+
 
 
 @pytest.fixture
 def analyzer_es():
-    return EmotionAnalyzer(lang="es")
+    return create_analyzer(task="emotion", lang="es")
 
 @pytest.fixture
 def analyzer_en():
-    return EmotionAnalyzer(lang="en")
-
+    return create_analyzer(task="emotion", lang="en")
 
 def test_anger(analyzer_es):
     assert analyzer_es.predict("Tengo ganas de matarlos a todos estos hd putas").output == "anger"

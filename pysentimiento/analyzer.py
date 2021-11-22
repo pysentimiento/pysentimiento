@@ -7,13 +7,14 @@ from transformers import (
 from datasets import Dataset
 from torch.nn import functional as F
 
+
 models = {
     "es": {
         "sentiment": {
-            "model_name": "finiteautomata/beto-sentiment-analysis",
+            "model_name": "pysentimiento/robertuito-sentiment-analysis",
         },
         "emotion": {
-            "model_name": "finiteautomata/beto-emotion-analysis",
+            "model_name": "pysentimiento/robertuito-emotion-analysis",
         }
     },
     "en": {
@@ -29,7 +30,7 @@ models = {
     },
 }
 
-class BaseOutput:
+class AnalyzerOutput:
     """
     Base class for classification output
     """
@@ -50,18 +51,12 @@ class BaseOutput:
 
         return ret
 
-class SentimentOutput(BaseOutput):
-    pass
-
-class EmotionOutput(BaseOutput):
-    pass
-
 
 class Analyzer:
     """
     Wrapper to use sentiment analysis models as black-box
     """
-    def __init__(self, model_name, preprocessing_args={}, batch_size=32):
+    def __init__(self, model_name, task, preprocessing_args={}, batch_size=32):
         """
         Constructor for SentimentAnalyzer class
 
@@ -76,6 +71,7 @@ class Analyzer:
         self.id2label = self.model.config.id2label
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
+        self.task = task
 
         self.eval_trainer = Trainer(
             model=self.model,
@@ -109,7 +105,7 @@ class Analyzer:
         probs = F.softmax(output.logits, dim=1).view(-1)
         probas = {self.id2label[i]:probs[i].item() for i in self.id2label}
 
-        return self.output_class(sentence, probas=probas)
+        return AnalyzerOutput(sentence, probas=probas)
 
 
     def predict(self, inputs):
@@ -147,72 +143,42 @@ class Analyzer:
         } for j in range(probs.shape[0])]
 
 
-        rets = [self.output_class(sent, prob) for sent, prob in zip(sentences, probas) ]
+        rets = [AnalyzerOutput(sent, prob) for sent, prob in zip(sentences, probas) ]
 
         return rets
 
 
-
-class SentimentAnalyzer(Analyzer):
+def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
     """
-    Dummy class for sentiment analyzer
+    Create analyzer for the given task
+
+    Arguments:
+    ----------
+    task: str
+        Task name (sentiment or emotion)
+    lang: str
+        Language code (es or en)
+    model_name: str
+        Model name or path
+    preprocessing_args: dict
+        Preprocessing arguments
+
+    Returns:
+    --------
+        SentimentAnalyzer or EmotionAnalyzer
     """
-    output_class = SentimentOutput
-    def __init__(self, lang, model_name=None, preprocessing_args={}):
-        """
-        Class used to apply Sentiment Analysis to a tweet.
+    if lang not in models:
+        raise ValueError(f"Language {lang} not supported -- only supports {models.keys()}")
 
-        Currently supports 'es' (Spanish) and 'en' (English)
+    if task not in models[lang]:
+        raise ValueError(f"Task {task} not supported for {lang} -- only supports {models[lang].keys()}")
 
-        Arguments
-        ---------
+    preprocessing_args = preprocessing_args or {}
 
-        lang: str
-            Language used for the classifier. Must be one of 'es', 'en'
+    if not model_name:
+        model_info = models[lang][task]
+        model_name = model_info["model_name"]
+        preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
-        model_name: str (default None)
-            If given, overrides default model_name for the language. Must be a local path or a huggingface's hub model name
-
-        preprocessing_args: dict (default {})
-            arguments to `preprocessing` function
-        """
-        if lang not in models:
-            raise ValueError(f"{lang} must be in {list(models.keys())}")
-
-        preprocessing_args["lang"] = lang
-
-        if not model_name:
-            model_info = models[lang]["sentiment"]
-            model_name = model_info["model_name"]
-            preprocessing_args.update(model_info.get("preprocessing_args", {}))
-
-        super().__init__(model_name, preprocessing_args=preprocessing_args)
-
-class EmotionAnalyzer(Analyzer):
-    """
-    Dummy class for emotion analyzer
-    """
-    output_class = EmotionOutput
-    def __init__(self, lang, model_name=None):
-        """
-        Class used to apply Emotion Analysis to a tweet.
-
-        Currently supports 'es' (Spanish) and 'en' (English)
-
-        Arguments
-        ---------
-
-        lang: str
-            Language used for the classifier. Must be one of 'es', 'en'
-
-        model_name: str (default None)
-            If given, overrides default model_name for the language. Must be a local path or a huggingface's hub model name
-        """
-        if lang not in models:
-            raise ValueError(f"{lang} must be in {list(models.keys())}")
-        if not model_name:
-            model_info = models[lang]["emotion"]
-            model_name = model_info["model_name"]
-            preprocessing_args = model_info.get("preprocessing_args", {})
-
-        super().__init__(model_name, preprocessing_args=preprocessing_args)
+    preprocessing_args["lang"] = lang
+    return Analyzer(model_name, task, preprocessing_args)

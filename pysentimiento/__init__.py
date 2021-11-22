@@ -1,2 +1,2 @@
 from .metrics import compute_metrics
-from .analyzer import SentimentAnalyzer, EmotionAnalyzer
+from .analyzer import Analyzer, create_analyzer
