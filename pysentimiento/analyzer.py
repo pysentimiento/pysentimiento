@@ -15,6 +15,9 @@ models = {
         },
         "emotion": {
             "model_name": "pysentimiento/robertuito-emotion-analysis",
+        },
+        "hate_speech": {
+            "model_name": "pysentimiento/robertuito-hate-speech",
         }
     },
     "en": {
@@ -34,17 +37,27 @@ class AnalyzerOutput:
     """
     Base class for classification output
     """
-    def __init__(self, sentence, probas):
+    def __init__(self, sentence, probas, is_multilabel=False):
         """
         Constructor
         """
         self.sentence = sentence
         self.probas = probas
-        self.output = max(probas.items(), key=lambda x: x[1])[0]
+        self.is_multilabel = is_multilabel
+        if not is_multilabel:
+            self.output = max(probas.items(), key=lambda x: x[1])[0]
+        else:
+            self.output = [
+                k for k, v in probas.items() if v > 0.5
+            ]
+
 
     def __repr__(self):
         ret = f"{self.__class__.__name__}"
-        formatted_probas = sorted(self.probas.items(), key=lambda x: -x[1])
+        if not self.is_multilabel:
+            formatted_probas = sorted(self.probas.items(), key=lambda x: -x[1])
+        else:
+            formatted_probas = list(self.probas.items())
         formatted_probas = [f"{k}: {v:.3f}" for k, v in formatted_probas]
         formatted_probas = "{" + ", ".join(formatted_probas) + "}"
         ret += f"(output={self.output}, probas={formatted_probas})"
@@ -68,6 +81,9 @@ class Analyzer:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length=128
         self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+
+        self.problem_type = self.model.config.problem_type
+
         self.id2label = self.model.config.id2label
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
@@ -82,10 +98,29 @@ class Analyzer:
             data_collator=DataCollatorWithPadding(self.tokenizer, padding="longest"),
         )
 
+
+
     def _tokenize(self, batch):
         return self.tokenizer(
             batch["text"], padding=False, truncation=True
         )
+
+    def _get_output(self, sentence, logits):
+        """
+        Get output from logits
+
+        It takes care of the type of problem: single or multi label classification
+        """
+        if self.problem_type == "multi_label_classification":
+            is_multilabel = True
+            probs = torch.sigmoid(logits).view(-1)
+        else:
+            is_multilabel = False
+            probs = torch.softmax(logits, dim=1).view(-1)
+
+        probas = {self.id2label[i]:probs[i].item() for i in self.id2label}
+        return AnalyzerOutput(sentence, probas=probas, is_multilabel=is_multilabel)
+
 
     def _predict_single(self, sentence):
         """
@@ -102,10 +137,8 @@ class Analyzer:
             )
         ).view(1, -1).to(device)
         output = self.model(idx)
-        probs = F.softmax(output.logits, dim=1).view(-1)
-        probas = {self.id2label[i]:probs[i].item() for i in self.id2label}
-
-        return AnalyzerOutput(sentence, probas=probas)
+        logits = output.logits
+        return self._get_output(sentence, logits)
 
 
     def predict(self, inputs):
@@ -134,16 +167,7 @@ class Analyzer:
 
         output = self.eval_trainer.predict(dataset)
         logits = torch.tensor(output.predictions)
-
-        probs = F.softmax(logits, dim=1)
-
-        probas = [{
-            self.id2label[i]: probs[j][i].item()
-            for i in self.id2label
-        } for j in range(probs.shape[0])]
-
-
-        rets = [AnalyzerOutput(sent, prob) for sent, prob in zip(sentences, probas) ]
+        rets = [self._get_output(sent, logits_row.view(1, -1)) for sent, logits_row in zip(sentences, logits)]
 
         return rets
 

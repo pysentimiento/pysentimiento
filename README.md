@@ -9,6 +9,7 @@ Currently supports:
 
 - Sentiment Analysis (Spanish, English)
 - Emotion Analysis (Spanish, English)
+- Hate Speech Detection (Spanish, English)
 
 
 Just do `pip install pysentimiento` and start using it:
@@ -80,22 +81,23 @@ preprocess_tweet("🎉🎉", lang="en")
 
 Check [CLASSIFIERS.md](CLASSIFIERS.md) for details on the reported performances of each model.
 
-### Spanish models
-
-- [`beto-sentiment-analysis`](https://huggingface.co/finiteautomata/beto-sentiment-analysis)
-- [`beto-emotion-analysis`](https://huggingface.co/finiteautomata/beto-emotion-analysis)
-
-### English models
-
-- [`bertweet-base-sentiment-analysis`](https://huggingface.co/finiteautomata/bertweet-base-sentiment-analysis)
-- [`bertweet-base-emotion-analysis`](https://huggingface.co/finiteautomata/bertweet-base-emotion-analysis)
-
 
 ## Instructions for developers
 
-1. First, download TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
+0. Clone and install
+
+```
+git clone https://github.com/pysentimiento/pysentimiento
+pip install poetry
+poetry shell
+poetry install
+```
+
+1. Download data TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
 
 Labels must be placed under `data/tass2020/test1.1/labels`
+
+Open an issue or email us if you are not able to get the data.
 
 2. Run script to train models
 
@@ -128,10 +130,6 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 }
 ```
 
-## TODO:
-
-* Upload some other models
-* Train in other languages
 
 ## Suggestions and bugfixes
 
