@@ -17,8 +17,8 @@ Just do `pip install pysentimiento` and start using it:
 [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
 ```python
-from pysentimiento import SentimentAnalyzer
-analyzer = SentimentAnalyzer(lang="es")
+from pysentimiento import create_analyzer
+analyzer = create_analyzer(task="sentiment", lang="es")
 
 analyzer.predict("Qué gran jugador es Messi")
 # returns SentimentOutput(output=POS, probas={POS: 0.998, NEG: 0.002, NEU: 0.000})
@@ -33,7 +33,7 @@ analyzer.predict("jejeje no te creo mucho")
 Emotion Analysis in English
 """
 
-emotion_analyzer = EmotionAnalyzer(lang="en")
+analyzer = create_analyzer(task="emotion", lang="en")
 
 emotion_analyzer.predict("yayyy")
 # returns EmotionOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
@@ -47,9 +47,9 @@ Also, you might use pretrained models directly with [`transformers`](https://git
 ```python
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-tokenizer = AutoTokenizer.from_pretrained("finiteautomata/beto-sentiment-analysis")
+tokenizer = AutoTokenizer.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
 
-model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-sentiment-analysis")
+model = AutoModelForSequenceClassification.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
 ```
 
 ## Preprocessing
