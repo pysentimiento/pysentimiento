@@ -132,6 +132,9 @@ def train(
         logger.info(f"Saving model to {output_path}")
         trainer.save_model(output_path)
 
+        with open(os.path.join(output_path, "test_results.json"), "w+") as f:
+            json.dump(test_results.metrics, f, indent=4)
+
     else:
         """
         Benchmark mode

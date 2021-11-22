@@ -99,7 +99,8 @@ Labels must be placed under `data/tass2020/test1.1/labels`
 
 2. Run script to train models
 
-Check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
+Check [TRAIN.md](TRAIN.md) for further information on how to train your models
+
 
 3. Upload models to Huggingface's Model Hub
 
