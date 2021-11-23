@@ -9,6 +9,7 @@ Currently supports:
 
 - Sentiment Analysis (Spanish, English)
 - Emotion Analysis (Spanish, English)
+- Hate Speech Detection (Spanish, English)
 
 
 Just do `pip install pysentimiento` and start using it:
@@ -16,8 +17,8 @@ Just do `pip install pysentimiento` and start using it:
 [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
 ```python
-from pysentimiento import SentimentAnalyzer
-analyzer = SentimentAnalyzer(lang="es")
+from pysentimiento import create_analyzer
+analyzer = create_analyzer(task="sentiment", lang="es")
 
 analyzer.predict("Qué gran jugador es Messi")
 # returns SentimentOutput(output=POS, probas={POS: 0.998, NEG: 0.002, NEU: 0.000})
@@ -32,7 +33,7 @@ analyzer.predict("jejeje no te creo mucho")
 Emotion Analysis in English
 """
 
-emotion_analyzer = EmotionAnalyzer(lang="en")
+analyzer = create_analyzer(task="emotion", lang="en")
 
 emotion_analyzer.predict("yayyy")
 # returns EmotionOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
@@ -46,9 +47,9 @@ Also, you might use pretrained models directly with [`transformers`](https://git
 ```python
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-tokenizer = AutoTokenizer.from_pretrained("finiteautomata/beto-sentiment-analysis")
+tokenizer = AutoTokenizer.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
 
-model = AutoModelForSequenceClassification.from_pretrained("finiteautomata/beto-sentiment-analysis")
+model = AutoModelForSequenceClassification.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
 ```
 
 ## Preprocessing
@@ -80,26 +81,28 @@ preprocess_tweet("🎉🎉", lang="en")
 
 Check [CLASSIFIERS.md](CLASSIFIERS.md) for details on the reported performances of each model.
 
-### Spanish models
-
-- [`beto-sentiment-analysis`](https://huggingface.co/finiteautomata/beto-sentiment-analysis)
-- [`beto-emotion-analysis`](https://huggingface.co/finiteautomata/beto-emotion-analysis)
-
-### English models
-
-- [`bertweet-base-sentiment-analysis`](https://huggingface.co/finiteautomata/bertweet-base-sentiment-analysis)
-- [`bertweet-base-emotion-analysis`](https://huggingface.co/finiteautomata/bertweet-base-emotion-analysis)
-
 
 ## Instructions for developers
 
-1. First, download TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
+0. Clone and install
+
+```
+git clone https://github.com/pysentimiento/pysentimiento
+pip install poetry
+poetry shell
+poetry install
+```
+
+1. Download data TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
 
 Labels must be placed under `data/tass2020/test1.1/labels`
 
+Open an issue or email us if you are not able to get the data.
+
 2. Run script to train models
 
-Check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
+Check [TRAIN.md](TRAIN.md) for further information on how to train your models
+
 
 3. Upload models to Huggingface's Model Hub
 
@@ -127,10 +130,6 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 }
 ```
 
-## TODO:
-
-* Upload some other models
-* Train in other languages
 
 ## Suggestions and bugfixes
 

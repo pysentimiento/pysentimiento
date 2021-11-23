@@ -1,6 +1,6 @@
 ## Build instructions
 
-0. Change version at `setup.py`
+0. Change version at `pyproject.toml`
 1. Build it
 
 ```
