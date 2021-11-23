@@ -4,7 +4,7 @@
 1. Build it
 
 ```
-python -m build
+poetry build
 ```
 2. Upload
 
