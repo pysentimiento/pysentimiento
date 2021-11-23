@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.0
+
+- Add Hate Speech Analyzer
+- Use RoBERTuito instead of BETO in Spanish models
+- Refactor training scripts
+- Move from Pipenv to poetry
+
 ## 0.2.5
 
 - Fix dependency issue
