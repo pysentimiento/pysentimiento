@@ -35,6 +35,7 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
     """
     features = Features({
         'text': Value('string'),
+        'topic': Value('string'),
         'lang': Value('string'),
         'label': ClassLabel(num_classes=2)
     })
