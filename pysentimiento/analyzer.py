@@ -29,6 +29,10 @@ models = {
         "emotion": {
             "model_name": "finiteautomata/bertweet-base-emotion-analysis",
             "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+        },
+        "hate_speech": {
+            "model_name": "pysentimiento/bertweet-hate-speech",
+            "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
         }
     },
 }

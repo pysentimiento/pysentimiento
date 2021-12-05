@@ -12,7 +12,7 @@ Lo pongo así por huggingface
 id2label = {0: 'NEG', 1: 'NEU', 2: 'POS'}
 label2id = {v:k for k,v in id2label.items()}
 
-project_dir = pathlib.Path(os.path.dirname(__file__)).parent.parent
+project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
 semeval_dir = os.path.join(data_dir, "SemEval2017")
 

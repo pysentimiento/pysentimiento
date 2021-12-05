@@ -17,3 +17,12 @@ def test_not_hateful(analyzer_es):
 
 def test_hateful(analyzer_es):
     assert "hateful" in analyzer_es.predict("Odio a todos los putos negros de mierda!").output
+
+
+
+def test_not_hateful_en(analyzer_en):
+    assert analyzer_en.predict("Oh man that's really cool!").output == []
+
+
+def test_hateful_en(analyzer_en):
+    assert "hateful" in analyzer_en.predict("I think niggers should be killed").output
