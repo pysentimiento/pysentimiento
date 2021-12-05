@@ -36,4 +36,15 @@ python bin/train.py --base_model "pysentimiento/robertuito-base-uncased" \
     --benchmark --benchmark_output_path $output_path \
     --overwrite
 
+#
+# Cross
+#
+
+
+output_path="evaluations/es/bertweet.json"
+python bin/train.py --base_model "vinai/bertweet-base" \
+    --lang es \
+    --benchmark --benchmark_output_path $output_path \
+    --overwrite
+
 rm -Rf lightning_logs

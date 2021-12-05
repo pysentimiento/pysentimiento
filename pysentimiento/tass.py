@@ -50,7 +50,7 @@ def load_df(path, test=False):
     return df
 
 
-def load_datasets(preprocess_args={}, preprocess=True, return_df=False):
+def load_datasets(preprocessing_args={}, preprocess=True, return_df=False):
     """
     Return train, dev, test datasets
     """
@@ -79,7 +79,7 @@ def load_datasets(preprocess_args={}, preprocess=True, return_df=False):
     """
 
     if preprocess:
-        preprocess_with_args = lambda x: preprocess_tweet(x, **preprocess_args)
+        preprocess_with_args = lambda x: preprocess_tweet(x, **preprocessing_args)
 
         train_df["text"] = train_df["text"].apply(preprocess_with_args)
         dev_df["text"] = dev_df["text"].apply(preprocess_with_args)

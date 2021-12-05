@@ -29,7 +29,7 @@ data_dir = os.path.join(project_dir, "data", "hate")
 
 def load_datasets(lang,
     train_path=None, dev_path=None, test_path=None, limit=None,
-    random_state=2021, preprocessing_args={} ):
+    random_state=2021, preprocess=True, preprocessing_args={} ):
     """
     Load emotion recognition datasets
     """
@@ -47,13 +47,15 @@ def load_datasets(lang,
     dev_df = pd.read_csv(dev_path)
     test_df = pd.read_csv(test_path)
 
-    preprocess = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
+    if preprocess:
+        preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
 
-    for df in [train_df, dev_df, test_df]:
-        df["text"] = df["text"].apply(preprocess)
+        for df in [train_df, dev_df, test_df]:
+            df["text"] = df["text"].apply(preprocess_fn)
 
 
     features = Features({
+        'id': Value('int64'),
         'text': Value('string'),
         'HS': ClassLabel(num_classes=2, names=["OK", "HATEFUL"]),
         'TR': ClassLabel(num_classes=2, names=["GROUP", "INDIVIDUAL"]),
