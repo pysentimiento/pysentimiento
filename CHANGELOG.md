@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## 0.3.1
+
+- Fix issue with Hate Speech detection in English
+
 ## 0.3.0
 
 - Add Hate Speech Analyzer
