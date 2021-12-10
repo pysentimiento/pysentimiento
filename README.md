@@ -3,7 +3,7 @@
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
 
-A Transformer-based library for SocialNLP classification tasks.
+A Transformer-based library for SocialNLP tasks.
 
 Currently supports:
 
