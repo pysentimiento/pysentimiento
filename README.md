@@ -182,13 +182,24 @@ Also, pleace cite related pre-trained models and datasets for the specific model
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Datasets               %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% TASS 2020 (both sentiment and emotion analysisi in Spanish)
+% TASS 2020 (sentiment in Spanish)
 
 @article{garcia2020overview,
   title={Overview of TASS 2020: introducing emotion detection},
   author={Garc{\'\i}a-Vegaa, Manuel and D{\'\i}az-Galianoa, Manuel Carlos and Garc{\'\i}a-Cumbrerasa, Miguel {\'A} and del Arcoa, Flor Miriam Plaza and Montejo-R{\'a}eza, Arturo and Jim{\'e}nez-Zafraa, Salud Mar{\'\i}a and C{\'a}marab, Eugenio Mart{\'\i}nez and Aguilarc, C{\'e}sar Antonio and Antonio, Marco and Cabezudod, Sobrevilla and others},
   year={2020}
 }
+
+% EmoEvent (Emotion Analysis Spanish & English)
+
+@inproceedings{del2020emoevent,
+  title={EmoEvent: A multilingual emotion corpus based on different events},
+  author={del Arco, Flor Miriam Plaza and Strapparava, Carlo and Lopez, L Alfonso Urena and Mart{\'\i}n-Valdivia, M Teresa},
+  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
+  pages={1492--1498},
+  year={2020}
+}
+
 % Hate Speech Detection (Spanish & English)
 
 
