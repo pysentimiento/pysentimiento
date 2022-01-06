@@ -16,19 +16,19 @@ dont_add_tokens = {
 
 
 
-def load_model(base_model, id2label, label2id, max_length=128):
+def load_model(
+    base_model, id2label, label2id, max_length=128, auto_class=AutoModelForSequenceClassification):
     """
     Loads model and tokenizer
     """
     print(f"Loading model {base_model}")
-    model = AutoModelForSequenceClassification.from_pretrained(
+    model = auto_class.from_pretrained(
         base_model, return_dict=True, num_labels=len(id2label)
     )
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     tokenizer.model_max_length = max_length
 
-    #model.config.hidden_dropout_prob = 0.20
     model.config.id2label = id2label
     model.config.label2id = label2id
 
