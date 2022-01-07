@@ -1,0 +1,53 @@
+{
+    "model": "dccuchile/bert-base-spanish-wwm-cased",
+    "lang": "es",
+    "train_args": {
+        "epochs": 5,
+        "batch_size": 32,
+        "eval_batch_size": 16,
+        "warmup_ratio": 0.1,
+        "limit": null
+    },
+    "evaluations": {
+        "ner": [
+            {
+                "test_loss": 0.1118079349398613,
+                "test_precision": 0.5571546052631579,
+                "test_recall": 0.5756159728122345,
+                "test_macro_f1": 0.41425276090610624,
+                "test_micro_f1": 0.5662348516506478,
+                "test_accuracy": 0.9770964110780963,
+                "test_EVENT_f1": 0.29545454545454547,
+                "test_EVENT_precision": 0.30952380952380953,
+                "test_EVENT_recall": 0.2826086956521739,
+                "test_GROUP_f1": 0.39166666666666666,
+                "test_GROUP_precision": 0.38524590163934425,
+                "test_GROUP_recall": 0.3983050847457627,
+                "test_LOC_f1": 0.6753731343283581,
+                "test_LOC_precision": 0.6452762923351159,
+                "test_LOC_recall": 0.7084148727984344,
+                "test_ORG_f1": 0.33093525179856115,
+                "test_ORG_precision": 0.3709677419354839,
+                "test_ORG_recall": 0.2987012987012987,
+                "test_OTHER_f1": 0.12328767123287672,
+                "test_OTHER_precision": 0.1111111111111111,
+                "test_OTHER_recall": 0.13846153846153847,
+                "test_PER_f1": 0.7001067235859125,
+                "test_PER_precision": 0.7016042780748664,
+                "test_PER_recall": 0.6986155484558041,
+                "test_PROD_f1": 0.43575418994413406,
+                "test_PROD_precision": 0.41637010676156583,
+                "test_PROD_recall": 0.45703125,
+                "test_TIME_f1": 0.4120603015075377,
+                "test_TIME_precision": 0.45054945054945056,
+                "test_TIME_recall": 0.37962962962962965,
+                "test_TITLE_f1": 0.36363636363636365,
+                "test_TITLE_precision": 0.3282051282051282,
+                "test_TITLE_recall": 0.40764331210191085,
+                "test_runtime": 22.2796,
+                "test_samples_per_second": 452.656,
+                "test_steps_per_second": 28.322
+            }
+        ]
+    }
+}

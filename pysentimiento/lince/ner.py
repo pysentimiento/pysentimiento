@@ -5,7 +5,6 @@ import numpy as np
 from seqeval.metrics import f1_score
 from datasets import load_dataset, load_metric
 from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
-
 from ..preprocessing import preprocess_tweet
 from ..training import train_model
 
@@ -44,9 +43,7 @@ def align_labels_with_tokens(labels, word_ids):
     current_word = None
 
     if all(l is None for l in labels):
-        """
-        All labels are none => test dataset
-        """
+        # All labels are none => test dataset
         return [None] * len(word_ids)
 
     for word_id in word_ids:
@@ -148,7 +145,7 @@ def load_datasets(lang="es", preprocess=True):
     return lince_ner["train"], lince_ner["validation"], lince_ner["test"]
 
 def train(
-    base_model, lang, epochs=5, limit=None,
+    base_model, lang, epochs=5,
     metric_for_best_model="micro_f1",
     **kwargs):
 
@@ -156,19 +153,10 @@ def train(
         lang=lang
     )
 
-
-    if limit:
-        """
-        Smoke test
-        """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(range(limit))
-        dev_dataset = dev_dataset.select(range(limit))
-        test_dataset = test_dataset.select(range(limit))
-
     return train_model(
-        base_model, train_dataset, dev_dataset, dev_dataset, id2label, lang=lang,
-        epochs=epochs,
+        base_model,
+        train_dataset=train_dataset, dev_dataset=dev_dataset, test_dataset=dev_dataset,
+        id2label=id2label, lang=lang, epochs=epochs,
         # Custom stuff for this thing to work
         tokenize_fun=tokenize_and_align_labels,
         auto_class=AutoModelForTokenClassification,
