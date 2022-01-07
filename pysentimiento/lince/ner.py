@@ -1,10 +1,17 @@
 """
 NER for LinCE dataset
 """
+import os
+import tempfile
+import numpy as np
+from seqeval.metrics import f1_score
+from datasets import load_dataset, DatasetDict, load_metric
+from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer, DataCollatorForTokenClassification
+
 from ..preprocessing import preprocess_tweet
 from ..training import load_model
-from datasets import load_dataset, DatasetDict
-from transformers import AutoModelForTokenClassification
+
+metric = load_metric("seqeval")
 
 id2label = [
     'O',
@@ -63,6 +70,36 @@ def align_labels_with_tokens(labels, word_ids):
 
     return new_labels
 
+def compute_metrics(eval_preds):
+    """
+    Compute metrics for NER
+    """
+    logits, labels = eval_preds
+    predictions = np.argmax(logits, axis=-1)
+
+    # Remove ignored index (special tokens) and convert to labels
+    true_labels = [[id2label[l] for l in label if l != -100] for label in labels]
+    true_predictions = [
+        [id2label[p] for (p, l) in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+    all_metrics = metric.compute(predictions=true_predictions, references=true_labels)
+    ret = {
+        "precision": all_metrics["overall_precision"],
+        "recall": all_metrics["overall_recall"],
+        "macro_f1": all_metrics["overall_f1"],
+        "micro_f1": f1_score(true_labels, true_predictions, average="micro"),
+        "accuracy": all_metrics["overall_accuracy"],
+    }
+
+    for k, v in all_metrics.items():
+        if not k.startswith("overall"):
+            ret[k + "_f1"] = v["f1"]
+            ret[k + "_precision"] = v["precision"]
+            ret[k + "_recall"] = v["recall"]
+
+    return ret
+
 def tokenize_and_align_labels(examples, tokenizer):
     """
     Tokenize examples and also realign labels
@@ -113,9 +150,9 @@ def load_datasets(lang="es", preprocess=True):
     return lince_ner["train"], lince_ner["validation"], lince_ner["test"]
 
 def train(
-    base_model, lang, epochs=5, batch_size=32,
-    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=True, class_weight=None,
-    max_length=128, dev=False, metric_for_best_model="macro_f1",
+    base_model, lang, epochs=5, batch_size=32, eval_batch_size=32,
+    warmup_ratio=.1, limit=None, accumulation_steps=1, max_length=128,
+    load_best_model_at_end=True, metric_for_best_model="micro_f1",
     **kwargs):
 
     train_dataset, dev_dataset, test_dataset = load_datasets(
@@ -149,3 +186,46 @@ def train(
         batched=True,
         remove_columns=lince_ner["train"].column_names,
     )
+
+
+    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
+
+    output_path = tempfile.mkdtemp()
+    training_args = TrainingArguments(
+        output_dir=output_path,
+        num_train_epochs=epochs,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=eval_batch_size,
+        gradient_accumulation_steps=accumulation_steps,
+        warmup_ratio=warmup_ratio,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        do_eval=False,
+        weight_decay=0.01,
+        logging_dir='./logs',
+        load_best_model_at_end=load_best_model_at_end,
+        metric_for_best_model=metric_for_best_model,
+        group_by_length=True,
+        **kwargs,
+    )
+
+    trainer_args = {
+        "model": model,
+        "args": training_args,
+        "compute_metrics": compute_metrics,
+        "train_dataset": tokenized_datasets["train"],
+        "eval_dataset": tokenized_datasets["validation"],
+        "data_collator": data_collator,
+        "tokenizer": tokenizer,
+    }
+
+    trainer = Trainer(**trainer_args)
+
+    trainer.train()
+
+
+    test_results = trainer.predict(tokenized_datasets["validation"])
+
+    os.system(f"rm -Rf {output_path}")
+
+    return trainer, test_results

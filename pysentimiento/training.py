@@ -139,8 +139,9 @@ def train_huggingface(
     return trainer, test_results
 
 
-def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
-    lang, limit=None, max_length=128, problem_type="single_label_classification", metrics_fun=None, **kwargs):
+def train_model(
+    base_model, train_dataset, dev_dataset, test_dataset, id2label,
+    lang, limit=None, max_length=128, metrics_fun=None, **kwargs):
     """
     Base function
     """
