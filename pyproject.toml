@@ -6,7 +6,7 @@ authors = ["Juan Manuel Pérez <jmperez@dc.uba.ar>", "Juan Carlos Giudici <jgiud
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
-transformers = "^4.11.3"
+transformers = "4.13"
 emoji = "^1.6.1"
 torch = "^1.9.0"
 sklearn = "^0.0"
