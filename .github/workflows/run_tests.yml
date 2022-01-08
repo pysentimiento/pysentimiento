@@ -15,5 +15,5 @@ jobs:
       - name: Run tests
         run: |
           pip install poetry
-          poetry install
+          poetry install --dev
           poetry run pytest
