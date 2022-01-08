@@ -82,9 +82,8 @@ def train_huggingface(
     dev_dataset = dev_dataset.map(_tokenize_fun, batched=True, batch_size=eval_batch_size)
     test_dataset = test_dataset.map(_tokenize_fun, batched=True, batch_size=eval_batch_size)
 
-    data_collator = None
     if use_dynamic_padding:
-        data_collator = data_collator or data_collator_class(tokenizer, padding="longest")
+        data_collator = data_collator_class(tokenizer, padding="longest")
     else:
         if not format_dataset:
             raise ValueError("Must provide format_dataset if not using dynamic padding")

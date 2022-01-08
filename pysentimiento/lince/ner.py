@@ -131,26 +131,29 @@ def tokenize_and_align_labels(examples, tokenizer):
     )
     all_labels = examples["labels"]
     new_labels = []
-    for i, labels in enumerate(all_labels):
-        word_ids = tokenized_inputs.word_ids(i)
+    word_ids = [tokenized_inputs.word_ids(i) for i in range(len(all_labels))]
+    for (labels, wids) in zip(all_labels, word_ids):
         new_labels.append(
-            align_labels_with_tokens(labels, word_ids)
+            align_labels_with_tokens(labels, wids)
         )
 
     tokenized_inputs["labels"] = new_labels
+    tokenized_inputs["word_ids"] = word_ids
+
     return tokenized_inputs
+
+def preprocess_token(t, lang):
+    """
+    Seguro podemos hacerlo mejor
+    """
+    return preprocess_tweet(
+        t, lang=lang, demoji=False, preprocess_hashtags=False
+    )
 
 def load_datasets(lang="es", preprocess=True):
     """
     Load NER datasets
     """
-    def preprocess_token(t, lang):
-        """
-        Seguro podemos hacerlo mejor
-        """
-        return preprocess_tweet(
-            t, lang=lang, demoji=False, preprocess_hashtags=False
-        )
 
     lince_ner = load_dataset("lince", "ner_spaeng")
 
