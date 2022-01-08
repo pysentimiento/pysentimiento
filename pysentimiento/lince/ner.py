@@ -35,9 +35,31 @@ id2label = [
 label2id = {v:k for k,v in enumerate(id2label)}
 
 
-def align_labels_with_tokens(labels, word_ids):
+def align_labels_with_tokens(labels, word_ids, ignore_label=-100, label_subwords=False):
     """
-    Tomado de https://huggingface.co/course/chapter7/2?fw=pt
+    Taken from https://huggingface.co/course/chapter7/2?fw=pt
+
+    Arguments:
+
+    labels: List[int]
+        list of NER labels ()
+
+    word_ids: List[int]
+        list of word ids (one for each token)
+
+    ignore_label: int (default: -100)
+        Value to set to ignored labels ([CLS], [SEP], [PAD] and subwords if label_subwords=False)
+
+    label_subwords: bool (default: True)
+        If True, then labels are assigned to the subword that contains the token.
+
+        For instance, if "Bigsubword" (split as Big ##sub ##word )
+        is labeled as "B-PER", then "Big" is labeled as "B-PER",
+        ##sub ##word as "I-PER" and "##word" is labeled as "I-PER".
+
+        If False, sets to ignore_id the subwords
+
+
     """
     new_labels = []
     current_word = None
@@ -50,17 +72,22 @@ def align_labels_with_tokens(labels, word_ids):
         if word_id != current_word:
             # Start of a new word!
             current_word = word_id
-            label = -100 if word_id is None else labels[word_id]
+            label = ignore_label if word_id is None else labels[word_id]
             new_labels.append(label)
         elif word_id is None:
             # Special token
-            new_labels.append(-100)
+            new_labels.append(ignore_label)
         else:
-            label = labels[word_id]
-            # Same word as previous token
-            # If the label is B-XXX we change it to I-XXX
-            if label % 2 == 1:
-                label += 1
+            """
+            Same word as previous token
+            """
+            if label_subwords:
+                label = labels[word_id]
+                # If the label is B-XXX we change it to I-XXX
+                if label % 2 == 1:
+                    label += 1
+            else:
+                label = ignore_label
             new_labels.append(label)
 
     return new_labels

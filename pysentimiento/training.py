@@ -18,6 +18,7 @@ dont_add_tokens = {
 
 
 
+
 def load_model(
     base_model, id2label, label2id, max_length=128, auto_class=AutoModelForSequenceClassification):
     """
@@ -93,7 +94,7 @@ def train_huggingface(
         dev_dataset = format_dataset(dev_dataset)
         test_dataset = format_dataset(test_dataset)
 
-    output_path = tempfile.mkdtemp()
+    output_path = tempfile.mkdtemp(prefix="pysentimiento")
     training_args = TrainingArguments(
         output_dir=output_path,
         num_train_epochs=epochs,
