@@ -176,6 +176,25 @@ def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
 
     return token
 
+def load_conll(path, lang="es"):
+    """
+    Loads CoNLL-2003 dataset
+    """
+    with open(path) as f:
+        lines = f.read().splitlines()
+    data = []
+    current_line = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith("# "):
+            continue
+        elif line == "":
+            data.append(current_line)
+            current_line = []
+        else:
+            current_line.append(line.split("\t"))
+    return data
+
 def load_datasets(lang="es", preprocess=True):
     """
     Load NER datasets
