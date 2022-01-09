@@ -1,9 +1,21 @@
 import pytest
-from pysentimiento.lince.ner import align_labels_with_tokens
+from pysentimiento.lince.ner import align_labels_with_tokens, preprocess_token
+
+"""
+Test for preprocessing of tokens
+"""
+
+def test_preprocessing_emoji():
+    assert preprocess_token("🤔", "es") == "emoji"
+
+
+def test_preprocessing_multiple_emojis():
+    assert preprocess_token("🤔🤔🤔", "es") == "emoji"
+
 
 
 """
-Tests for alingment
+Tests for alignment
 
 align_labels_with_tokens takes a list of labels and a list of word_ids for each token
 """

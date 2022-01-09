@@ -1,6 +1,7 @@
 """
 NER for LinCE dataset
 """
+from emoji import emoji_lis, demojize
 import numpy as np
 from seqeval.metrics import f1_score
 from datasets import load_dataset, load_metric
@@ -142,13 +143,38 @@ def tokenize_and_align_labels(examples, tokenizer):
 
     return tokenized_inputs
 
-def preprocess_token(t, lang):
+def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
     """
-    Seguro podemos hacerlo mejor
+    Preprocess each token
     """
-    return preprocess_tweet(
-        t, lang=lang, demoji=False, preprocess_hashtags=False
-    )
+    token = None
+    if t.startswith("http") and "t.co" in t:
+        """
+        TODO: this is a patch for preprocess_tweet, but it should be fixed in the future
+        """
+        token = "url"
+    else:
+        if demoji:
+            emojis = emoji_lis(t, language=lang)
+            if emojis:
+                """
+                Put special token
+                """
+                token = "emoji"
+        if not token:
+            token = preprocess_tweet(
+                t, lang=lang, demoji=False, preprocess_hashtags=preprocess_hashtags,
+                char_replace=False, **kwargs
+            )
+
+    if not token:
+        """
+        token is empty or None => put a placeholder
+        """
+        token = "."
+
+
+    return token
 
 def load_datasets(lang="es", preprocess=True):
     """
