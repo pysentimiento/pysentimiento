@@ -13,6 +13,8 @@ def test_preprocessing_multiple_emojis():
     assert preprocess_token("🤔🤔🤔", "es") == "emoji"
 
 
+def test_unicode_strange_char():
+    assert preprocess_token('️', "es") == "."
 
 """
 Tests for alignment

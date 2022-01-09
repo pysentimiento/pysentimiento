@@ -4,7 +4,7 @@ NER for LinCE dataset
 from emoji import emoji_lis, demojize
 import numpy as np
 from seqeval.metrics import f1_score
-from datasets import load_dataset, load_metric
+from datasets import load_dataset, load_metric, Dataset
 from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
 from ..preprocessing import preprocess_tweet
 from ..training import train_model
@@ -93,6 +93,8 @@ def align_labels_with_tokens(labels, word_ids, ignore_label=-100, label_subwords
 
     return new_labels
 
+
+
 def compute_metrics(eval_preds):
     """
     Compute metrics for NER
@@ -153,6 +155,9 @@ def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
         TODO: this is a patch for preprocess_tweet, but it should be fixed in the future
         """
         token = "url"
+    elif len(t) == 1 and ord(t[0]) == 65039:
+        # Replace this odd thing with a dot
+        token = "."
     else:
         if demoji:
             emojis = emoji_lis(t, language=lang)
@@ -194,6 +199,27 @@ def load_conll(path, lang="es"):
         else:
             current_line.append(line.split("\t"))
     return data
+
+
+def load_dataset_from_conll(path):
+    data = load_conll(path)
+    words = [[x[0] for x in sentence] for sentence in data]
+    langs = [[x[1] for x in sentence] for sentence in data]
+    if len(data[0][0]) == 2:
+        ner = [[None] * len(x) for x in data]
+    else:
+        ner = [[x[2] for x in sentence] for sentence in data]
+
+    ## Sanity Check
+    for w, l in zip(words, ner):
+        assert len(w) == len(l)
+
+    return Dataset.from_dict({
+        "words": words,
+        "lang": langs,
+        "ner": ner,
+    })
+
 
 def load_datasets(lang="es", preprocess=True):
     """
