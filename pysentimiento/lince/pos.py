@@ -10,29 +10,32 @@ from ..training import train_model
 
 metric = load_metric("seqeval")
 
+"""
+TODO: this is a hack to make it work with the current version of seqeval
+As you can see, I add "B-" to each label because it only works with BIO tags
+"""
+
 id2label =[
-    'VERB',
-    'PUNCT',
-    'PRON',
-    'NOUN',
-    'DET',
-    'ADV',
-    'ADP',
-    'INTJ',
-    'CONJ',
-    'ADJ',
-    'AUX',
-    'SCONJ',
-    'PART',
-    'PROPN',
-    'NUM',
-    'UNK',
-    'X',
+    'B-VERB',
+    'B-PUNCT',
+    'B-PRON',
+    'B-NOUN',
+    'B-DET',
+    'B-ADV',
+    'B-ADP',
+    'B-INTJ',
+    'B-CONJ',
+    'B-ADJ',
+    'B-AUX',
+    'B-SCONJ',
+    'B-PART',
+    'B-PROPN',
+    'B-NUM',
+    'B-UNK',
+    'B-X',
 ]
 
 label2id = {v:k for k,v in enumerate(id2label)}
-
-
 
 
 def load_datasets(lang="es", preprocess=True):
@@ -42,10 +45,14 @@ def load_datasets(lang="es", preprocess=True):
 
     lince = load_dataset("lince", "pos_spaeng")
 
+    # This hack is because of seqeval only working with BIO tags
+
+    lince = lince.map(
+        lambda x: {"pos": ["B-"+x for x in x["pos"]]}
+    )
     """
     TODO: None is for test labels which are not available
     """
-
     lince = lince.map(
         lambda x: {"labels": [label2id.get(x, None) for x in x["pos"]]}
     )
