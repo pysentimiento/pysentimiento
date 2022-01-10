@@ -9,7 +9,7 @@ from pysentimiento.hate import train as train_hate
 from pysentimiento.sentiment import train as train_sentiment
 from pysentimiento.emotion import train as train_emotion
 from pysentimiento.irony import train as train_irony
-from pysentimiento.lince import train_ner
+from pysentimiento.lince import train_ner, train_pos
 from transformers.trainer_utils import set_seed
 
 """
@@ -37,6 +37,12 @@ train_fun = {
     "ner": {
         "es": train_ner,
         "en": train_ner,
+    },
+
+    #We use multilingual LinCE dataset here
+    "pos": {
+        "es": train_pos,
+        "en": train_pos,
     }
 }
 

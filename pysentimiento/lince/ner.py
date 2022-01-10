@@ -85,6 +85,7 @@ def align_labels_with_tokens(labels, word_ids, ignore_label=-100, label_subwords
             if label_subwords:
                 label = labels[word_id]
                 # If the label is B-XXX we change it to I-XXX
+                # WARNING: this strategy is only valid for BIO labels
                 if label % 2 == 1:
                     label += 1
             else:
