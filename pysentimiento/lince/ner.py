@@ -155,9 +155,6 @@ def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
         TODO: this is a patch for preprocess_tweet, but it should be fixed in the future
         """
         token = "url"
-    elif len(t) == 1 and ord(t[0]) == 65039:
-        # Replace this odd thing with a dot
-        token = "."
     else:
         if demoji:
             emojis = emoji_lis(t, language=lang)
@@ -166,11 +163,15 @@ def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
                 Put special token
                 """
                 token = "emoji"
+
         if not token:
-            token = preprocess_tweet(
-                t, lang=lang, demoji=False, preprocess_hashtags=preprocess_hashtags,
-                char_replace=False, **kwargs
-            )
+            if len(t) == 1 and not t.isascii():
+                token = "."
+            else:
+                token = preprocess_tweet(
+                    t, lang=lang, demoji=False, preprocess_hashtags=preprocess_hashtags,
+                    char_replace=False, **kwargs
+                )
 
     if not token:
         """
