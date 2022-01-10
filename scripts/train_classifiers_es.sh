@@ -23,7 +23,16 @@ python bin/train.py pysentimiento/robertuito-base-uncased \
     --task hate_speech \
     --epochs 5 --lang es --task_b
 
+#
+#
+# LINCE tasks
+#
+#
 
 python bin/train.py --base_model pysentimiento/robertuito-base-deacc \
     --output_path models/robertuito-lince-ner \
     --lang es --epochs 10 --task ner
+
+python bin/train.py --base_model pysentimiento/robertuito-base-cased \
+    --output_path models/robertuito-lince-pos \
+    --lang es --epochs 10 --task pos
