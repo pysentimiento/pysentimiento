@@ -164,7 +164,9 @@ def train(
             with open(benchmark_output_path, "r") as f:
                 results = json.load(f)
 
-            results[task] = []
+            results["evaluations"][task] = results["evaluations"].get(task, [])
+            if "predictions" in results:
+                results["predictions"][task] = results["predictions"].get(task, [])
         else:
 
             results = {
@@ -190,7 +192,6 @@ def train(
                     base_model, lang,
                     **train_args
                 )
-
 
                 if predict:
                     results["predictions"][task_name].append(test_results.predictions.tolist())
