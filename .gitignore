@@ -118,3 +118,5 @@ runs/*
 **/results/*
 .vscode/*
 **/lightning_logs/*
+*.zip:wq
+*.zip
