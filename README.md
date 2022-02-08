@@ -105,16 +105,13 @@ poetry shell
 poetry install
 ```
 
-1. Download data TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
+1. Get the data and put it under `data/`
 
-Labels must be placed under `data/tass2020/test1.1/labels`
-
-Open an issue or email us if you are not able to get the data.
+Open an issue or email us if you are not able to get the it.
 
 2. Run script to train models
 
 Check [TRAIN.md](TRAIN.md) for further information on how to train your models
-
 
 3. Upload models to Huggingface's Model Hub
 
