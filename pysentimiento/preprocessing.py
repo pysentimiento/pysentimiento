@@ -1,5 +1,6 @@
 import emoji
 import re
+from hashformers.segmenter import TweetSegmenter
 
 extra_args = {
     "vinai/bertweet-base":  {
@@ -108,14 +109,14 @@ laughter_conf = {
 
 def preprocess_tweet(
     text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None,
-    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji"):
+    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", segmenter=None):
     """
     Basic preprocessing
 
     Arguments:
     ---------
 
-    text: str
+    text: Union[str, List[str]]
         Text to preprocess
 
     lang: str (default 'es')
@@ -141,7 +142,11 @@ def preprocess_tweet(
 
     normalize_laughter: boolean (default True)
         Normalizes laughters. Uses different regular expressions depending on the lang argument.
+    
+    segmenter: object (default None)
+        Hashtag segmenter object initialized with create_segmenter().
     """
+
     if lang == "en" and user_token == "@usuario":
         """
         If it is english and we didn't set any defaults, we set the vinai/bertweet-base defaults
@@ -149,39 +154,46 @@ def preprocess_tweet(
         user_token = "@USER"
         url_token = "HTTPURL"
 
+    if isinstance(text, str):
+        data = [text]
+    elif isinstance(text, list):
+        data = text
 
-    ret = ""
-    for char in text:
-        if char in replacements:
-            replacement = replacements[char]
-            if replacement:
-                ret += replacement
-        else:
-            ret += char
-    text = ret
+    for idx, item in enumerate(data):
+        ret = ""
+        for char in item:
+            if char in replacements:
+                replacement = replacements[char]
+                if replacement:
+                    ret += replacement
+            else:
+                ret += char
+        item = ret
 
-    text = user_regex.sub(user_token, text)
-    text = url_regex.sub(url_token, text)
+        item = user_regex.sub(user_token, item)
+        item = url_regex.sub(url_token, item)
 
-    if shorten:
-        repeated_regex = re.compile(r"(.)"+ r"\1" * (shorten-1) + "+")
-        text = repeated_regex.sub(r"\1"*shorten, text)
+        if shorten:
+            repeated_regex = re.compile(r"(.)"+ r"\1" * (shorten-1) + "+")
+            item = repeated_regex.sub(r"\1"*shorten, item)
 
-    if demoji:
-        text = emoji.demojize(text, language=lang, delimiters=("|", "|"))
-        text = emoji_regex.sub(
-            lambda x: convert_emoji_to_text(x, emoji_wrapper=emoji_wrapper),
-            text
-        )
+        if demoji:
+            item = emoji.demojize(item, language=lang, delimiters=("|", "|"))
+            item = emoji_regex.sub(
+                lambda x: convert_emoji_to_text(x, emoji_wrapper=emoji_wrapper),
+                item
+            )
 
-    if normalize_laughter:
-        laughter_regex = laughter_conf[lang]["regex"]
-        replacement = laughter_conf[lang]["replacement"]
+            if normalize_laughter:
+                laughter_regex = laughter_conf[lang]["regex"]
+                replacement = laughter_conf[lang]["replacement"]
 
-        text = laughter_regex.sub(
-            replacement,
-            text
-        )
+                item = laughter_regex.sub(
+                    replacement,
+                    item
+                )
+        
+        data[idx] = item
 
     def process_hashtags(x):
         """
@@ -189,7 +201,6 @@ def preprocess_tweet(
 
         Take first group and decamelize
         """
-
 
         text = x.groups()[0]
 
@@ -201,9 +212,16 @@ def preprocess_tweet(
         return text
 
     if preprocess_hashtags:
-        text = hashtag_regex.sub(
-            process_hashtags,
-            text
-        )
+        if isinstance(segmenter, TweetSegmenter):
+            data = segmenter.segment(data).output
+        elif segmenter is None:
+            for idx, item in enumerate(data):
+                data[idx] = hashtag_regex.sub(
+                    process_hashtags,
+                    data[idx]
+                )
 
-    return text.strip()
+    if isinstance(text, str):
+        return data[0].strip()
+    elif isinstance(text, list):
+        return [x.strip() for x in data]
