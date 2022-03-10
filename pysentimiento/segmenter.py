@@ -24,8 +24,6 @@ def create_segmenter(lang='en', model_name=None, batch_size=1000):
     if lang not in models:
         raise ValueError(f"Language {lang} not supported -- only supports {models.keys()}")
 
-    preprocessing_args = preprocessing_args or {}
-
     if not model_name:
         segmenter_model_name_or_path = models[lang]
     else:
