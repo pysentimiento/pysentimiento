@@ -109,7 +109,7 @@ laughter_conf = {
 
 def preprocess_tweet(
     text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None,
-    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", segmenter=None):
+    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", segmenter=None, lower=True):
     """
     Basic preprocessing
 
@@ -145,6 +145,9 @@ def preprocess_tweet(
     
     segmenter: object (default None)
         Hashtag segmenter object initialized with create_segmenter().
+
+    lower: bool
+        Convert hashtags to lowercase after segmentation.
     """
 
     if lang == "en" and user_token == "@usuario":
@@ -204,7 +207,7 @@ def preprocess_tweet(
 
         text = x.groups()[0]
 
-        text = camel_to_human(text)
+        text = camel_to_human(text, lower=lower)
 
         if hashtag_token:
             text = hashtag_token + " " + text
@@ -213,7 +216,14 @@ def preprocess_tweet(
 
     if preprocess_hashtags:
         if isinstance(segmenter, TweetSegmenter):
-            data = segmenter.segment(data).output
+            preprocessing_kwargs = {
+                    "hashtag_token": hashtag_token, 
+                    "lower": lower, 
+                    "separator": " ", 
+                    "hashtag_character": "#"
+                }
+            data = segmenter.segment(data, preprocessing_kwargs=preprocessing_kwargs)
+            data = data.output
         elif segmenter is None:
             for idx, item in enumerate(data):
                 data[idx] = hashtag_regex.sub(
