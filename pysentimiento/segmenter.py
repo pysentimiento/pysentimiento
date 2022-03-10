@@ -2,7 +2,7 @@ from hashformers.segmenter.auto import TransformerWordSegmenter
 from hashformers.segmenter import TweetSegmenter, TwitterTextMatcher
 
 models = {
-    "es": "PlanTL-GOB-ES/gpt2-base-bne",
+    "es": "DeepESP/gpt2-spanish",
     "en": "distilgpt2"
 }
 
