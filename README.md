@@ -50,7 +50,7 @@ hate_speech_analyzer.predict("Esto es una mierda pero no es odio")
 hate_speech_analyzer.predict("Esto es odio porque los inmigrantes deben ser aniquilados")
 # returns AnalyzerOutput(output=['hateful'], probas={hateful: 0.835, targeted: 0.008, aggressive: 0.476})
 
-hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es Miley!")
+hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es XXXX!")
 # returns AnalyzerOutput(output=['hateful', 'targeted', 'aggressive'], probas={hateful: 0.987, targeted: 0.978, aggressive: 0.969})
 ```
 
