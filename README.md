@@ -14,6 +14,8 @@ Currently supports:
 
 Just do `pip install pysentimiento` and start using it:
 
+## Getting Started
+
 [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
 ```python
