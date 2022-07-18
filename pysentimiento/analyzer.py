@@ -38,6 +38,9 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/bertweet-hate-speech",
             "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+        },
+        "ner": {
+            "model_name": "pysentimiento/robertuito-ner",
         }
     },
 }
