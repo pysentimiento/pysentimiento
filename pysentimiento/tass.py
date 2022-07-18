@@ -13,7 +13,7 @@ label2id = {v:k for k,v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
-tass_dir = os.path.join(data_dir, "tass2020")
+tass_dir = os.path.join(data_dir, "sentiment")
 
 def get_lang(file):
     """
@@ -50,27 +50,18 @@ def load_df(path, test=False):
     return df
 
 
-def load_datasets(preprocessing_args={}, preprocess=True, return_df=False):
+def load_datasets(preprocessing_args={}, preprocess=True, return_df=False, **kwargs):
     """
     Return train, dev, test datasets
     """
-    train_files = glob(
-        os.path.join(tass_dir, "train/*.tsv")
-    )
-    dev_files = glob(
-        os.path.join(tass_dir, "dev/*.tsv")
-    )
-    test_files = glob(
-        os.path.join(tass_dir, "test1.1/*.tsv")
-    )
 
-    train_dfs = {get_lang(file):load_df(file) for file in train_files}
-    dev_dfs = {get_lang(file):load_df(file) for file in dev_files}
-    test_dfs = {get_lang(file):load_df(file, test=True) for file in test_files}
+    df = pd.read_csv(os.path.join(tass_dir, "tass.csv"))
 
-    train_df = pd.concat(train_dfs.values())
-    dev_df = pd.concat(dev_dfs.values())
-    test_df = pd.concat(test_dfs.values())
+    df["label"] = df["polarity"].apply(lambda x: label2id[x])
+
+    train_df = df[df["split"] == "train"].copy()
+    dev_df = df[df["split"] == "dev"].copy()
+    test_df = df[df["split"] == "test"].copy()
 
     print(len(train_df), len(dev_df), len(test_df))
 

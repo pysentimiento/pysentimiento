@@ -1,8 +1,10 @@
 import torch
 from .preprocessing import preprocess_tweet
 from transformers import (
-    AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding,
-    Trainer, TrainingArguments
+    AutoTokenizer, AutoModelForSequenceClassification, AutoModelForTokenClassification,
+    DataCollatorWithPadding,
+    Trainer, TrainingArguments,
+    pipeline
 )
 from datasets import Dataset
 from torch.nn import functional as F
@@ -18,6 +20,12 @@ models = {
         },
         "hate_speech": {
             "model_name": "pysentimiento/robertuito-hate-speech",
+        },
+        "ner": {
+            "model_name": "pysentimiento/robertuito-ner",
+        },
+        "pos": {
+            "model_name": "pysentimiento/robertuito-pos",
         }
     },
     "en": {
@@ -33,6 +41,9 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/bertweet-hate-speech",
             "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+        },
+        "ner": {
+            "model_name": "pysentimiento/robertuito-ner",
         }
     },
 }
@@ -68,12 +79,8 @@ class AnalyzerOutput:
 
         return ret
 
-
-class Analyzer:
-    """
-    Wrapper to use sentiment analysis models as black-box
-    """
-    def __init__(self, model_name, task, preprocessing_args={}, batch_size=32):
+class BaseAnalyzer:
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32):
         """
         Constructor for SentimentAnalyzer class
 
@@ -82,16 +89,15 @@ class Analyzer:
         model_name: str or path
             Model name or
         """
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length=128
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-
-        self.problem_type = self.model.config.problem_type
-
-        self.id2label = self.model.config.id2label
+        self.model = model
+        self.tokenizer = tokenizer
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
         self.task = task
+
+        self.tokenizer.model_max_length=128
+        self.problem_type = self.model.config.problem_type
+        self.id2label = self.model.config.id2label
 
         self.eval_trainer = Trainer(
             model=self.model,
@@ -102,12 +108,29 @@ class Analyzer:
             data_collator=DataCollatorWithPadding(self.tokenizer, padding="longest"),
         )
 
-
-
     def _tokenize(self, batch):
         return self.tokenizer(
             batch["text"], padding=False, truncation=True
         )
+
+class AnalyzerForSequenceClassification(BaseAnalyzer):
+    """
+    Wrapper to use sentiment analysis models as black-box
+    """
+
+    @classmethod
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
+        """
+        Constructor for SentimentAnalyzer class
+
+        Arguments:
+
+        model_name: str or path
+            Model name or
+        """
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
 
     def _get_output(self, sentence, logits):
         """
@@ -158,9 +181,10 @@ class Analyzer:
         --------
             List or single output with probabilities
         """
+
+        # If single string => predict it single
         if isinstance(inputs, str):
             return self._predict_single(inputs)
-
 
         sentences = [
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
@@ -175,8 +199,50 @@ class Analyzer:
 
         return rets
 
+class AnalyzerForTokenClassification(BaseAnalyzer):
+    @classmethod
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
+        """
+        Constructor for SentimentAnalyzer class
 
-def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
+        Arguments:
+
+        model_name: str or path
+            Model name or
+        """
+        model = AutoModelForTokenClassification.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
+
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, aggregation_strategy="simple"):
+        super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
+        self.pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
+        self.aggregation_strategy = aggregation_strategy
+
+    def predict(self, inputs):
+        """
+        Predict token classification
+        """
+        if isinstance(inputs, str):
+            inputs = [inputs]
+
+        sentences = [
+            preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
+        ]
+        ret = self.pipeline(sentences , aggregation_strategy=self.aggregation_strategy)
+
+        for sent, entities in zip(sentences, ret):
+            for entity in entities:
+                start, end = entity["start"], entity["end"]
+                entity["text"] = sent[start:end].strip()
+                entity["type"] = entity.pop("entity_group")
+
+        if len(sentences) == 1:
+            return ret[0]
+        return ret
+
+
+def create_analyzer(task, lang, model_name=None, preprocessing_args={}, **kwargs):
     """
     Create analyzer for the given task
 
@@ -206,7 +272,11 @@ def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
     if not model_name:
         model_info = models[lang][task]
         model_name = model_info["model_name"]
+        if task in {"ner", "pos"}:
+            analyzer_class = AnalyzerForTokenClassification
+        else:
+            analyzer_class = AnalyzerForSequenceClassification
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    return Analyzer(model_name, task, preprocessing_args)
+    return analyzer_class.from_model_name(model_name, task, preprocessing_args, **kwargs)

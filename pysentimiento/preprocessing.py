@@ -107,7 +107,7 @@ laughter_conf = {
 
 
 def preprocess_tweet(
-    text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None,
+    text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None, char_replace=True,
     demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji"):
     """
     Basic preprocessing
@@ -136,8 +136,11 @@ def preprocess_tweet(
     shorten: int (default: 3)
         If not none, all occurrences of shorten or more characters are cut to this number
 
+    char_replace: bool (default: True)
+        If true, replaces or removes special characters to equivalent ones.
+
     demoji: boolean (default True)
-        If true, converts emoji to text representations using `emoji` library, and wraps this with "[EMOJI]" strings
+        If true, converts emoji to text representations using `emoji` library, and wraps this with "emoji" tokens
 
     normalize_laughter: boolean (default True)
         Normalizes laughters. Uses different regular expressions depending on the lang argument.
@@ -150,15 +153,16 @@ def preprocess_tweet(
         url_token = "HTTPURL"
 
 
-    ret = ""
-    for char in text:
-        if char in replacements:
-            replacement = replacements[char]
-            if replacement:
-                ret += replacement
-        else:
-            ret += char
-    text = ret
+    if char_replace:
+        ret = ""
+        for char in text:
+            if char in replacements:
+                replacement = replacements[char]
+                if replacement:
+                    ret += replacement
+            else:
+                ret += char
+        text = ret
 
     text = user_regex.sub(user_token, text)
     text = url_regex.sub(url_token, text)
