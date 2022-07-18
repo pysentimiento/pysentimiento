@@ -30,7 +30,7 @@ def load_df(path):
     df["label"] = df["label"].astype(int)
     return df
 
-def load_datasets(seed=2021, preprocessing_args={}):
+def load_datasets(seed=2021, preprocessing_args={}, **kwargs):
     """
     Return train, dev, test datasets
     """

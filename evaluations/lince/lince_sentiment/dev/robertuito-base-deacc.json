@@ -1,0 +1,55 @@
+{
+    "model": "pysentimiento/robertuito-base-deacc",
+    "lang": "es",
+    "train_args": {
+        "epochs": 5,
+        "batch_size": 32,
+        "eval_batch_size": 16,
+        "warmup_ratio": 0.1,
+        "limit": null
+    },
+    "evaluations": {
+        "lince_sentiment": [
+            {
+                "test_loss": 0.9032256603240967,
+                "test_negative_f1": 0.5668016194331984,
+                "test_negative_precision": 0.481651376146789,
+                "test_negative_recall": 0.6885245901639344,
+                "test_neutral_f1": 0.30733944954128445,
+                "test_neutral_precision": 0.37746478873239436,
+                "test_neutral_recall": 0.25918762088974856,
+                "test_positive_f1": 0.6945368171021378,
+                "test_positive_precision": 0.6844569288389513,
+                "test_positive_recall": 0.7049180327868853,
+                "test_micro_f1": 0.5782678859601936,
+                "test_acc": 0.5782678859601936,
+                "test_macro_f1": 0.5228926539421082,
+                "test_macro_precision": 0.5145244002342224,
+                "test_macro_recall": 0.5508767366409302,
+                "test_runtime": 3.4888,
+                "test_samples_per_second": 532.85,
+                "test_steps_per_second": 33.536
+            },
+            {
+                "test_loss": 1.3235909938812256,
+                "test_negative_f1": 0.527972027972028,
+                "test_negative_precision": 0.5655430711610487,
+                "test_negative_recall": 0.49508196721311476,
+                "test_neutral_f1": 0.35772357723577236,
+                "test_neutral_precision": 0.37687366167023556,
+                "test_neutral_recall": 0.3404255319148936,
+                "test_positive_f1": 0.6984273820536541,
+                "test_positive_precision": 0.6711111111111111,
+                "test_positive_recall": 0.7280617164898746,
+                "test_micro_f1": 0.5820333512641205,
+                "test_acc": 0.5820333512641205,
+                "test_macro_f1": 0.5280409455299377,
+                "test_macro_precision": 0.5378425717353821,
+                "test_macro_recall": 0.5211897492408752,
+                "test_runtime": 3.4891,
+                "test_samples_per_second": 532.804,
+                "test_steps_per_second": 33.533
+            }
+        ]
+    }
+}

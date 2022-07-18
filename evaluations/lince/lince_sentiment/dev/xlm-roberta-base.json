@@ -1,0 +1,35 @@
+{
+    "model": "xlm-roberta-base",
+    "lang": "es",
+    "train_args": {
+        "epochs": 5,
+        "batch_size": 32,
+        "eval_batch_size": 16,
+        "warmup_ratio": 0.1,
+        "limit": null
+    },
+    "evaluations": {
+        "lince_sentiment": [
+            {
+                "test_loss": 0.9742868542671204,
+                "test_negative_f1": 0.48013816925734026,
+                "test_negative_precision": 0.5072992700729927,
+                "test_negative_recall": 0.4557377049180328,
+                "test_neutral_f1": 0.2892459826946848,
+                "test_neutral_precision": 0.4006849315068493,
+                "test_neutral_recall": 0.2263056092843327,
+                "test_positive_f1": 0.7227467811158798,
+                "test_positive_precision": 0.6511987625676721,
+                "test_positive_recall": 0.8119575699132112,
+                "test_micro_f1": 0.5906401291016675,
+                "test_acc": 0.5906401291016675,
+                "test_macro_f1": 0.4973770081996918,
+                "test_macro_precision": 0.5197276473045349,
+                "test_macro_recall": 0.49800029397010803,
+                "test_runtime": 3.4874,
+                "test_samples_per_second": 533.064,
+                "test_steps_per_second": 33.549
+            }
+        ]
+    }
+}

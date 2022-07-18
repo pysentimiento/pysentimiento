@@ -2,6 +2,8 @@ import torch
 import os
 import torch
 import tempfile
+
+from transformers.utils.dummy_pt_objects import AutoModelForTokenClassification
 from .metrics import compute_metrics
 from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
@@ -16,19 +18,20 @@ dont_add_tokens = {
 
 
 
-def load_model(base_model, id2label, label2id, max_length=128):
+
+def load_model(
+    base_model, id2label, label2id, max_length=128, auto_class=AutoModelForSequenceClassification):
     """
     Loads model and tokenizer
     """
     print(f"Loading model {base_model}")
-    model = AutoModelForSequenceClassification.from_pretrained(
+    model = auto_class.from_pretrained(
         base_model, return_dict=True, num_labels=len(id2label)
     )
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     tokenizer.model_max_length = max_length
 
-    #model.config.hidden_dropout_prob = 0.20
     model.config.id2label = id2label
     model.config.label2id = label2id
 
@@ -59,25 +62,28 @@ class MultiLabelTrainer(Trainer):
 
 def train_huggingface(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
-    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1",
+    epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1", data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
     **kwargs):
     """
     Run experiments experiments
     """
     padding = False if use_dynamic_padding else 'max_length'
-    def tokenize(batch):
+    def tokenize(batch, tokenizer):
         return tokenizer(batch['text'], padding=padding, truncation=True)
 
+    if tokenize_fun is None:
+        tokenize_fun = tokenize
+
+    _tokenize_fun = lambda x: tokenize_fun(x, tokenizer)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=batch_size)
-    dev_dataset = dev_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=eval_batch_size)
+    train_dataset = train_dataset.map(_tokenize_fun, batched=True, batch_size=batch_size)
+    dev_dataset = dev_dataset.map(_tokenize_fun, batched=True, batch_size=eval_batch_size)
+    test_dataset = test_dataset.map(_tokenize_fun, batched=True, batch_size=eval_batch_size)
 
-    data_collator = None
     if use_dynamic_padding:
-        data_collator = DataCollatorWithPadding(tokenizer, padding="longest")
+        data_collator = data_collator_class(tokenizer, padding="longest")
     else:
         if not format_dataset:
             raise ValueError("Must provide format_dataset if not using dynamic padding")
@@ -87,7 +93,7 @@ def train_huggingface(
         dev_dataset = format_dataset(dev_dataset)
         test_dataset = format_dataset(test_dataset)
 
-    output_path = tempfile.mkdtemp()
+    output_path = tempfile.mkdtemp(prefix="pysentimiento")
     training_args = TrainingArguments(
         output_dir=output_path,
         num_train_epochs=epochs,
@@ -129,9 +135,6 @@ def train_huggingface(
 
     trainer.train()
 
-    os.system(f"rm -Rf {output_path}")
-
-
     test_results = trainer.predict(test_dataset)
 
     os.system(f"rm -Rf {output_path}")
@@ -139,8 +142,11 @@ def train_huggingface(
     return trainer, test_results
 
 
-def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
-    lang, limit=None, max_length=128, problem_type="single_label_classification", metrics_fun=None, **kwargs):
+def train_model(
+    base_model, train_dataset, dev_dataset, test_dataset, id2label,
+    lang, limit=None, max_length=128, metrics_fun=None,
+    auto_class=AutoModelForSequenceClassification,
+    **kwargs):
     """
     Base function
     """
@@ -152,6 +158,9 @@ def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
         train_dataset = train_dataset.select(range(limit))
         dev_dataset = dev_dataset.select(range(limit))
         test_dataset = test_dataset.select(range(limit))
+
+    if type(id2label) is list:
+        id2label = {i: label for i, label in enumerate(id2label)}
 
     label2id = {v:k for k,v in id2label.items()}
 
@@ -175,7 +184,7 @@ def train_model(base_model, train_dataset, dev_dataset, test_dataset, id2label,
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model, tokenizer = load_model(
             base_model, label2id=label2id, id2label=id2label,
-            max_length=max_length,
+            max_length=max_length, auto_class=auto_class,
         )
 
         model = model.to(device)

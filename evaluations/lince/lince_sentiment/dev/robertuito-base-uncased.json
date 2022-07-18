@@ -1,0 +1,75 @@
+{
+    "model": "pysentimiento/robertuito-base-uncased",
+    "lang": "es",
+    "train_args": {
+        "epochs": 5,
+        "batch_size": 32,
+        "eval_batch_size": 16,
+        "warmup_ratio": 0.1,
+        "limit": null
+    },
+    "evaluations": {
+        "lince_sentiment": [
+            {
+                "test_loss": 0.9157090783119202,
+                "test_negative_f1": 0.5567567567567568,
+                "test_negative_precision": 0.4735632183908046,
+                "test_negative_recall": 0.6754098360655738,
+                "test_neutral_f1": 0.2903225806451613,
+                "test_neutral_precision": 0.358974358974359,
+                "test_neutral_recall": 0.2437137330754352,
+                "test_positive_f1": 0.700473933649289,
+                "test_positive_precision": 0.6887232059645852,
+                "test_positive_recall": 0.712632594021215,
+                "test_micro_f1": 0.5761161915008068,
+                "test_acc": 0.5761161915008068,
+                "test_macro_f1": 0.5158510804176331,
+                "test_macro_precision": 0.5070869326591492,
+                "test_macro_recall": 0.5439187288284302,
+                "test_runtime": 3.5342,
+                "test_samples_per_second": 526.007,
+                "test_steps_per_second": 33.105
+            },
+            {
+                "test_loss": 0.8984066247940063,
+                "test_negative_f1": 0.5638148667601683,
+                "test_negative_precision": 0.49264705882352944,
+                "test_negative_recall": 0.659016393442623,
+                "test_neutral_f1": 0.3344556677890011,
+                "test_neutral_precision": 0.3983957219251337,
+                "test_neutral_recall": 0.28820116054158607,
+                "test_positive_f1": 0.7038789025543992,
+                "test_positive_precision": 0.6908077994428969,
+                "test_positive_recall": 0.7174541947926711,
+                "test_micro_f1": 0.5884884346422808,
+                "test_acc": 0.5884884346422808,
+                "test_macro_f1": 0.5340498089790344,
+                "test_macro_precision": 0.5272834897041321,
+                "test_macro_recall": 0.5548905730247498,
+                "test_runtime": 3.531,
+                "test_samples_per_second": 526.483,
+                "test_steps_per_second": 33.135
+            },
+            {
+                "test_loss": 1.024717926979065,
+                "test_negative_f1": 0.528497409326425,
+                "test_negative_precision": 0.5583941605839416,
+                "test_negative_recall": 0.5016393442622951,
+                "test_neutral_f1": 0.3446852425180598,
+                "test_neutral_precision": 0.3694690265486726,
+                "test_neutral_recall": 0.3230174081237911,
+                "test_positive_f1": 0.712442396313364,
+                "test_positive_precision": 0.6822594880847308,
+                "test_positive_recall": 0.7454194792671167,
+                "test_micro_f1": 0.5879505110274341,
+                "test_acc": 0.5879505110274341,
+                "test_macro_f1": 0.5285416841506958,
+                "test_macro_precision": 0.5367075800895691,
+                "test_macro_recall": 0.5233587622642517,
+                "test_runtime": 3.5182,
+                "test_samples_per_second": 528.392,
+                "test_steps_per_second": 33.255
+            }
+        ]
+    }
+}

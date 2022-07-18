@@ -2,7 +2,6 @@ import pytest
 from pysentimiento import create_analyzer
 
 
-
 @pytest.fixture
 def analyzer_es():
     return create_analyzer(task="emotion", lang="es")
