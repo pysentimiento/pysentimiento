@@ -93,16 +93,15 @@ preprocess_tweet(["🎉🎉", "🎉"], lang="en")
 # ['emoji party popper emoji emoji party popper emoji', 'emoji party popper emoji']
 ```
 
-`pysentimiento` can also handle hashtag segmentation with GPT-2 models through the [`hashformers`](https://github.com/ruanchaves/hashformers) library.
+`pysentimiento` can also handle hashtag segmentation through the [`hashformers`](https://github.com/ruanchaves/hashformers) library.
 
 ```python
 from pysentimiento.preprocessing import preprocess_tweet
 from pysentimiento.segmenter import create_segmenter
 
-segmenter = create_segmenter(lang="es", batch_size=1000) # loads the default Spanish GPT-2 segmenter
+segmenter = create_segmenter(lang="es") 
 
 preprocess_tweet("esto es #UnaGenialidad", segmenter=segmenter)
-# "esto es una genialidad"
 ```
 
 ## Trained models so far
