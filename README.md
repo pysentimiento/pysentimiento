@@ -10,6 +10,8 @@ Currently supports:
 - Sentiment Analysis (Spanish, English)
 - Emotion Analysis (Spanish, English)
 - Hate Speech Detection (Spanish, English)
+- Named Entity Recognition (Spanish + English)
+- POS Tagging (Spanish + English)
 
 
 Just do `pip install pysentimiento` and start using it:
@@ -127,6 +129,7 @@ Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sha
 1. [TASS Dataset license](http://tass.sepln.org/tass_data/download.php) (License for Sentiment Analysis in Spanish, Emotion Analysis in Spanish & English)
 2. [SEMEval 2017 Dataset license](https://www.dropbox.com/s/byzr8yoda6bua1b/2017_English_final.zip?file_subpath=%2F2017_English_final%2FDOWNLOAD%2FREADME.txt) (Sentiment Analysis in English)
 
+3. [LinCE Datasets](https://ritual.uh.edu/lince/datasets) (License for NER & POS tagging)
 
 ## Suggestions and bugfixes
 
@@ -148,7 +151,7 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 }
 ```
 
-Also, pleace cite related pre-trained models and datasets for the specific models you use: 
+Also, pleace cite related pre-trained models and datasets for the specific models you use:
 
 ```bibtex
 
@@ -217,5 +220,15 @@ Also, pleace cite related pre-trained models and datasets for the specific model
   author={Nakov, Preslav and Ritter, Alan and Rosenthal, Sara and Sebastiani, Fabrizio and Stoyanov, Veselin},
   journal={arXiv preprint arXiv:1912.01973},
   year={2019}
+}
+
+% LinCE (NER & POS Tagging)
+
+@inproceedings{aguilar2020lince,
+  title={LinCE: A Centralized Benchmark for Linguistic Code-switching Evaluation},
+  author={Aguilar, Gustavo and Kar, Sudipta and Solorio, Thamar},
+  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
+  pages={1803--1813},
+  year={2020}
 }
 ```
