@@ -9,6 +9,7 @@ from pysentimiento.hate import train as train_hate
 from pysentimiento.sentiment import train as train_sentiment
 from pysentimiento.emotion import train as train_emotion
 from pysentimiento.irony import train as train_irony
+from pysentimiento.lince import train_ner, train_pos, train_sentiment as train_sentiment_lince
 from transformers.trainer_utils import set_seed
 
 """
@@ -30,7 +31,24 @@ train_fun = {
 
     "irony": {
         "es": train_irony,
-    }
+    },
+
+    #We use multilingual LinCE dataset here
+    "ner": {
+        "es": train_ner,
+        "en": train_ner,
+    },
+
+    #We use multilingual LinCE dataset here
+    "pos": {
+        "es": train_pos,
+        "en": train_pos,
+    },
+
+    "lince_sentiment": {
+        "es": train_sentiment_lince,
+        "en": train_sentiment_lince,
+    },
 }
 
 lang_fun = {
@@ -146,7 +164,9 @@ def train(
             with open(benchmark_output_path, "r") as f:
                 results = json.load(f)
 
-            results[task] = []
+            results["evaluations"][task] = results["evaluations"].get(task, [])
+            if "predictions" in results:
+                results["predictions"][task] = results["predictions"].get(task, [])
         else:
 
             results = {
@@ -172,7 +192,6 @@ def train(
                     base_model, lang,
                     **train_args
                 )
-
 
                 if predict:
                     results["predictions"][task_name].append(test_results.predictions.tolist())

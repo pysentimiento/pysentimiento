@@ -25,6 +25,15 @@ def test_preprocessing_replaces_urls():
 
     assert preprocess_tweet(text) == "esto es muy bueno url"
 
+
+def test_preprocessing_replaces_urls_https():
+    """
+    Replaces urls with special token for url
+    """
+    text = "bueno https://t.co/LvRc5JJxvJ"
+
+    assert preprocess_tweet(text) == "bueno url"
+
 def test_shortens_repeated_characters():
     """
     Replaces urls with special token for url

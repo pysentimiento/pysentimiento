@@ -3,7 +3,7 @@
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
 
-A Transformer-based library for SocialNLP classification tasks.
+A Transformer-based library for SocialNLP tasks.
 
 Currently supports:
 
@@ -21,14 +21,14 @@ from pysentimiento import create_analyzer
 analyzer = create_analyzer(task="sentiment", lang="es")
 
 analyzer.predict("Qué gran jugador es Messi")
-# returns SentimentOutput(output=POS, probas={POS: 0.998, NEG: 0.002, NEU: 0.000})
+# returns AnalyzerOutput(output=POS, probas={POS: 0.998, NEG: 0.002, NEU: 0.000})
 analyzer.predict("Esto es pésimo")
-# returns SentimentOutput(output=NEG, probas={NEG: 0.999, POS: 0.001, NEU: 0.000})
+# returns AnalyzerOutput(output=NEG, probas={NEG: 0.999, POS: 0.001, NEU: 0.000})
 analyzer.predict("Qué es esto?")
-# returns SentimentOutput(output=NEU, probas={NEU: 0.993, NEG: 0.005, POS: 0.002})
+# returns AnalyzerOutput(output=NEU, probas={NEU: 0.993, NEG: 0.005, POS: 0.002})
 
 analyzer.predict("jejeje no te creo mucho")
-# SentimentOutput(output=NEG, probas={NEG: 0.587, NEU: 0.408, POS: 0.005})
+# AnalyzerOutput(output=NEG, probas={NEG: 0.587, NEU: 0.408, POS: 0.005})
 """
 Emotion Analysis in English
 """
@@ -36,10 +36,22 @@ Emotion Analysis in English
 analyzer = create_analyzer(task="emotion", lang="en")
 
 emotion_analyzer.predict("yayyy")
-# returns EmotionOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
+# returns AnalyzerOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
 emotion_analyzer.predict("fuck off")
-# returns EmotionOutput(output=anger, probas={anger: 0.798, surprise: 0.055, fear: 0.040, disgust: 0.036, joy: 0.028, others: 0.023, sadness: 0.019})
+# returns AnalyzerOutput(output=anger, probas={anger: 0.798, surprise: 0.055, fear: 0.040, disgust: 0.036, joy: 0.028, others: 0.023, sadness: 0.019})
 
+"""
+Hate Speech (misogyny & racism)
+"""
+hate_speech_analyzer = create_analyzer(task="hate_speech", lang="es")
+
+hate_speech_analyzer.predict("Esto es una mierda pero no es odio")
+# returns AnalyzerOutput(output=[], probas={hateful: 0.022, targeted: 0.009, aggressive: 0.018})
+hate_speech_analyzer.predict("Esto es odio porque los inmigrantes deben ser aniquilados")
+# returns AnalyzerOutput(output=['hateful'], probas={hateful: 0.835, targeted: 0.008, aggressive: 0.476})
+
+hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es Miley!")
+# returns AnalyzerOutput(output=['hateful', 'targeted', 'aggressive'], probas={hateful: 0.987, targeted: 0.978, aggressive: 0.969})
 ```
 
 Also, you might use pretrained models directly with [`transformers`](https://github.com/huggingface/transformers) library.
@@ -115,6 +127,12 @@ Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sha
 1. [TASS Dataset license](http://tass.sepln.org/tass_data/download.php) (License for Sentiment Analysis in Spanish, Emotion Analysis in Spanish & English)
 2. [SEMEval 2017 Dataset license](https://www.dropbox.com/s/byzr8yoda6bua1b/2017_English_final.zip?file_subpath=%2F2017_English_final%2FDOWNLOAD%2FREADME.txt) (Sentiment Analysis in English)
 
+
+## Suggestions and bugfixes
+
+Please use the repository [issue tracker](https://github.com/pysentimiento/pysentimiento/issues) to point out bugs and make suggestions (new models, use another datasets, some other languages, etc)
+
+
 ## Citation
 
 If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.org/abs/2106.09462)
@@ -130,7 +148,74 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 }
 ```
 
+Also, pleace cite related pre-trained models and datasets for the specific models you use: 
 
-## Suggestions and bugfixes
+```bibtex
 
-Please use the repository [issue tracker](https://github.com/finiteautomata/pysentimiento/issues) to point out bugs and make suggestions (new models, use another datasets, some other languages, etc)
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pretrained models      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% RoBERTuito
+@article{perez2021robertuito,
+  title={RoBERTuito: a pre-trained language model for social media text in Spanish},
+  author={P{\'e}rez, Juan Manuel and Furman, Dami{\'a}n A and Alemany, Laura Alonso and Luque, Franco},
+  journal={arXiv preprint arXiv:2111.09453},
+  year={2021}
+}
+% BETO
+@article{canete2020spanish,
+  title={Spanish pre-trained bert model and evaluation data},
+  author={Canete, Jos{\'e} and Chaperon, Gabriel and Fuentes, Rodrigo and Ho, Jou-Hui and Kang, Hojin and P{\'e}rez, Jorge},
+  journal={Pml4dc at iclr},
+  volume={2020},
+  pages={2020},
+  year={2020}
+}
+% BERTweet
+@inproceedings{nguyen2020bertweet,
+  title={BERTweet: A pre-trained language model for English Tweets},
+  author={Nguyen, Dat Quoc and Vu, Thanh and Nguyen, Anh Tuan},
+  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations},
+  pages={9--14},
+  year={2020}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Datasets               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TASS 2020 (sentiment in Spanish)
+
+@article{garcia2020overview,
+  title={Overview of TASS 2020: introducing emotion detection},
+  author={Garc{\'\i}a-Vegaa, Manuel and D{\'\i}az-Galianoa, Manuel Carlos and Garc{\'\i}a-Cumbrerasa, Miguel {\'A} and del Arcoa, Flor Miriam Plaza and Montejo-R{\'a}eza, Arturo and Jim{\'e}nez-Zafraa, Salud Mar{\'\i}a and C{\'a}marab, Eugenio Mart{\'\i}nez and Aguilarc, C{\'e}sar Antonio and Antonio, Marco and Cabezudod, Sobrevilla and others},
+  year={2020}
+}
+
+% EmoEvent (Emotion Analysis Spanish & English)
+
+@inproceedings{del2020emoevent,
+  title={EmoEvent: A multilingual emotion corpus based on different events},
+  author={del Arco, Flor Miriam Plaza and Strapparava, Carlo and Lopez, L Alfonso Urena and Mart{\'\i}n-Valdivia, M Teresa},
+  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
+  pages={1492--1498},
+  year={2020}
+}
+
+% Hate Speech Detection (Spanish & English)
+
+
+@inproceedings{hateval2019semeval,
+  title={SemEval-2019 Task 5: Multilingual Detection of Hate Speech Against Immigrants and Women in Twitter},
+  author={Basile, Valerio and Bosco, Cristina and Fersini, Elisabetta and Nozza, Debora and Patti, Viviana and Rangel, Francisco and Rosso, Paolo and Sanguinetti, Manuela},
+  booktitle={Proceedings of the 13th International Workshop on Semantic Evaluation (SemEval-2019)},
+  year={2019},
+  publisher= {Association for Computational Linguistics}
+}
+% Sentiment Analysis in English
+
+@article{nakov2019semeval,
+  title={SemEval-2016 task 4: Sentiment analysis in Twitter},
+  author={Nakov, Preslav and Ritter, Alan and Rosenthal, Sara and Sebastiani, Fabrizio and Stoyanov, Veselin},
+  journal={arXiv preprint arXiv:1912.01973},
+  year={2019}
+}
+```
