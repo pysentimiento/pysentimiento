@@ -1,7 +1,8 @@
 import torch
 from .preprocessing import preprocess_tweet
 from transformers import (
-    AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding,
+    AutoTokenizer, AutoModelForSequenceClassification, AutoModelForTokenClassification,
+    DataCollatorWithPadding,
     Trainer, TrainingArguments
 )
 from datasets import Dataset
@@ -18,6 +19,9 @@ models = {
         },
         "hate_speech": {
             "model_name": "pysentimiento/robertuito-hate-speech",
+        },
+        "ner": {
+            "model_name": "pysentimiento/robertuito-ner",
         }
     },
     "en": {
@@ -68,12 +72,8 @@ class AnalyzerOutput:
 
         return ret
 
-
-class Analyzer:
-    """
-    Wrapper to use sentiment analysis models as black-box
-    """
-    def __init__(self, model_name, task, preprocessing_args={}, batch_size=32):
+class BaseAnalyzer:
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32):
         """
         Constructor for SentimentAnalyzer class
 
@@ -82,16 +82,15 @@ class Analyzer:
         model_name: str or path
             Model name or
         """
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length=128
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-
-        self.problem_type = self.model.config.problem_type
-
-        self.id2label = self.model.config.id2label
+        self.model = model
+        self.tokenizer = tokenizer
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
         self.task = task
+
+        self.tokenizer.model_max_length=128
+        self.problem_type = self.model.config.problem_type
+        self.id2label = self.model.config.id2label
 
         self.eval_trainer = Trainer(
             model=self.model,
@@ -102,12 +101,32 @@ class Analyzer:
             data_collator=DataCollatorWithPadding(self.tokenizer, padding="longest"),
         )
 
-
-
     def _tokenize(self, batch):
         return self.tokenizer(
             batch["text"], padding=False, truncation=True
         )
+
+class AnalyzerForSequenceClassification(BaseAnalyzer):
+    """
+    Wrapper to use sentiment analysis models as black-box
+    """
+
+    @classmethod
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32):
+        """
+        Constructor for SentimentAnalyzer class
+
+        Arguments:
+
+        model_name: str or path
+            Model name or
+        """
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size)
+
+
+
 
     def _get_output(self, sentence, logits):
         """
@@ -158,9 +177,10 @@ class Analyzer:
         --------
             List or single output with probabilities
         """
+
+        # If single string => predict it single
         if isinstance(inputs, str):
             return self._predict_single(inputs)
-
 
         sentences = [
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
@@ -174,6 +194,24 @@ class Analyzer:
         rets = [self._get_output(sent, logits_row.view(1, -1)) for sent, logits_row in zip(sentences, logits)]
 
         return rets
+
+class AnalyzerForTokenClassification(BaseAnalyzer):
+    @classmethod
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32):
+        """
+        Constructor for SentimentAnalyzer class
+
+        Arguments:
+
+        model_name: str or path
+            Model name or
+        """
+        model = AutoModelForTokenClassification.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size)
+
+    def predict(self, inputs):
+        pass
 
 
 def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
@@ -206,7 +244,11 @@ def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
     if not model_name:
         model_info = models[lang][task]
         model_name = model_info["model_name"]
+        if task in {"ner", "pos"}:
+            analyzer_class = AnalyzerForTokenClassification
+        else:
+            analyzer_class = AnalyzerForSequenceClassification
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    return Analyzer(model_name, task, preprocessing_args)
+    return analyzer_class.from_model_name(model_name, task, preprocessing_args)
