@@ -23,6 +23,9 @@ models = {
         },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
+        },
+        "pos": {
+            "model_name": "pysentimiento/robertuito-pos",
         }
     },
     "en": {
@@ -116,7 +119,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
     """
 
     @classmethod
-    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32):
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
         """
         Constructor for SentimentAnalyzer class
 
@@ -127,7 +130,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         """
         model = AutoModelForSequenceClassification.from_pretrained(model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return cls(model, tokenizer, task, preprocessing_args, batch_size)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
 
     def _get_output(self, sentence, logits):
         """
@@ -198,7 +201,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
 
 class AnalyzerForTokenClassification(BaseAnalyzer):
     @classmethod
-    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32):
+    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
         """
         Constructor for SentimentAnalyzer class
 
@@ -209,9 +212,9 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         """
         model = AutoModelForTokenClassification.from_pretrained(model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return cls(model, tokenizer, task, preprocessing_args, batch_size)
+        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
 
-    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, aggregation_strategy="simple", ):
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, aggregation_strategy="simple"):
         super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
         self.pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
         self.aggregation_strategy = aggregation_strategy
@@ -239,7 +242,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         return ret
 
 
-def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
+def create_analyzer(task, lang, model_name=None, preprocessing_args={}, **kwargs):
     """
     Create analyzer for the given task
 
@@ -276,4 +279,4 @@ def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    return analyzer_class.from_model_name(model_name, task, preprocessing_args)
+    return analyzer_class.from_model_name(model_name, task, preprocessing_args, **kwargs)
