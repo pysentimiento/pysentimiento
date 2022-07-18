@@ -3,7 +3,8 @@ from .preprocessing import preprocess_tweet
 from transformers import (
     AutoTokenizer, AutoModelForSequenceClassification, AutoModelForTokenClassification,
     DataCollatorWithPadding,
-    Trainer, TrainingArguments
+    Trainer, TrainingArguments,
+    pipeline
 )
 from datasets import Dataset
 from torch.nn import functional as F
@@ -125,9 +126,6 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         return cls(model, tokenizer, task, preprocessing_args, batch_size)
 
-
-
-
     def _get_output(self, sentence, logits):
         """
         Get output from logits
@@ -210,8 +208,32 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         return cls(model, tokenizer, task, preprocessing_args, batch_size)
 
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, aggregation_strategy="simple", ):
+        super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
+        self.pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
+        self.aggregation_strategy = aggregation_strategy
+
     def predict(self, inputs):
-        pass
+        """
+        Predict token classification
+        """
+        if isinstance(inputs, str):
+            inputs = [inputs]
+
+        sentences = [
+            preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
+        ]
+        ret = self.pipeline(sentences , aggregation_strategy=self.aggregation_strategy)
+
+        for sent, entities in zip(sentences, ret):
+            for entity in entities:
+                start, end = entity["start"], entity["end"]
+                entity["text"] = sent[start:end].strip()
+                entity["type"] = entity.pop("entity_group")
+
+        if len(sentences) == 1:
+            return ret[0]
+        return ret
 
 
 def create_analyzer(task, lang, model_name=None, preprocessing_args={}):
