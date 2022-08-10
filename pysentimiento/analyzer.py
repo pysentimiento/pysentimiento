@@ -268,14 +268,14 @@ def create_analyzer(task, lang, model_name=None, preprocessing_args={}, **kwargs
         raise ValueError(f"Task {task} not supported for {lang} -- only supports {models[lang].keys()}")
 
     preprocessing_args = preprocessing_args or {}
+    if task in {"ner", "pos"}:
+        analyzer_class = AnalyzerForTokenClassification
+    else:
+        analyzer_class = AnalyzerForSequenceClassification
 
     if not model_name:
         model_info = models[lang][task]
         model_name = model_info["model_name"]
-        if task in {"ner", "pos"}:
-            analyzer_class = AnalyzerForTokenClassification
-        else:
-            analyzer_class = AnalyzerForSequenceClassification
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
