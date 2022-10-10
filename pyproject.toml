@@ -22,7 +22,7 @@ pytorch-lightning = "^1.5.2"
 fasttext-wheel = "^0.9.2"
 twine = "^3.6.0"
 seqeval = "^1.2.2"
-torchtext = "^0.11.1"
+torchtext = ">=0.11.1"
 sklearn = "^0.0"
 
 
