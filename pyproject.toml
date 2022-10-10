@@ -26,6 +26,9 @@ torchtext = "^0.11.1"
 sklearn = "^0.0"
 
 
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^1.7.0"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

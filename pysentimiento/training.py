@@ -9,13 +9,11 @@ from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
     Trainer, TrainingArguments
 )
-from .baselines.training import train_rnn_model, train_ffn_model
 from .preprocessing import special_tokens
 
 dont_add_tokens = {
     "vinai/bertweet-base"
 }
-
 
 
 
@@ -168,11 +166,17 @@ def train_model(
         metrics_fun = lambda x: compute_metrics(x, id2label=id2label)
 
     if base_model == "rnn":
+        # TODO: Fix this
+        # Remove baslines
+        from .baselines.training import train_rnn_model, train_ffn_model
         return train_rnn_model(
             train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
         )
     elif base_model == "ffn":
+        # TODO: Fix this
+        # Remove baselines
+        from .baselines.training import train_rnn_model, train_ffn_model
         return train_ffn_model(
             train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
