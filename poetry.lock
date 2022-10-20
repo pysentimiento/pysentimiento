@@ -1044,7 +1044,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "torch"
 version = "1.12.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7.0"
 
@@ -1284,7 +1284,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "38eb5fac53a462839c1e9bd79a1951064467138573e9b360aa7efa42637ed263"
+content-hash = "b330ba8fbe6ca498c6adc45837f22b6add05f345d276813f810549052ffc6801"
 
 [metadata.files]
 absl-py = [
