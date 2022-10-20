@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.5.1
+
+- Add python 3.10 support (now tested on 3.8, 3.9, 3.10)
+- Drop python 3.7 support
+
+## 0.4.1
+
+- Add NER & POS tagging in Spanish+English through the LinCE dataset.
 
 ## 0.3.2
 
