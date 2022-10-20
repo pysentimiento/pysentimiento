@@ -12,6 +12,7 @@ python = ">=3.8,<3.11"
 transformers = ">=4.13.0"
 emoji = "^1.6.1"
 datasets = ">=1.13.3"
+torch="*"
 
 [tool.poetry.dev-dependencies]
 fire = "^0.4.0"
