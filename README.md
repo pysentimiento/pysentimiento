@@ -37,7 +37,7 @@ analyzer.predict("jejeje no te creo mucho")
 Emotion Analysis in English
 """
 
-analyzer = create_analyzer(task="emotion", lang="en")
+emotion_analyzer = create_analyzer(task="emotion", lang="en")
 
 emotion_analyzer.predict("yayyy")
 # returns AnalyzerOutput(output=joy, probas={joy: 0.723, others: 0.198, surprise: 0.038, disgust: 0.011, sadness: 0.011, fear: 0.010, anger: 0.009})
