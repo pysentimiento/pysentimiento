@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.5.2
+
+- Drop unnecessary dependencies (such as sklearn)
+
 ## 0.5.1
 
 - Add python 3.10 support (now tested on 3.8, 3.9, 3.10)
