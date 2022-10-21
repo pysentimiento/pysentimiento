@@ -1,12 +1,15 @@
 # pysentimiento: A Python toolkit for Sentiment Analysis and Social NLP tasks
 
+![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
+
+[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
+
 <p>
 <a href="https://console.tiyaro.ai/explore?q=pysentimiento/robertuito-&pub=pysentimiento"> <img src="https://tiyaro-public-docs.s3.us-west-2.amazonaws.com/assets/try_on_tiyaro_badge.svg"></a>
 </p>
 
 
 
-![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
 
 A Transformer-based library for SocialNLP tasks.
 
@@ -22,8 +25,6 @@ Currently supports:
 Just do `pip install pysentimiento` and start using it:
 
 ## Getting Started
-
-[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
 ```python
 from pysentimiento import create_analyzer
