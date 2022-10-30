@@ -10,9 +10,13 @@ Currently supports:
 - Sentiment Analysis (Spanish, English)
 - Emotion Analysis (Spanish, English)
 - Hate Speech Detection (Spanish, English)
+- Named Entity Recognition (Spanish + English)
+- POS Tagging (Spanish + English)
 
 
 Just do `pip install pysentimiento` and start using it:
+
+## Getting Started
 
 [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/PySentimiento_Sentiment_Analysis_in_Spanish.ipynb)
 
@@ -50,7 +54,7 @@ hate_speech_analyzer.predict("Esto es una mierda pero no es odio")
 hate_speech_analyzer.predict("Esto es odio porque los inmigrantes deben ser aniquilados")
 # returns AnalyzerOutput(output=['hateful'], probas={hateful: 0.835, targeted: 0.008, aggressive: 0.476})
 
-hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es Miley!")
+hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es XXXX!")
 # returns AnalyzerOutput(output=['hateful', 'targeted', 'aggressive'], probas={hateful: 0.987, targeted: 0.978, aggressive: 0.969})
 ```
 
@@ -105,16 +109,13 @@ poetry shell
 poetry install
 ```
 
-1. Download data TASS 2020 data to `data/tass2020` (you have to register [here](http://tass.sepln.org/2020/?page_id=74) to download the dataset)
+1. Get the data and put it under `data/`
 
-Labels must be placed under `data/tass2020/test1.1/labels`
-
-Open an issue or email us if you are not able to get the data.
+Open an issue or email us if you are not able to get the it.
 
 2. Run script to train models
 
 Check [TRAIN.md](TRAIN.md) for further information on how to train your models
-
 
 3. Upload models to Huggingface's Model Hub
 
@@ -127,6 +128,7 @@ Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sha
 1. [TASS Dataset license](http://tass.sepln.org/tass_data/download.php) (License for Sentiment Analysis in Spanish, Emotion Analysis in Spanish & English)
 2. [SEMEval 2017 Dataset license](https://www.dropbox.com/s/byzr8yoda6bua1b/2017_English_final.zip?file_subpath=%2F2017_English_final%2FDOWNLOAD%2FREADME.txt) (Sentiment Analysis in English)
 
+3. [LinCE Datasets](https://ritual.uh.edu/lince/datasets) (License for NER & POS tagging)
 
 ## Suggestions and bugfixes
 
@@ -148,7 +150,7 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 }
 ```
 
-Also, pleace cite related pre-trained models and datasets for the specific models you use: 
+Also, pleace cite related pre-trained models and datasets for the specific models you use:
 
 ```bibtex
 
@@ -217,5 +219,15 @@ Also, pleace cite related pre-trained models and datasets for the specific model
   author={Nakov, Preslav and Ritter, Alan and Rosenthal, Sara and Sebastiani, Fabrizio and Stoyanov, Veselin},
   journal={arXiv preprint arXiv:1912.01973},
   year={2019}
+}
+
+% LinCE (NER & POS Tagging)
+
+@inproceedings{aguilar2020lince,
+  title={LinCE: A Centralized Benchmark for Linguistic Code-switching Evaluation},
+  author={Aguilar, Gustavo and Kar, Sudipta and Solorio, Thamar},
+  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
+  pages={1803--1813},
+  year={2020}
 }
 ```

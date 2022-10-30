@@ -48,10 +48,12 @@ models = {
     },
 }
 
+
 class AnalyzerOutput:
     """
     Base class for classification output
     """
+
     def __init__(self, sentence, probas, is_multilabel=False):
         """
         Constructor
@@ -66,7 +68,6 @@ class AnalyzerOutput:
                 k for k, v in probas.items() if v > 0.5
             ]
 
-
     def __repr__(self):
         ret = f"{self.__class__.__name__}"
         if not self.is_multilabel:
@@ -78,6 +79,7 @@ class AnalyzerOutput:
         ret += f"(output={self.output}, probas={formatted_probas})"
 
         return ret
+
 
 class BaseAnalyzer:
     def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32):
@@ -95,7 +97,7 @@ class BaseAnalyzer:
         self.batch_size = batch_size
         self.task = task
 
-        self.tokenizer.model_max_length=128
+        self.tokenizer.model_max_length = 128
         self.problem_type = self.model.config.problem_type
         self.id2label = self.model.config.id2label
 
@@ -105,13 +107,15 @@ class BaseAnalyzer:
                 output_dir=".",
                 per_device_eval_batch_size=batch_size,
             ),
-            data_collator=DataCollatorWithPadding(self.tokenizer, padding="longest"),
+            data_collator=DataCollatorWithPadding(
+                self.tokenizer, padding="longest"),
         )
 
     def _tokenize(self, batch):
         return self.tokenizer(
             batch["text"], padding=False, truncation=True
         )
+
 
 class AnalyzerForSequenceClassification(BaseAnalyzer):
     """
@@ -145,9 +149,8 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
             is_multilabel = False
             probs = torch.softmax(logits, dim=1).view(-1)
 
-        probas = {self.id2label[i]:probs[i].item() for i in self.id2label}
+        probas = {self.id2label[i]: probs[i].item() for i in self.id2label}
         return AnalyzerOutput(sentence, probas=probas, is_multilabel=is_multilabel)
-
 
     def _predict_single(self, sentence):
         """
@@ -166,7 +169,6 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         output = self.model(idx)
         logits = output.logits
         return self._get_output(sentence, logits)
-
 
     def predict(self, inputs):
         """
@@ -190,14 +192,16 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
         ]
         dataset = Dataset.from_dict({"text": sentences})
-        dataset = dataset.map(self._tokenize, batched=True, batch_size=self.batch_size)
-
+        dataset = dataset.map(self._tokenize, batched=True,
+                              batch_size=self.batch_size)
 
         output = self.eval_trainer.predict(dataset)
         logits = torch.tensor(output.predictions)
-        rets = [self._get_output(sent, logits_row.view(1, -1)) for sent, logits_row in zip(sentences, logits)]
+        rets = [self._get_output(sent, logits_row.view(1, -1))
+                for sent, logits_row in zip(sentences, logits)]
 
         return rets
+
 
 class AnalyzerForTokenClassification(BaseAnalyzer):
     @classmethod
@@ -229,7 +233,8 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         sentences = [
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
         ]
-        ret = self.pipeline(sentences , aggregation_strategy=self.aggregation_strategy)
+        ret = self.pipeline(
+            sentences, aggregation_strategy=self.aggregation_strategy)
 
         for sent, entities in zip(sentences, ret):
             for entity in entities:
@@ -242,7 +247,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         return ret
 
 
-def create_analyzer(task, lang, model_name=None, preprocessing_args={}, **kwargs):
+def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}, **kwargs):
     """
     Create analyzer for the given task
 
@@ -261,21 +266,26 @@ def create_analyzer(task, lang, model_name=None, preprocessing_args={}, **kwargs
     --------
         SentimentAnalyzer or EmotionAnalyzer
     """
-    if lang not in models:
-        raise ValueError(f"Language {lang} not supported -- only supports {models.keys()}")
-
-    if task not in models[lang]:
-        raise ValueError(f"Task {task} not supported for {lang} -- only supports {models[lang].keys()}")
+    if not (model_name or (lang and task)):
+        raise ValueError("model_name or (lang and task) must be provided")
 
     preprocessing_args = preprocessing_args or {}
+    if task in {"ner", "pos"}:
+        analyzer_class = AnalyzerForTokenClassification
+    else:
+        analyzer_class = AnalyzerForSequenceClassification
 
     if not model_name:
+        if lang not in models:
+            raise ValueError(
+                f"Language {lang} not supported -- only supports {models.keys()}")
+
+        if task not in models[lang]:
+            raise ValueError(
+                f"Task {task} not supported for {lang} -- only supports {models[lang].keys()}")
+
         model_info = models[lang][task]
         model_name = model_info["model_name"]
-        if task in {"ner", "pos"}:
-            analyzer_class = AnalyzerForTokenClassification
-        else:
-            analyzer_class = AnalyzerForSequenceClassification
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
