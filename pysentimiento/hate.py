@@ -15,7 +15,6 @@ from .preprocessing import preprocess_tweet, extra_args
 from .training import load_model, train_model
 
 
-
 logging.basicConfig()
 
 logger = logging.getLogger('pysentimiento')
@@ -26,33 +25,34 @@ project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data", "hate")
 
 
-
 def load_datasets(lang,
-    train_path=None, dev_path=None, test_path=None, limit=None,
-    random_state=2021, preprocess=True, preprocessing_args={} ):
+                  train_path=None, dev_path=None, test_path=None, limit=None,
+                  random_state=2021, preprocess=True, preprocessing_args={}):
     """
     Load emotion recognition datasets
     """
 
-    train_path = train_path or os.path.join(data_dir, f"hateval2019_{lang}_train.csv")
-    dev_path = dev_path or os.path.join(data_dir, f"hateval2019_{lang}_dev.csv")
-    test_path = test_path or os.path.join(data_dir, f"hateval2019_{lang}_test.csv")
+    train_path = train_path or os.path.join(
+        data_dir, f"hateval2019_{lang}_train.csv")
+    dev_path = dev_path or os.path.join(
+        data_dir, f"hateval2019_{lang}_dev.csv")
+    test_path = test_path or os.path.join(
+        data_dir, f"hateval2019_{lang}_test.csv")
 
     logger.info(f"Train path = {train_path}")
     logger.info(f"Dev path = {dev_path}")
     logger.info(f"Test path = {test_path}")
-
 
     train_df = pd.read_csv(train_path)
     dev_df = pd.read_csv(dev_path)
     test_df = pd.read_csv(test_path)
 
     if preprocess:
-        preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
+        def preprocess_fn(x): return preprocess_tweet(
+            x, lang=lang, **preprocessing_args)
 
         for df in [train_df, dev_df, test_df]:
             df["text"] = df["text"].apply(preprocess_fn)
-
 
     features = Features({
         'id': Value('int64'),
@@ -62,23 +62,26 @@ def load_datasets(lang,
         "AG": ClassLabel(num_classes=2, names=["NOT AGGRESSIVE", "AGGRESSIVE"])
     })
 
-    train_dataset = Dataset.from_pandas(train_df, features=features)
-    dev_dataset = Dataset.from_pandas(dev_df, features=features)
-    test_dataset = Dataset.from_pandas(test_df, features=features)
-
+    train_dataset = Dataset.from_pandas(
+        train_df, features=features, preserve_index=False)
+    dev_dataset = Dataset.from_pandas(
+        dev_df, features=features, preserve_index=False)
+    test_dataset = Dataset.from_pandas(
+        test_df, features=features, preserve_index=False)
 
     if limit:
         """
         Smoke test
         """
         print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(range(min(limit, len(train_dataset))))
+        train_dataset = train_dataset.select(
+            range(min(limit, len(train_dataset))))
         dev_dataset = dev_dataset.select(range(min(limit, len(dev_dataset))))
-        test_dataset = test_dataset.select(range(min(limit, len(test_dataset))))
-
-
+        test_dataset = test_dataset.select(
+            range(min(limit, len(test_dataset))))
 
     return train_dataset, dev_dataset, test_dataset
+
 
 def _get_b_metrics(preds, labels):
     ret = {}
@@ -94,7 +97,6 @@ def _get_b_metrics(preds, labels):
     for i, cat in enumerate(["HS", "TR", "AG"]):
         cat_labels, cat_preds = labels[:, i], preds[:, i]
 
-
         precision, recall, f1, _ = precision_recall_fscore_support(
             cat_labels, cat_preds, average='binary', zero_division=0,
         )
@@ -106,8 +108,6 @@ def _get_b_metrics(preds, labels):
         ret[cat.lower()+"_f1"] = f1
         ret[cat.lower()+"_precision"] = precision
         ret[cat.lower()+"_recall"] = recall
-
-
 
     neg_hs_f1_score = f1_score(1-(preds[:, 0] > 0), 1 - labels[:, 0])
 
@@ -125,6 +125,7 @@ def _get_b_metrics(preds, labels):
 
     return ret
 
+
 def get_task_b_metrics(predictions):
 
     outputs = predictions.predictions
@@ -133,15 +134,18 @@ def get_task_b_metrics(predictions):
     return _get_b_metrics(outputs > 0, labels)
 # Maps combinations to classes
 
+
 combinatorial_mapping = {
-    (0, 0, 0): 0, # not hateful
-    (1, 0, 0): 1, # hs, not tr, not ag
-    (1, 0, 1): 2, # hs, not tr, ag
-    (1, 1, 0): 3, # hs, tr    , not ag
-    (1, 1, 1): 4, # hs, tr    , ag
+    (0, 0, 0): 0,  # not hateful
+    (1, 0, 0): 1,  # hs, not tr, not ag
+    (1, 0, 1): 2,  # hs, not tr, ag
+    (1, 1, 0): 3,  # hs, tr    , not ag
+    (1, 1, 1): 4,  # hs, tr    , ag
 }
 
-inverse_combinatorial_mapping = {v:k for k, v in combinatorial_mapping.items()}
+inverse_combinatorial_mapping = {
+    v: k for k, v in combinatorial_mapping.items()}
+
 
 def get_combinatorial_metrics(predictions):
     outputs = predictions.predictions
@@ -149,11 +153,11 @@ def get_combinatorial_metrics(predictions):
 
     preds = outputs.argmax(1)
 
-    normalized_preds = np.array([inverse_combinatorial_mapping[k] for k in preds])
-    normalized_labels = np.array([inverse_combinatorial_mapping[k] for k in labels])
+    normalized_preds = np.array(
+        [inverse_combinatorial_mapping[k] for k in preds])
+    normalized_labels = np.array(
+        [inverse_combinatorial_mapping[k] for k in labels])
     return _get_b_metrics(normalized_preds, normalized_labels)
-
-
 
 
 class HierarchicalTrainer(Trainer):
@@ -196,14 +200,12 @@ class HierarchicalTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-
-
 def train(
     base_model, lang, epochs=5, batch_size=32,
     warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=True, class_weight=None,
     hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1",
     combinatorial=False, **kwargs,
-    ):
+):
     """
     Train function
 
@@ -229,7 +231,6 @@ def train(
         lang=lang,
         preprocessing_args=extra_args.get(base_model, {})
     )
-
 
     if dev:
         test_dataset = dev_dataset
@@ -264,7 +265,8 @@ def train(
                 2: "aggressive",
             }
 
-        trainer_class = (lambda *args, **kwargs: HierarchicalTrainer(*args, gamma=gamma, **kwargs)) if hierarchical else None
+        trainer_class = (lambda *args, **kwargs: HierarchicalTrainer(*
+                         args, gamma=gamma, **kwargs)) if hierarchical else None
     else:
         metrics_fun = None
         id2label = {
@@ -272,13 +274,13 @@ def train(
             1: 'hateful',
         }
 
+    label2id = {v: k for k, v in id2label.items()}
 
-    label2id = {v:k for k, v in id2label.items()}
-
-
-    problem_type = "multi_label_classification" if (task_b and not combinatorial) else "single_label_classification"
+    problem_type = "multi_label_classification" if (
+        task_b and not combinatorial) else "single_label_classification"
 
     labels_order = ["HS", "TR", "AG"]
+
     def format_dataset(dataset):
         def get_labels(examples):
             if task_b:
@@ -295,8 +297,7 @@ def train(
 
     if class_weight:
         class_weight = torch.Tensor([train_dataset[k] for k in labels_order])
-        class_weight = 1 / (2* class_weight.mean(1))
-
+        class_weight = 1 / (2 * class_weight.mean(1))
 
     return train_model(
         base_model, train_dataset, dev_dataset, test_dataset, id2label,
