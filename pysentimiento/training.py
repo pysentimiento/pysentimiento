@@ -2,8 +2,6 @@ import torch
 import os
 import torch
 import tempfile
-
-from transformers.utils.dummy_pt_objects import AutoModelForTokenClassification
 from .metrics import compute_metrics
 from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
@@ -140,7 +138,6 @@ def train_huggingface(
     trainer.train()
 
     test_results = trainer.predict(test_dataset)
-
     os.system(f"rm -Rf {output_path}")
 
     return trainer, test_results
