@@ -1,12 +1,9 @@
-import torch
 import pandas as pd
 import os
 import pathlib
-from glob import glob
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
-from .training import load_model, train_model
-from .baselines.training import train_rnn_model
+from .training import train_model
 from .preprocessing import preprocess_tweet
 
 """
@@ -93,7 +90,11 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preproces
     test_dataset = Dataset.from_pandas(
         test_df[features.keys()], features=features, preserve_index=False)
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
 
 
 def train(
@@ -105,7 +106,7 @@ def train(
     load_extra_args = extra_args[base_model] if base_model in extra_args else {
     }
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(
+    ds = load_datasets(
         lang=lang, **load_extra_args)
 
     kwargs = {
@@ -119,4 +120,4 @@ def train(
         }
     }
 
-    return train_model(base_model, train_dataset, dev_dataset, test_dataset, **kwargs)
+    return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)

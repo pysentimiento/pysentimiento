@@ -1,11 +1,10 @@
 """
 Run sentiment experiments
 """
-import torch
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
 from .training import train_model
@@ -84,7 +83,11 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
         test_dataset = test_dataset.select(
             range(min(limit, len(test_dataset))))
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
 
 
 def train(
@@ -97,7 +100,7 @@ def train(
     load_extra_args = extra_args[base_model] if base_model in extra_args else {
     }
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(
+    ds = load_datasets(
         lang=lang, **load_extra_args)
 
     kwargs = {
@@ -111,4 +114,4 @@ def train(
         }
     }
 
-    return train_model(base_model, train_dataset, dev_dataset, test_dataset, **kwargs)
+    return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)

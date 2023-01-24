@@ -1,9 +1,8 @@
-import torch
 from pysentimiento.tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
-from pysentimiento.training import load_model, train_model
-from pysentimiento.baselines.training import train_rnn_model
+from pysentimiento.training import train_model
+
 from pysentimiento.semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
@@ -39,14 +38,15 @@ def train(
     load_datasets = lang_conf[lang]["load_datasets"]
     id2label = lang_conf[lang]["id2label"]
 
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {}
+    load_extra_args = extra_args[base_model] if base_model in extra_args else {
+    }
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(**load_extra_args)
+    ds = load_datasets(**load_extra_args)
 
     kwargs = {
         **kwargs,
         **{
-            "id2label" : id2label,
+            "id2label": id2label,
             "epochs": epochs,
             "batch_size": batch_size,
             "limit": limit,
@@ -54,4 +54,4 @@ def train(
         }
     }
 
-    return train_model(base_model, train_dataset, dev_dataset, test_dataset, **kwargs)
+    return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)

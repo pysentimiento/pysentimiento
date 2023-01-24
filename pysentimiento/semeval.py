@@ -2,7 +2,7 @@ from numpy import int64
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
 
@@ -83,4 +83,9 @@ def load_datasets(seed=2021, preprocess=True, preprocessing_args={}, **kwargs):
         preserve_index=False
     )
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
+

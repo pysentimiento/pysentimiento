@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import pathlib
 from glob import glob
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from .preprocessing import preprocess_tweet
 
 """
@@ -106,4 +106,8 @@ def load_datasets(preprocessing_args={}, preprocess=True, return_df=False, **kwa
         preserve_index=False
     )
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )

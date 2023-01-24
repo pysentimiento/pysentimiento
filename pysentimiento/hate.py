@@ -8,11 +8,11 @@ import pathlib
 import torch
 import numpy as np
 import logging
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
-from .training import load_model, train_model
+from .training import train_model
 
 
 logging.basicConfig()
@@ -80,7 +80,11 @@ def load_datasets(lang,
         test_dataset = test_dataset.select(
             range(min(limit, len(test_dataset))))
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
 
 
 def _get_b_metrics(preds, labels):
@@ -227,22 +231,13 @@ def train(
             4: HS, TR, AG
     """
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(
+    ds = load_datasets(
         lang=lang,
         preprocessing_args=extra_args.get(base_model, {})
     )
 
     if dev:
         test_dataset = dev_dataset
-
-    if limit:
-        """
-        Smoke test
-        """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(range(limit))
-        dev_dataset = dev_dataset.select(range(limit))
-        test_dataset = test_dataset.select(range(limit))
 
     trainer_class = None
     metrics_fun = None
@@ -300,7 +295,7 @@ def train(
         class_weight = 1 / (2 * class_weight.mean(1))
 
     return train_model(
-        base_model, train_dataset, dev_dataset, test_dataset, id2label,
+        base_model, ds["train"], ds["dev"], ds["test"], id2label,
         format_dataset=format_dataset, lang=lang,
         epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
