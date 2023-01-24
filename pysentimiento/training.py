@@ -3,6 +3,7 @@ import os
 import torch
 import tempfile
 from .metrics import compute_metrics
+from .config import config
 from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
     Trainer, TrainingArguments
@@ -95,7 +96,16 @@ def train_huggingface(
         dev_dataset = format_dataset(dev_dataset)
         test_dataset = format_dataset(test_dataset)
 
-    output_path = tempfile.mkdtemp(prefix="pysentimiento")
+    try:
+        tmp_path = config["PYSENTIMIENTO"]["TMP_DIR"]
+    except KeyError:
+        tmp_path = None
+
+    output_path = tempfile.mkdtemp(
+        prefix="pysentimiento",
+        dir=tmp_path
+    )
+
     training_args = TrainingArguments(
         output_dir=output_path,
         num_train_epochs=epochs,

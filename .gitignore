@@ -122,3 +122,4 @@ runs/*
 *.zip
 config/*
 wandb/*
+tmp/*
