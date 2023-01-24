@@ -10,7 +10,7 @@ from .preprocessing import preprocess_tweet
 Lo pongo así por huggingface
 """
 id2label = {0: 'NEG', 1: 'NEU', 2: 'POS'}
-label2id = {v:k for k,v in id2label.items()}
+label2id = {v: k for k, v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -30,7 +30,8 @@ def load_df(path):
     df["label"] = df["label"].astype(int)
     return df
 
-def load_datasets(seed=2021, preprocessing_args={}, **kwargs):
+
+def load_datasets(seed=2021, preprocess=True, preprocessing_args={}, **kwargs):
     """
     Return train, dev, test datasets
     """
@@ -50,11 +51,13 @@ def load_datasets(seed=2021, preprocessing_args={}, **kwargs):
     Tokenize tweets
     """
 
-    en_preprocess = lambda x: preprocess_tweet(x, lang="en", **preprocessing_args)
+    if preprocess:
+        def en_preprocess(x): return preprocess_tweet(
+            x, lang="en", **preprocessing_args)
 
-    train_df["text"] = train_df["text"].apply(en_preprocess)
-    dev_df["text"] = dev_df["text"].apply(en_preprocess)
-    test_df["text"] = test_df["text"].apply(en_preprocess)
+        train_df["text"] = train_df["text"].apply(en_preprocess)
+        dev_df["text"] = dev_df["text"].apply(en_preprocess)
+        test_df["text"] = test_df["text"].apply(en_preprocess)
 
     features = Features({
         'id': Value('int64'),
@@ -62,11 +65,22 @@ def load_datasets(seed=2021, preprocessing_args={}, **kwargs):
         'label': ClassLabel(num_classes=3, names=["NEG", "NEU", "POS"])
     })
 
-
     columns = ["text", "id", "label"]
 
-    train_dataset = Dataset.from_pandas(train_df[columns], features=features)
-    dev_dataset = Dataset.from_pandas(dev_df[columns], features=features)
-    test_dataset = Dataset.from_pandas(test_df[columns], features=features)
+    train_dataset = Dataset.from_pandas(
+        train_df[columns],
+        features=features,
+        preserve_index=False
+    )
+    dev_dataset = Dataset.from_pandas(
+        dev_df[columns],
+        features=features,
+        preserve_index=False
+    )
+    test_dataset = Dataset.from_pandas(
+        test_df[columns],
+        features=features,
+        preserve_index=False
+    )
 
     return train_dataset, dev_dataset, test_dataset

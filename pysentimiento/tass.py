@@ -9,17 +9,19 @@ from .preprocessing import preprocess_tweet
 Lo pongo así por huggingface
 """
 id2label = {0: 'NEG', 1: 'NEU', 2: 'POS'}
-label2id = {v:k for k,v in id2label.items()}
+label2id = {v: k for k, v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
 tass_dir = os.path.join(data_dir, "sentiment")
+
 
 def get_lang(file):
     """
     Get language of TASS dataset
     """
     return os.path.splitext(os.path.basename(file))[0]
+
 
 def load_df(path, test=False):
     """
@@ -70,7 +72,8 @@ def load_datasets(preprocessing_args={}, preprocess=True, return_df=False, **kwa
     """
 
     if preprocess:
-        preprocess_with_args = lambda x: preprocess_tweet(x, **preprocessing_args)
+        def preprocess_with_args(x): return preprocess_tweet(
+            x, **preprocessing_args)
 
         train_df["text"] = train_df["text"].apply(preprocess_with_args)
         dev_df["text"] = dev_df["text"].apply(preprocess_with_args)
@@ -87,8 +90,20 @@ def load_datasets(preprocessing_args={}, preprocess=True, return_df=False, **kwa
 
     columns = ["text", "lang", "label"]
 
-    train_dataset = Dataset.from_pandas(train_df[columns], features=features)
-    dev_dataset = Dataset.from_pandas(dev_df[columns], features=features)
-    test_dataset = Dataset.from_pandas(test_df[columns], features=features)
+    train_dataset = Dataset.from_pandas(
+        train_df[columns],
+        features=features,
+        preserve_index=False
+    )
+    dev_dataset = Dataset.from_pandas(
+        dev_df[columns],
+        features=features,
+        preserve_index=False
+    )
+    test_dataset = Dataset.from_pandas(
+        test_df[columns],
+        features=features,
+        preserve_index=False
+    )
 
     return train_dataset, dev_dataset, test_dataset
