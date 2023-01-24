@@ -57,9 +57,9 @@ lang_fun = {
 }
 
 for lang in lang_fun:
-    for task, task_funs in train_fun.items():
+    for _task, task_funs in train_fun.items():
         if lang in task_funs:
-            lang_fun[lang][task] = task_funs[lang]
+            lang_fun[lang][_task] = task_funs[lang]
 
 
 logging.basicConfig()
@@ -71,7 +71,7 @@ logger.setLevel(logging.INFO)
 def train(
     base_model, task=None, lang="es",
     output_path=None,
-    benchmark=False, times=10, benchmark_output_path=None,
+    benchmark=False, times=10,
     epochs=5, batch_size=32, eval_batch_size=16,
     warmup_ratio=.1, limit=None, predict=False, overwrite=False, **kwargs
 ):
@@ -109,10 +109,6 @@ def train(
 
     if task and lang not in train_fun[task]:
         logger.error(f"Lang {lang} not available for {task}")
-        sys.exit(1)
-
-    if benchmark and not benchmark_output_path:
-        logger.error(f"Must provide benchmark_output_path in benchmark mode")
         sys.exit(1)
 
     logger.info(kwargs)
@@ -160,25 +156,15 @@ def train(
 
         tasks = [task] if task else lang_fun[lang].keys()
 
-        if os.path.exists(benchmark_output_path) and not overwrite:
-            with open(benchmark_output_path, "r") as f:
-                results = json.load(f)
+        results = {
+            "model": base_model,
+            "lang": lang,
+            "train_args": train_args,
+            "evaluations": {k: [] for k in tasks},
+        }
 
-            results["evaluations"][task] = results["evaluations"].get(task, [])
-            if "predictions" in results:
-                results["predictions"][task] = results["predictions"].get(
-                    task, [])
-        else:
-
-            results = {
-                "model": base_model,
-                "lang": lang,
-                "train_args": train_args,
-                "evaluations": {k: [] for k in tasks},
-            }
-
-            if predict:
-                results["predictions"] = {k: [] for k in tasks}
+        if predict:
+            results["predictions"] = {k: [] for k in tasks}
 
         logger.info(results)
 
@@ -199,7 +185,8 @@ def train(
                     wandb_run = wandb.init(
                         project=config["WANDB"]["PROJECT"],
                         # Group by model name
-                        group=f"{base_model}-{task}-{lang}",
+                        group=f"{task_name}-{lang}",
+                        job_type=f"{task_name}-{lang}-{base_model}",
                         # Name run by model name
                         config={
                             "model": base_model,
@@ -237,10 +224,6 @@ def train(
                         # wandb_run.summary[k] = v
 
                 wandb_run.finish()
-                with open(benchmark_output_path, "w+") as f:
-                    json.dump(results, f, indent=4)
-        logger.info(
-            f"{times} runs of {tasks} saved to {benchmark_output_path}")
 
 
 if __name__ == "__main__":
