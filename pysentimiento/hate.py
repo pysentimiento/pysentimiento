@@ -8,11 +8,14 @@ import pathlib
 import torch
 import numpy as np
 import logging
+import wandb
+
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
-from transformers import Trainer
+from transformers import Trainer, TrainingArguments, DataCollatorWithPadding
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
-from .training import train_model
+from .config import config
+from .training import train_model, load_model
 
 
 logging.basicConfig()
@@ -27,9 +30,10 @@ data_dir = os.path.join(project_dir, "data", "hate")
 
 def load_datasets(lang,
                   train_path=None, dev_path=None, test_path=None, limit=None,
-                  random_state=2021, preprocess=True, preprocessing_args={}):
+                  preprocess=True, preprocessing_args={}):
     """
-    Load emotion recognition datasets
+    Load hate speech datasets
+
     """
 
     train_path = train_path or os.path.join(
@@ -39,9 +43,9 @@ def load_datasets(lang,
     test_path = test_path or os.path.join(
         data_dir, f"hateval2019_{lang}_test.csv")
 
-    logger.info(f"Train path = {train_path}")
-    logger.info(f"Dev path = {dev_path}")
-    logger.info(f"Test path = {test_path}")
+    logger.debug(f"Train path = {train_path}")
+    logger.debug(f"Dev path = {dev_path}")
+    logger.debug(f"Test path = {test_path}")
 
     train_df = pd.read_csv(train_path)
     dev_df = pd.read_csv(dev_path)
@@ -204,9 +208,12 @@ class HierarchicalTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
+labels_order = ["HS", "TR", "AG"]
+
+
 def train(
     base_model, lang, epochs=5, batch_size=32,
-    warmup_ratio=.1, limit=None, accumulation_steps=1, task_b=True, class_weight=None,
+    warmup_ratio=.1, accumulation_steps=1, task_b=True, class_weight=None,
     hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1",
     combinatorial=False, **kwargs,
 ):
@@ -237,7 +244,7 @@ def train(
     )
 
     if dev:
-        test_dataset = dev_dataset
+        test_dataset = ds["dev"]
 
     trainer_class = None
     metrics_fun = None
@@ -269,13 +276,6 @@ def train(
             1: 'hateful',
         }
 
-    label2id = {v: k for k, v in id2label.items()}
-
-    problem_type = "multi_label_classification" if (
-        task_b and not combinatorial) else "single_label_classification"
-
-    labels_order = ["HS", "TR", "AG"]
-
     def format_dataset(dataset):
         def get_labels(examples):
             if task_b:
@@ -291,14 +291,120 @@ def train(
         return dataset
 
     if class_weight:
-        class_weight = torch.Tensor([train_dataset[k] for k in labels_order])
+        class_weight = torch.Tensor([ds["train"][k] for k in labels_order])
         class_weight = 1 / (2 * class_weight.mean(1))
 
     return train_model(
-        base_model, ds["train"], ds["dev"], ds["test"], id2label,
+        base_model, ds["train"], ds["dev"], test_dataset, id2label,
         format_dataset=format_dataset, lang=lang,
         epochs=epochs, batch_size=batch_size, class_weight=class_weight,
         warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
         metrics_fun=metrics_fun, trainer_class=trainer_class, metric_for_best_model=metric_for_best_model,
         **kwargs
     )
+
+
+def hp_tune(model_name, lang):
+    """
+    Hyperparameter tuning with wandb
+    """
+    task_name = "hate_speech"
+
+    # method
+    sweep_config = {
+        'method': 'random',
+    }
+    # hyperparameters
+    parameters_dict = {
+        'epochs': {
+            'value': 1
+        },
+        'batch_size': {
+            'values': [8, 16, 32, 64]
+        },
+        'learning_rate': {
+            'distribution': 'log_uniform_values',
+            'min': 1e-5,
+            'max': 1e-3
+        },
+        'weight_decay': {
+            'values': [0.0, 0.05, 0.1, 0.2, 0.3, 0.4]
+        },
+
+        'warmup_ratio': {
+            'values': [0.06, 0.08, 0.10]
+        }
+    }
+
+    sweep_config['parameters'] = parameters_dict
+    id2label = {
+        0: "hateful",
+        1: "targeted",
+        2: "aggressive",
+    }
+    ds = load_datasets(lang=lang)
+
+    def model_init():
+        model, _ = load_model(model_name, id2label)
+        return model
+
+    _, tokenizer = load_model(model_name, id2label)
+
+    tokenized_ds = ds.map(
+        lambda batch: tokenizer(batch['text'], padding='max_length', truncation=True), batched=True, batch_size=32)
+    tokenized_ds = tokenized_ds.map(
+        lambda x: {'labels': torch.Tensor([x[k] for k in labels_order])})
+    tokenized_ds = tokenized_ds.remove_columns(ds["train"].column_names)
+
+    def train(config=None):
+        init_params = {
+            "config": config,
+            "group": f"sweep-{task_name}-{lang}",
+            "job_type": f"{task_name}-{lang}-{model_name}",
+            "config": {
+                "model": model_name,
+                "task": task_name,
+                "lang": lang,
+            },
+        }
+        with wandb.init(**init_params):
+            # set sweep configuration
+            config = wandb.config
+
+            # set training arguments
+            training_args = TrainingArguments(
+                output_dir='./tmp/sweeps',
+                report_to='wandb',  # Turn on Weights & Biases logging
+                num_train_epochs=config.epochs,
+                learning_rate=config.learning_rate,
+                weight_decay=config.weight_decay,
+                per_device_train_batch_size=config.batch_size,
+                warmup_ratio=config.warmup_ratio,
+                per_device_eval_batch_size=16,
+                evaluation_strategy='epoch',
+                save_strategy='epoch',
+                logging_strategy='epoch',
+                load_best_model_at_end=True,
+                remove_unused_columns=False,
+            )
+
+            # define training loop
+            trainer = Trainer(
+                # model,
+                model_init=model_init,
+                args=training_args,
+                compute_metrics=get_task_b_metrics,
+                train_dataset=tokenized_ds['train'],
+                eval_dataset=tokenized_ds['dev'],
+                tokenizer=tokenizer,
+                data_collator=DataCollatorWithPadding(
+                    tokenizer, padding="longest"),
+            )
+
+            # start training loop
+            trainer.train()
+
+    # Initiate sweep
+    sweep_id = wandb.sweep(sweep_config, project=config["WANDB"]["PROJECT"])
+
+    wandb.agent(sweep_id, train)

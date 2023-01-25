@@ -2,6 +2,7 @@ import torch
 import os
 import torch
 import tempfile
+import logging
 from .metrics import compute_metrics
 from .config import config
 from transformers import (
@@ -15,18 +16,27 @@ dont_add_tokens = {
 }
 
 
+logging.basicConfig()
+logger = logging.getLogger('pysentimiento')
+logger.setLevel(logging.INFO)
+
+
 def load_model(
-        base_model, id2label, label2id, max_length=128, auto_class=AutoModelForSequenceClassification):
+        base_model, id2label, max_length=128, auto_class=AutoModelForSequenceClassification):
     """
     Loads model and tokenizer
     """
-    print(f"Loading model {base_model}")
+    logger.debug(f"Loading model {base_model}")
     model = auto_class.from_pretrained(
         base_model, return_dict=True, num_labels=len(id2label)
     )
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     tokenizer.model_max_length = max_length
+
+    if type(id2label) is not dict:
+        id2label = {str(i): label for i, label in enumerate(id2label)}
+    label2id = {label: i for i, label in id2label.items()}
 
     model.config.id2label = id2label
     model.config.label2id = label2id
@@ -59,7 +69,7 @@ class MultiLabelTrainer(Trainer):
 
 
 def train_huggingface(
-        model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+        model, tokenizer, dataset, id2label,
         epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1", data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
         **kwargs):
     """
@@ -67,22 +77,16 @@ def train_huggingface(
     """
     padding = False if use_dynamic_padding else 'max_length'
 
-    def tokenize(batch, tokenizer):
-        return tokenizer(batch['text'], padding=padding, truncation=True)
-
-    if tokenize_fun is None:
-        tokenize_fun = tokenize
+    tokenize_fun = tokenize_fun or (lambda batch: tokenizer(
+        batch['text'], padding=padding, truncation=True))
 
     def _tokenize_fun(x): return tokenize_fun(x, tokenizer)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    train_dataset = train_dataset.map(
-        _tokenize_fun, batched=True, batch_size=batch_size)
-    dev_dataset = dev_dataset.map(
-        _tokenize_fun, batched=True, batch_size=eval_batch_size)
-    test_dataset = test_dataset.map(
-        _tokenize_fun, batched=True, batch_size=eval_batch_size)
+    dataset = dataset.map(
+        _tokenize_fun, batched=True, batch_size=batch_size
+    )
 
     if use_dynamic_padding:
         data_collator = data_collator_class(tokenizer, padding="longest")
@@ -92,9 +96,8 @@ def train_huggingface(
                 "Must provide format_dataset if not using dynamic padding")
 
     if format_dataset:
-        train_dataset = format_dataset(train_dataset)
-        dev_dataset = format_dataset(dev_dataset)
-        test_dataset = format_dataset(test_dataset)
+        for split in dataset.keys():
+            dataset[split] = format_dataset(dataset[split])
 
     try:
         tmp_path = config["PYSENTIMIENTO"]["TMP_DIR"]
@@ -128,8 +131,8 @@ def train_huggingface(
         "model": model,
         "args": training_args,
         "compute_metrics": metrics_fun,
-        "train_dataset": train_dataset,
-        "eval_dataset": dev_dataset,
+        "train_dataset": dataset["train"],
+        "eval_dataset": dataset["dev"],
         "data_collator": data_collator,
         "tokenizer": tokenizer,
     }
@@ -147,7 +150,7 @@ def train_huggingface(
 
     trainer.train()
 
-    test_results = trainer.predict(test_dataset)
+    test_results = trainer.predict(dataset["test"])
     os.system(f"rm -Rf {output_path}")
 
     return trainer, test_results

@@ -121,5 +121,5 @@ runs/*
 *.zip:wq
 *.zip
 config/*
-wandb/*
+**/wandb/*
 tmp/*

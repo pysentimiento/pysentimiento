@@ -44,6 +44,7 @@ load_fun = {
     },
 }
 
+tasks = list(load_fun.keys())
 
 def load_datasets(task, lang, **kwargs):
     """
