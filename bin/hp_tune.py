@@ -5,13 +5,24 @@ import os
 import logging
 import time
 import wandb
+import pysentimiento.hate
+import pysentimiento.sentiment
+import pysentimiento.emotion
+import pysentimiento.irony
 from pysentimiento.data import load_fun, tasks
-from pysentimiento.hate import hp_tune
 
 logging.basicConfig()
 
 logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
+
+
+modules = {
+    "hate_speech": pysentimiento.hate,
+    "sentiment": pysentimiento.sentiment,
+    "emotion": pysentimiento.emotion,
+    "irony": pysentimiento.irony,
+}
 
 
 def hyperparameter_tune(
@@ -39,9 +50,8 @@ def hyperparameter_tune(
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 
-    # Load model
-
-    hp_tune(model, lang)
+    # Run hp tune
+    modules[task].hp_tune(model, lang)
 
 
 if __name__ == "__main__":
