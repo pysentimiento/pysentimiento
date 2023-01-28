@@ -12,7 +12,7 @@ parameters_dict = {
         'value': 32
     },
     'learning_rate': {
-        'values': [2e-5, 3e-5, 5e-5, 7e-5, 1e-4, 2e-4, 3e-4, 5e-4]
+        'values': [2e-5, 3e-5, 5e-5, 7e-5, 1e-4, 2e-4, 3e-4]
     },
     'weight_decay': {
         'values': [0.0, 0.005, 0.01, 0.02, 0.03, 0.05]
@@ -25,8 +25,8 @@ parameters_dict = {
 
 
 def hyperparameter_sweep(
-        group_name, model_init, tokenizer, datasets, id2label, sweep_method="random", format_dataset=None, compute_metrics=None, config_info=None,
-        job_type=None):
+        name, group_name, model_init, tokenizer, datasets, id2label, sweep_method="random", format_dataset=None, compute_metrics=None, config_info=None,
+        metric_for_best_model="eval_macro_f1"):
     """
     Hyperparameter sweep with wandb
 
@@ -43,6 +43,7 @@ def hyperparameter_sweep(
         config_info (dict, optional): config info. Defaults to None.
     """
     sweep_config = {
+        'name': name,
         'method': sweep_method,
         'parameters': parameters_dict,
     }
@@ -63,13 +64,11 @@ def hyperparameter_sweep(
         init_params = {
             "config": config or {},
             "group": group_name,
+            "job_type": "sweep",
         }
 
         if config_info:
             init_params["config"].update(config_info)
-
-        if job_type:
-            init_params["job_type"] = job_type
 
         with wandb.init(**init_params):
             # set sweep configuration
@@ -84,11 +83,12 @@ def hyperparameter_sweep(
                 weight_decay=config.weight_decay,
                 per_device_train_batch_size=config.batch_size,
                 warmup_ratio=config.warmup_ratio,
-                per_device_eval_batch_size=16,
+                per_device_eval_batch_size=config.batch_size,
                 evaluation_strategy='epoch',
                 save_strategy='epoch',
                 logging_strategy='epoch',
                 load_best_model_at_end=True,
+                metric_for_best_model=metric_for_best_model,
                 remove_unused_columns=False,
                 group_by_length=True,
             )

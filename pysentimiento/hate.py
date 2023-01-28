@@ -334,8 +334,8 @@ def hp_tune(model_name, lang):
     }
 
     return hyperparameter_sweep(
-        group_name=f"sweep-{task_name}-{lang}",
-        job_type=model_name,
+        name=f"swp-{task_name}-{lang}-{model_name}",
+        group_name=f"swp-{task_name}-{lang}",
         model_init=model_init,
         tokenizer=tokenizer,
         datasets=ds,
