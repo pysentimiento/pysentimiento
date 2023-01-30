@@ -6,7 +6,7 @@ from .metrics import compute_metrics as _compute_metrics
 # hyperparameters
 parameters_dict = {
     'epochs': {
-        'value': [3, 4, 5],
+        'values': [3, 4, 5],
     },
     'batch_size': {
         'value': 32
