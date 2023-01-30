@@ -72,8 +72,7 @@ def train(
     base_model, task=None, lang="es",
     output_path=None,
     benchmark=False, times=10,
-    epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, predict=False, overwrite=False, **kwargs
+    limit=None, predict=False, **kwargs
 ):
     """
     Script to train models
@@ -113,16 +112,9 @@ def train(
 
     logger.info(kwargs)
 
-    train_args = {
-        **{
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "eval_batch_size": eval_batch_size,
-            "warmup_ratio": warmup_ratio,
-            "limit": limit,
-        },
-        **kwargs
-    }
+    train_args = kwargs.copy()
+    if limit:
+        train_args["limit"] = limit
 
     if not benchmark:
         """

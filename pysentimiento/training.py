@@ -70,7 +70,7 @@ class MultiLabelTrainer(Trainer):
 
 def train_huggingface(
         model, tokenizer, dataset, id2label,
-        epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, metric_for_best_model="macro_f1", data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
+        epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, weight_decay=0.01, metric_for_best_model="macro_f1", data_collator_class=DataCollatorWithPadding, tokenize_fun=None, learning_rate=5e-5,
         **kwargs):
     """
     Run experiments experiments
@@ -80,12 +80,16 @@ def train_huggingface(
     tokenize_fun = tokenize_fun or (lambda batch: tokenizer(
         batch['text'], padding=padding, truncation=True))
 
-    def _tokenize_fun(x): return tokenize_fun(x, tokenizer)
+    def _tokenize_fun(x):
+        if tokenize_fun:
+            return tokenize_fun(x)
+        else:
+            return tokenizer(batch['text'], padding=padding, truncation=True)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = dataset.map(
-        _tokenize_fun, batched=True, batch_size=batch_size
+        _tokenize_fun, batched=True, batch_size=batch_size,
     )
 
     if use_dynamic_padding:
@@ -118,8 +122,9 @@ def train_huggingface(
         warmup_ratio=warmup_ratio,
         evaluation_strategy="epoch",
         save_strategy="epoch",
+        learning_rate=learning_rate,
         do_eval=False,
-        weight_decay=0.01,
+        weight_decay=weight_decay,
         logging_dir='./logs',
         load_best_model_at_end=load_best_model_at_end,
         metric_for_best_model=metric_for_best_model,
@@ -157,7 +162,7 @@ def train_huggingface(
 
 
 def train_model(
-        base_model, train_dataset, dev_dataset, test_dataset, id2label,
+        base_model, dataset, id2label,
         lang, limit=None, max_length=128, metrics_fun=None,
         auto_class=AutoModelForSequenceClassification,
         **kwargs):
@@ -203,7 +208,7 @@ def train_model(
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model, tokenizer = load_model(
-            base_model, label2id=label2id, id2label=id2label,
+            base_model, id2label=id2label,
             max_length=max_length, auto_class=auto_class,
         )
 
@@ -211,6 +216,6 @@ def train_model(
         model.train()
 
         return train_huggingface(
-            model, tokenizer, train_dataset, dev_dataset, test_dataset, id2label,
+            model, tokenizer, dataset, id2label,
             metrics_fun=metrics_fun, **kwargs
         )

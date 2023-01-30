@@ -213,9 +213,8 @@ labels_order = ["HS", "TR", "AG"]
 
 
 def train(
-    base_model, lang, epochs=5, batch_size=32,
-    warmup_ratio=.1, accumulation_steps=1, task_b=True, class_weight=None,
-    hierarchical=False, gamma=.0, dev=False, metric_for_best_model="macro_f1",
+    base_model, lang, task_b=True, class_weight=None,
+    hierarchical=False, gamma=.0, dev=False,
     combinatorial=False, **kwargs,
 ):
     """
@@ -245,7 +244,7 @@ def train(
     )
 
     if dev:
-        test_dataset = ds["dev"]
+        ds["test"] = ds["dev"]
 
     trainer_class = None
     metrics_fun = None
@@ -296,11 +295,10 @@ def train(
         class_weight = 1 / (2 * class_weight.mean(1))
 
     return train_model(
-        base_model, ds["train"], ds["dev"], test_dataset, id2label,
+        base_model=base_model, dataset=ds, id2label=id2label,
         format_dataset=format_dataset, lang=lang,
-        epochs=epochs, batch_size=batch_size, class_weight=class_weight,
-        warmup_ratio=warmup_ratio, accumulation_steps=accumulation_steps,
-        metrics_fun=metrics_fun, trainer_class=trainer_class, metric_for_best_model=metric_for_best_model,
+        class_weight=class_weight,
+        metrics_fun=metrics_fun, trainer_class=trainer_class,
         **kwargs
     )
 
