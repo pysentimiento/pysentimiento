@@ -3,11 +3,13 @@ from .tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
 from .training import train_and_eval, load_model
-from .tuning import hyperparameter_sweep
+from .tuning import hyperparameter_sweep, get_training_arguments
 from .semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
 )
+
+task_name = "sentiment"
 
 lang_conf = {
     "es": {
@@ -36,31 +38,26 @@ def load_datasets(lang, **kwargs):
 
 
 def train(
-    base_model, lang="es", epochs=5, batch_size=32,
-    limit=None, **kwargs
+    base_model, lang="es", use_defaults_if_not_tuned=True,
+    **kwargs
 ):
     """
+
     """
     load_datasets = lang_conf[lang]["load_datasets"]
     id2label = lang_conf[lang]["id2label"]
 
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {
-    }
+    ds = load_datasets(**extra_args.get(base_model, {}))
 
-    ds = load_datasets(**load_extra_args)
+    training_args = get_training_arguments(
+        base_model, task_name=task_name, lang=lang,
+        metric_for_best_model="eval/macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned
+    )
 
-    kwargs = {
-        **kwargs,
-        **{
-            "id2label": id2label,
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "limit": limit,
-            "lang": lang,
-        }
-    }
-
-    return train_and_eval(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
+    return train_and_eval(
+        base_model=base_model, dataset=ds, id2label=id2label,
+        training_args=training_args, lang=lang, **kwargs
+    )
 
 
 def hp_tune(model_name, lang, **kwargs):

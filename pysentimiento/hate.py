@@ -316,7 +316,7 @@ def train(
         class_weight = 1 / (2 * class_weight.mean(1))
 
     training_args = get_training_arguments(base_model, task_name=task_name, lang=lang,
-                                           metric_for_best_model="macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned)
+                                           metric_for_best_model="eval/macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned)
 
     return train_and_eval(
         base_model=base_model, dataset=ds, id2label=id2label,

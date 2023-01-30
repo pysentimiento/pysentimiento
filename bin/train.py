@@ -190,12 +190,9 @@ def train(
                 logger.info("Test results")
                 logger.info("=" * 50)
 
-                for k, v in metrics.items():
-                    logger.info(f"{k:<16} : {v:.3f}")
-                    # Log into wandb if configured
-                    if wandb_run:
+                if wandb_run:
+                    for k, v in metrics.items():
                         wandb.log({k: v})
-                        # wandb_run.summary[k] = v
 
                 wandb_run.finish()
 
