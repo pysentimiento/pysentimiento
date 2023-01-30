@@ -6,7 +6,7 @@ from .ner import tokenize_and_align_labels, preprocess_token
 from datasets import load_dataset, load_metric, DatasetDict
 from seqeval.metrics import f1_score
 from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
-from ..training import train_model
+from ..training import train_and_eval
 
 metric = load_metric("seqeval")
 
@@ -116,7 +116,7 @@ def train(
         lang=lang
     )
 
-    return train_model(
+    return train_and_eval(
         base_model,
         train_dataset=ds["train"], dev_dataset=ds["dev"], test_dataset=ds["dev"],
         id2label=id2label, lang=lang, epochs=epochs,

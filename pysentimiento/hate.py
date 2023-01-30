@@ -12,8 +12,8 @@ from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
-from .training import train_model, load_model
-from .tuning import hyperparameter_sweep
+from .training import train_and_eval, load_model
+from .tuning import hyperparameter_sweep, get_training_arguments
 
 
 logging.basicConfig()
@@ -21,6 +21,7 @@ logging.basicConfig()
 logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
+task_name = "hate_speech"
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data", "hate")
@@ -209,10 +210,59 @@ class HierarchicalTrainer(Trainer):
 labels_order = ["HS", "TR", "AG"]
 
 
+def get_trainer_class(hierarchical=False, gamma=.0):
+    """
+
+    """
+    if hierarchical:
+        return (lambda *args, **kwargs:
+                HierarchicalTrainer(*
+                                    args, gamma=gamma, **kwargs)) if hierarchical else None
+
+
+def get_metrics_fun(task_b, combinatorial):
+    """
+    Returns the function that computes the metrics
+    """
+    if task_b:
+        if combinatorial:
+            return get_combinatorial_metrics
+        else:
+            return get_task_b_metrics
+    else:
+        return None
+
+
+def get_id2label(task_b, combinatorial):
+    """
+    Returns a dictionary that maps the label id to the label name
+    """
+    if task_b:
+        if combinatorial:
+            return {
+                0: "not hateful",
+                1: "hateful, not tr, not ag",
+                2: "hateful, not tr, ag",
+                3: "hateful, targeted, not ag",
+                4: "hateful, targeted, ag",
+            }
+        else:
+            return {
+                0: "hateful",
+                1: "targeted",
+                2: "aggressive",
+            }
+    else:
+        return {
+            0: 'ok',
+            1: 'hateful',
+        }
+
+
 def train(
     base_model, lang, task_b=True, class_weight=None,
     hierarchical=False, gamma=.0, dev=False,
-    combinatorial=False, **kwargs,
+    combinatorial=False, use_defaults_if_not_tuned=False, **kwargs,
 ):
     """
     Train function
@@ -243,35 +293,9 @@ def train(
     if dev:
         ds["test"] = ds["dev"]
 
-    trainer_class = None
-    metrics_fun = None
-    if task_b:
-        if combinatorial:
-            id2label = {
-                0: "not hateful",
-                1: "hateful, not tr, not ag",
-                2: "hateful, not tr, ag",
-                3: "hateful, targeted, not ag",
-                4: "hateful, targeted, ag",
-            }
-
-            metrics_fun = get_combinatorial_metrics
-        else:
-            metrics_fun = get_task_b_metrics
-            id2label = {
-                0: "hateful",
-                1: "targeted",
-                2: "aggressive",
-            }
-
-        trainer_class = (lambda *args, **kwargs: HierarchicalTrainer(*
-                         args, gamma=gamma, **kwargs)) if hierarchical else None
-    else:
-        metrics_fun = None
-        id2label = {
-            0: 'ok',
-            1: 'hateful',
-        }
+    trainer_class = get_trainer_class(hierarchical, gamma)
+    metrics_fun = get_metrics_fun(task_b=task_b, combinatorial=combinatorial)
+    id2label = get_id2label(task_b=task_b, combinatorial=combinatorial)
 
     def format_dataset(dataset):
         def get_labels(examples):
@@ -291,11 +315,13 @@ def train(
         class_weight = torch.Tensor([ds["train"][k] for k in labels_order])
         class_weight = 1 / (2 * class_weight.mean(1))
 
-    return train_model(
+    training_args = get_training_arguments(base_model, task_name=task_name, lang=lang,
+                                           metric_for_best_model="macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned)
+
+    return train_and_eval(
         base_model=base_model, dataset=ds, id2label=id2label,
-        format_dataset=format_dataset, lang=lang,
-        class_weight=class_weight,
-        metrics_fun=metrics_fun, trainer_class=trainer_class,
+        format_dataset=format_dataset, lang=lang, training_args=training_args,
+        class_weight=class_weight, metrics_fun=metrics_fun, trainer_class=trainer_class,
         **kwargs
     )
 
@@ -304,14 +330,16 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
-    task_name = "hate_speech"
 
     id2label = {
         0: "hateful",
         1: "targeted",
         2: "aggressive",
     }
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang,
+        preprocessing_args=extra_args.get(model_name, {})
+    )
 
     def model_init():
         model, _ = load_model(model_name, id2label)

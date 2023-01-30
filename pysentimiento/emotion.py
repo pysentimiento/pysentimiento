@@ -3,7 +3,7 @@ import os
 import pathlib
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
-from .training import train_model, load_model
+from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep
 from .preprocessing import preprocess_tweet
 
@@ -121,7 +121,7 @@ def train(
         }
     }
 
-    return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
+    return train_and_eval(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
 
 
 def hp_tune(model_name, lang, **kwargs):

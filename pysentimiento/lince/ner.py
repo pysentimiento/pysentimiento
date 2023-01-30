@@ -7,7 +7,7 @@ from seqeval.metrics import f1_score
 from datasets import load_dataset, load_metric, Dataset, DatasetDict
 from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
 from ..preprocessing import preprocess_tweet
-from ..training import train_model
+from ..training import train_and_eval
 
 metric = load_metric("seqeval")
 

@@ -4,7 +4,7 @@ NER for LinCE dataset
 import numpy as np
 from ..preprocessing import preprocess_tweet
 from datasets import load_dataset, DatasetDict
-from ..training import train_model
+from ..training import train_and_eval
 
 
 id2label = [
@@ -54,7 +54,7 @@ def train(
         lang=lang
     )
 
-    return train_model(
+    return train_and_eval(
         base_model,
         train_dataset=ds["train"], dev_dataset=ds["dev"], test_dataset=ds["dev"],
         id2label=id2label, lang=lang, epochs=epochs,

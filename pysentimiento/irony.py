@@ -7,7 +7,7 @@ import pathlib
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
-from .training import train_model
+from .training import train_and_eval
 
 extra_args = {
     "vinai/bertweet-base": {

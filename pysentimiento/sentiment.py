@@ -2,7 +2,7 @@ import wandb
 from .tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
-from .training import train_model, load_model
+from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep
 from .semeval import (
     load_datasets as load_semeval_datasets,
@@ -60,7 +60,7 @@ def train(
         }
     }
 
-    return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
+    return train_and_eval(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
 
 
 def hp_tune(model_name, lang, **kwargs):

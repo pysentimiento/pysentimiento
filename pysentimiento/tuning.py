@@ -1,7 +1,12 @@
 import wandb
+import logging
 from transformers import TrainingArguments, Trainer, DataCollatorWithPadding
 from .config import config
 from .metrics import compute_metrics as _compute_metrics
+
+logger = logging.getLogger('pysentimiento')
+logger.setLevel(logging.INFO)
+
 
 # hyperparameters
 parameters_dict = {
@@ -23,6 +28,70 @@ parameters_dict = {
         'values': [0.06, 0.08, 0.10]
     },
 }
+
+
+def get_training_arguments(model_name, task_name, lang, metric_for_best_model, use_defaults_if_not_tuned=False):
+    """
+    Get training arguments for a given model and task
+
+    Args:
+        model_name (str): model name
+        task_name (str): task name
+        lang (str): language
+        metric_for_best_model (str): metric to use for best model
+        use_defaults_if_not_tuned (bool, optional): if True, use default training arguments if not tuned. Defaults to False.
+
+    Returns:
+        transformers.TrainingArguments: training arguments
+
+    """
+    try:
+        api = wandb.Api()
+        sweeps = api.project("pysentimiento").sweeps()
+        # Get project sweep
+        sweep = next(
+            sweep for sweep in sweeps if sweep.name == f"swp-{task_name}-{lang}-{model_name}"
+        )
+
+        # Get best run
+        best_run = sweep.best_run(metric_for_best_model)
+
+        # Get best run config
+        tuned_params = best_run.config
+
+        # Log it
+        logger.info(
+            f"Model {model_name} tuned for task {task_name} in language {lang}")
+
+        # Just log important params
+        logger.info(
+            {k: v for k, v in tuned_params.items() if k in parameters_dict}
+        )
+    except StopIteration:
+
+        if use_defaults_if_not_tuned:
+            tuned_params = {}
+        else:
+            raise ValueError(
+                f"Model {model_name} not tuned for task {task_name} in language {lang}")
+
+    return TrainingArguments(
+        output_dir='./results',
+        num_train_epochs=tuned_params.get("epochs", 3),
+        per_device_train_batch_size=tuned_params.get("batch_size", 32),
+        per_device_eval_batch_size=tuned_params.get("batch_size", 32),
+        gradient_accumulation_steps=tuned_params.get("accumulation_steps", 1),
+        warmup_ratio=tuned_params.get("warmup_ratio", 0.1),
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        learning_rate=tuned_params.get("learning_rate", 5e-5),
+        do_eval=False,
+        weight_decay=tuned_params.get("weight_decay", 0.01),
+        logging_dir='./logs',
+        load_best_model_at_end=True,
+        metric_for_best_model="macro_f1",
+        group_by_length=True,
+    )
 
 
 def hyperparameter_sweep(

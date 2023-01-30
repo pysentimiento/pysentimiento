@@ -9,6 +9,7 @@ from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
     Trainer, TrainingArguments
 )
+from .tuning import get_training_arguments
 from .preprocessing import special_tokens
 
 dont_add_tokens = {
@@ -69,21 +70,31 @@ class MultiLabelTrainer(Trainer):
 
 
 def train_huggingface(
-        model, tokenizer, dataset, id2label,
-        epochs=5, batch_size=32, accumulation_steps=1, format_dataset=None, eval_batch_size=32, use_dynamic_padding=True, class_weight=None, group_by_length=True, warmup_ratio=.1, trainer_class=None, load_best_model_at_end=True, metrics_fun=None, weight_decay=0.01, metric_for_best_model="macro_f1", data_collator_class=DataCollatorWithPadding, tokenize_fun=None, learning_rate=5e-5,
+        base_model, dataset, id2label,
+        metrics_fun, training_args,
+        max_length=128, auto_class=AutoModelForSequenceClassification,
+        format_dataset=None, use_dynamic_padding=True, class_weight=None, trainer_class=None,  data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
         **kwargs):
     """
     Run experiments experiments
     """
     padding = False if use_dynamic_padding else 'max_length'
 
+    model, tokenizer = load_model(
+        base_model, id2label=id2label,
+        max_length=max_length, auto_class=auto_class,
+    )
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    model = model.to(device)
+    model.train()
+
     def _tokenize_fun(x):
         if tokenize_fun:
             return tokenize_fun(x)
         else:
             return tokenizer(x['text'], padding=padding, truncation=True)
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = dataset.map(
         _tokenize_fun, batched=True
@@ -110,25 +121,6 @@ def train_huggingface(
         dir=tmp_path
     )
 
-    training_args = TrainingArguments(
-        output_dir=output_path,
-        num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=eval_batch_size,
-        gradient_accumulation_steps=accumulation_steps,
-        warmup_ratio=warmup_ratio,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        learning_rate=learning_rate,
-        do_eval=False,
-        weight_decay=weight_decay,
-        logging_dir='./logs',
-        load_best_model_at_end=load_best_model_at_end,
-        metric_for_best_model=metric_for_best_model,
-        group_by_length=group_by_length,
-        **kwargs,
-    )
-
     trainer_args = {
         "model": model,
         "args": training_args,
@@ -140,7 +132,6 @@ def train_huggingface(
     }
 
     if class_weight is not None:
-
         class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
         trainer_class = MultiLabelTrainer
@@ -158,11 +149,9 @@ def train_huggingface(
     return trainer, test_results
 
 
-def train_model(
-        base_model, dataset, id2label,
-        lang, limit=None, max_length=128, metrics_fun=None,
-        auto_class=AutoModelForSequenceClassification,
-        **kwargs):
+def train_and_eval(base_model, dataset, id2label,
+                   lang, limit=None, metrics_fun=None,
+                   **kwargs):
     """
     Base function
     """
@@ -170,10 +159,7 @@ def train_model(
         """
         Smoke test
         """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(range(limit))
-        dev_dataset = dev_dataset.select(range(limit))
-        test_dataset = test_dataset.select(range(limit))
+        dataset = dataset.select(range(limit))
 
     if type(id2label) is list:
         id2label = {i: label for i, label in enumerate(id2label)}
@@ -188,7 +174,7 @@ def train_model(
         # Remove baselines from here! and don't use torchtext :)
         from .baselines.training import train_rnn_model, train_ffn_model
         return train_rnn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
+            dataset["train"], dataset["dev"], dataset["test"], lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
         )
     elif base_model == "ffn":
@@ -196,23 +182,15 @@ def train_model(
         # Remove baselines from here! and don't use torchtext :)
         from .baselines.training import train_rnn_model, train_ffn_model
         return train_ffn_model(
-            train_dataset, dev_dataset, test_dataset, lang=lang, id2label=id2label, metrics_fun=metrics_fun,
+            dataset["train"], dataset["dev"], dataset["test"], lang=lang, id2label=id2label, metrics_fun=metrics_fun,
             **kwargs
         )
     else:
         """
         Transformer classifier
         """
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model, tokenizer = load_model(
-            base_model, id2label=id2label,
-            max_length=max_length, auto_class=auto_class,
-        )
-
-        model = model.to(device)
-        model.train()
 
         return train_huggingface(
-            model, tokenizer, dataset, id2label,
-            metrics_fun=metrics_fun, **kwargs
+            base_model=base_model, dataset=dataset, id2label=id2label,
+            lang=lang, metrics_fun=metrics_fun, **kwargs
         )
