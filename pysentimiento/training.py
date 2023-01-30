@@ -77,19 +77,16 @@ def train_huggingface(
     """
     padding = False if use_dynamic_padding else 'max_length'
 
-    tokenize_fun = tokenize_fun or (lambda batch: tokenizer(
-        batch['text'], padding=padding, truncation=True))
-
     def _tokenize_fun(x):
         if tokenize_fun:
             return tokenize_fun(x)
         else:
-            return tokenizer(batch['text'], padding=padding, truncation=True)
+            return tokenizer(x['text'], padding=padding, truncation=True)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = dataset.map(
-        _tokenize_fun, batched=True, batch_size=batch_size,
+        _tokenize_fun, batched=True
     )
 
     if use_dynamic_padding:
