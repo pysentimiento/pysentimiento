@@ -27,7 +27,7 @@ parameters_dict = {
 
 def hyperparameter_sweep(
         name, group_name, model_init, tokenizer, datasets, id2label, sweep_method="random", format_dataset=None, compute_metrics=None, config_info=None,
-        metric_for_best_model="eval_macro_f1"):
+        metric_for_best_model="eval_macro_f1", count=None):
     """
     Hyperparameter sweep with wandb
 
@@ -115,4 +115,4 @@ def hyperparameter_sweep(
     # Initiate sweep
     sweep_id = wandb.sweep(sweep_config, project=config["WANDB"]["PROJECT"])
 
-    wandb.agent(sweep_id, train)
+    wandb.agent(sweep_id, train, count=count)

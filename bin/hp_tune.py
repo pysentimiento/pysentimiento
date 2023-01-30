@@ -26,7 +26,7 @@ modules = {
 
 
 def hyperparameter_tune(
-    model, task, lang,
+    model, task, lang, count=None,
     **kwargs
 ):
     """
@@ -36,9 +36,7 @@ def hyperparameter_tune(
         model (str): Base model to use. Must be a HuggingFace model
         task (str): Task to train
         lang (str): Language to train
-
-
-
+        count (int): Number of runs to perform
     """
 
     if task not in tasks:
@@ -51,7 +49,7 @@ def hyperparameter_tune(
         sys.exit(1)
 
     # Run hp tune
-    modules[task].hp_tune(model, lang)
+    modules[task].hp_tune(model, lang, count=count, **kwargs)
 
 
 if __name__ == "__main__":

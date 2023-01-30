@@ -300,7 +300,7 @@ def train(
     )
 
 
-def hp_tune(model_name, lang):
+def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
@@ -338,4 +338,5 @@ def hp_tune(model_name, lang):
         format_dataset=format_dataset,
         compute_metrics=get_task_b_metrics,
         config_info=config_info,
+        **kwargs
     )

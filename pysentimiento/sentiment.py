@@ -63,7 +63,7 @@ def train(
     return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
 
 
-def hp_tune(model_name, lang):
+def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
@@ -93,4 +93,5 @@ def hp_tune(model_name, lang):
         datasets=ds,
         id2label=id2label,
         config_info=config_info,
+        **kwargs,
     )
