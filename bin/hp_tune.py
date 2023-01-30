@@ -26,7 +26,7 @@ modules = {
 
 
 def hyperparameter_tune(
-    model, task, lang, count=None,
+    model, task, lang, count=42,
     **kwargs
 ):
     """
