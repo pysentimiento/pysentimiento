@@ -58,7 +58,9 @@ def hyperparameter_sweep(
     if format_dataset is not None:
         tokenized_ds = tokenized_ds.map(format_dataset)
 
-    tokenized_ds = tokenized_ds.remove_columns(datasets['train'].column_names)
+    tokenized_ds = tokenized_ds.remove_columns([
+        x for x in datasets['train'].column_names if x not in ['labels', 'label']
+    ])
 
     def train(config=None):
 
