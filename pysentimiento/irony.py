@@ -7,7 +7,10 @@ import pathlib
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
-from .training import train_and_eval
+from .training import train_and_eval, load_model
+from .tuning import hyperparameter_sweep
+
+task_name = "irony"
 
 extra_args = {
     "vinai/bertweet-base": {
@@ -115,3 +118,33 @@ def train(
     }
 
     return train_model(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
+
+
+def hp_tune(model_name, lang, **kwargs):
+    """
+    Hyperparameter tuning with wandb
+    """
+    ds = load_datasets(lang=lang, **extra_args.get(model_name, {}))
+
+    def model_init():
+        model, _ = load_model(model_name, id2label)
+        return model
+
+    _, tokenizer = load_model(model_name, id2label)
+
+    config_info = {
+        "model": model_name,
+        "task": task_name,
+        "lang": lang,
+    }
+
+    return hyperparameter_sweep(
+        name=f"swp-{task_name}-{lang}-{model_name}",
+        group_name=f"swp-{task_name}-{lang}",
+        model_init=model_init,
+        tokenizer=tokenizer,
+        datasets=ds,
+        id2label=id2label,
+        config_info=config_info,
+        **kwargs,
+    )

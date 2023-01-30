@@ -123,8 +123,6 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
-    task_name = "emotion"
-
     ds = load_datasets(lang=lang)
 
     def model_init():
