@@ -6,16 +6,17 @@ from .metrics import compute_metrics as _compute_metrics
 # hyperparameters
 parameters_dict = {
     'epochs': {
-        'value': 5
+        'value': [3, 4, 5],
     },
     'batch_size': {
         'value': 32
     },
     'learning_rate': {
-        'values': [2e-5, 3e-5, 5e-5, 7e-5, 1e-4, 2e-4, 3e-4]
+        'values': [2e-5, 3e-5, 5e-5, 6e-5, 7e-5, 8e-5, 1e-4]
     },
+
     'weight_decay': {
-        'values': [0.0, 0.005, 0.01, 0.02, 0.03, 0.05]
+        'value': 0.1
     },
 
     'warmup_ratio': {

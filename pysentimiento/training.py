@@ -85,7 +85,7 @@ def train_huggingface(
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = dataset.map(
-        _tokenize_fun, batched=True, batch_size=batch_size
+        _tokenize_fun, batched=True
     )
 
     if use_dynamic_padding:

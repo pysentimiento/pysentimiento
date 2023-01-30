@@ -8,13 +8,10 @@ import pathlib
 import torch
 import numpy as np
 import logging
-import wandb
-
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
-from transformers import Trainer, TrainingArguments, DataCollatorWithPadding
+from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
 from .preprocessing import preprocess_tweet, extra_args
-from .config import config
 from .training import train_model, load_model
 from .tuning import hyperparameter_sweep
 
