@@ -187,8 +187,6 @@ def train(
                 )
 
                 metrics = test_results.metrics
-                logger.info("Test results")
-                logger.info("=" * 50)
 
                 if wandb_run:
                     for k, v in metrics.items():

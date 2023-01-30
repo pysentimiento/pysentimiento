@@ -4,12 +4,14 @@ import pathlib
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
 from .training import train_and_eval, load_model
-from .tuning import hyperparameter_sweep
+from .tuning import hyperparameter_sweep, get_training_arguments
 from .preprocessing import preprocess_tweet
 
 """
 Lo pongo así por huggingface
 """
+
+task_name = "emotion"
 
 id2label = {
     0: 'others',
@@ -99,29 +101,22 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preproces
 
 
 def train(
-    base_model, lang="es", epochs=5, batch_size=32,
-    limit=None, **kwargs
+    base_model, lang="es", use_defaults_if_not_tuned=True,
+    **kwargs
 ):
     """
     """
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {
-    }
+    ds = load_datasets(lang=lang, **extra_args.get(base_model, {}))
 
-    ds = load_datasets(
-        lang=lang, **load_extra_args)
+    training_args = get_training_arguments(
+        base_model, task_name=task_name, lang=lang,
+        metric_for_best_model="eval/macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned
+    )
 
-    kwargs = {
-        **kwargs,
-        **{
-            "id2label": id2label,
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "limit": limit,
-            "lang": lang,
-        }
-    }
-
-    return train_and_eval(base_model, ds["train"], ds["dev"], ds["test"], **kwargs)
+    return train_and_eval(
+        base_model=base_model, dataset=ds, id2label=id2label,
+        training_args=training_args, lang=lang, **kwargs
+    )
 
 
 def hp_tune(model_name, lang, **kwargs):
