@@ -148,18 +148,6 @@ def train(
 
         tasks = [task] if task else lang_fun[lang].keys()
 
-        results = {
-            "model": base_model,
-            "lang": lang,
-            "train_args": train_args,
-            "evaluations": {k: [] for k in tasks},
-        }
-
-        if predict:
-            results["predictions"] = {k: [] for k in tasks}
-
-        logger.info(results)
-
         for i in range(times):
             logger.info(f"{i+1} Iteration")
             # if wandb configured
@@ -198,13 +186,7 @@ def train(
                     **train_args
                 )
 
-                if predict:
-                    results["predictions"][task_name].append(
-                        test_results.predictions.tolist())
-
                 metrics = test_results.metrics
-                results["evaluations"][task_name].append(metrics)
-
                 logger.info("Test results")
                 logger.info("=" * 50)
 
