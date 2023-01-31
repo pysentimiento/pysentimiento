@@ -101,7 +101,7 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preproces
 
 
 def train(
-    base_model, lang="es", use_defaults_if_not_tuned=True,
+    base_model, lang="es", use_defaults_if_not_tuned=False,
     **kwargs
 ):
     """

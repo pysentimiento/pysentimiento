@@ -38,7 +38,7 @@ def load_datasets(lang, **kwargs):
 
 
 def train(
-    base_model, lang="es", use_defaults_if_not_tuned=True,
+    base_model, lang="es", use_defaults_if_not_tuned=False,
     **kwargs
 ):
     """
