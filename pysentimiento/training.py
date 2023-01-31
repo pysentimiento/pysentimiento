@@ -7,7 +7,7 @@ from .metrics import compute_metrics
 from .config import config
 from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
-    Trainer, TrainingArguments
+    Trainer, AutoModelForTokenClassification
 )
 from .tuning import get_training_arguments
 from .preprocessing import special_tokens
@@ -23,7 +23,9 @@ logger.setLevel(logging.INFO)
 
 
 def load_model(
-        base_model, id2label, max_length=128, auto_class=AutoModelForSequenceClassification):
+    base_model, id2label, max_length=128, auto_class=AutoModelForSequenceClassification,
+    **kwargs
+):
     """
     Loads model and tokenizer
     """
@@ -32,7 +34,15 @@ def load_model(
         base_model, return_dict=True, num_labels=len(id2label)
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(base_model)
+    # If it is a token classification task, and it is RoBERTa, we add add_prefix_space=True
+
+    tokenizer_extra_args = {}
+    if auto_class is AutoModelForTokenClassification:
+        if "roberta" in base_model:
+            tokenizer_extra_args["add_prefix_space"] = True
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        base_model, **tokenizer_extra_args)
     tokenizer.model_max_length = max_length
 
     if type(id2label) is not dict:
@@ -92,7 +102,7 @@ def train_huggingface(
 
     def _tokenize_fun(x):
         if tokenize_fun:
-            return tokenize_fun(x)
+            return tokenize_fun(x, tokenizer=tokenizer)
         else:
             return tokenizer(x['text'], padding=padding, truncation=True)
 
@@ -112,7 +122,7 @@ def train_huggingface(
             dataset[split] = format_dataset(dataset[split])
 
     try:
-        tmp_path = config["PYSENTIMIENTO"]["TMP_DIR"]
+        tmp_path = os.path.abspath(config["PYSENTIMIENTO"]["TMP_DIR"])
     except KeyError:
         tmp_path = None
 
@@ -163,8 +173,6 @@ def train_and_eval(base_model, dataset, id2label,
 
     if type(id2label) is list:
         id2label = {i: label for i, label in enumerate(id2label)}
-
-    label2id = {v: k for k, v in id2label.items()}
 
     if not metrics_fun:
         def metrics_fun(x): return compute_metrics(x, id2label=id2label)
