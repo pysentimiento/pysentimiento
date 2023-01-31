@@ -1,17 +1,17 @@
-import torch
 import pandas as pd
 import os
 import pathlib
-from glob import glob
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from sklearn.model_selection import train_test_split
-from .training import load_model, train_model
-from .baselines.training import train_rnn_model
+from .training import train_and_eval, load_model
+from .tuning import hyperparameter_sweep, get_training_arguments
 from .preprocessing import preprocess_tweet
 
 """
 Lo pongo así por huggingface
 """
+
+task_name = "emotion"
 
 id2label = {
     0: 'others',
@@ -23,7 +23,7 @@ id2label = {
     6: 'fear',
 }
 
-label2id = {v:k for k, v in id2label.items()}
+label2id = {v: k for k, v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -48,11 +48,12 @@ extra_args = {
     }
 }
 
+
 def load_df(path):
     """
     Load TASS dataset
     """
-    df =  pd.read_csv(path)
+    df = pd.read_csv(path)
     return df
 
 
@@ -63,52 +64,86 @@ def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preproces
 
     train_df = load_df(paths[lang]["train"])
     test_df = load_df(paths[lang]["test"])
-    train_df, dev_df = train_test_split(train_df, stratify=train_df["label"], random_state=random_state)
-
+    train_df, dev_df = train_test_split(
+        train_df, stratify=train_df["label"], random_state=random_state)
 
     for df in [train_df, dev_df, test_df]:
         for label, idx in label2id.items():
             df.loc[df["label"] == label, "label"] = idx
         df["label"] = df["label"].astype(int)
 
-
     if preprocess:
-        preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocessing_args)
+        def preprocess_fn(x): return preprocess_tweet(
+            x, lang=lang, **preprocessing_args)
 
         train_df.loc[:, "text"] = train_df["text"].apply(preprocess_fn)
         dev_df.loc[:, "text"] = dev_df["text"].apply(preprocess_fn)
         test_df.loc[:, "text"] = test_df["text"].apply(preprocess_fn)
 
     features = Features({
+        'id': Value('string'),
         'text': Value('string'),
         'label': ClassLabel(num_classes=len(id2label), names=[id2label[k] for k in sorted(id2label.keys())])
     })
 
-    train_dataset = Dataset.from_pandas(train_df, features=features)
-    dev_dataset = Dataset.from_pandas(dev_df, features=features)
-    test_dataset = Dataset.from_pandas(test_df, features=features)
+    train_dataset = Dataset.from_pandas(
+        train_df[features.keys()], features=features, preserve_index=False)
+    dev_dataset = Dataset.from_pandas(
+        dev_df[features.keys()], features=features, preserve_index=False)
+    test_dataset = Dataset.from_pandas(
+        test_df[features.keys()], features=features, preserve_index=False)
 
-    return train_dataset, dev_dataset, test_dataset
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
+
 
 def train(
-    base_model, lang="es", epochs=5, batch_size=32,
-    limit=None, **kwargs
+    base_model, lang="es", use_defaults_if_not_tuned=True,
+    **kwargs
 ):
     """
     """
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {}
+    ds = load_datasets(lang=lang, **extra_args.get(base_model, {}))
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(lang=lang, **load_extra_args)
+    training_args = get_training_arguments(
+        base_model, task_name=task_name, lang=lang,
+        metric_for_best_model="eval/macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned
+    )
 
-    kwargs = {
-        **kwargs,
-        **{
-            "id2label" : id2label,
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "limit": limit,
-            "lang": lang,
-        }
+    return train_and_eval(
+        base_model=base_model, dataset=ds, id2label=id2label,
+        training_args=training_args, lang=lang, **kwargs
+    )
+
+
+def hp_tune(model_name, lang, **kwargs):
+    """
+    Hyperparameter tuning with wandb
+    """
+    ds = load_datasets(lang=lang)
+
+    def model_init():
+        model, _ = load_model(model_name, id2label)
+        return model
+
+    _, tokenizer = load_model(model_name, id2label)
+
+    config_info = {
+        "model": model_name,
+        "task": task_name,
+        "lang": lang,
     }
 
-    return train_model(base_model, train_dataset, dev_dataset, test_dataset, **kwargs)
+    return hyperparameter_sweep(
+        name=f"swp-{task_name}-{lang}-{model_name}",
+        group_name=f"swp-{task_name}-{lang}",
+        model_init=model_init,
+        tokenizer=tokenizer,
+        datasets=ds,
+        id2label=id2label,
+        config_info=config_info,
+        **kwargs,
+    )
