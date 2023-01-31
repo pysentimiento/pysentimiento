@@ -14,6 +14,8 @@ tasks=(
     #"hate_speech"
 )
 
+lang="en"
+
 for model in "${models[@]}"
 do
 
@@ -22,7 +24,7 @@ do
         echo "Running hyperparameter tuning for $model and $task"
         # Run hyperparameter tuning
         python bin/hp_tune.py --model $model \
-            --lang es \
+            --lang $lang \
             --task $task \
             --count 40
     done
