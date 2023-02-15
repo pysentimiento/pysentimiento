@@ -4,7 +4,7 @@ Run sentiment experiments
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
 from .training import train_and_eval, load_model
@@ -31,10 +31,11 @@ id2label = {
 label2id = {v: k for k, v in id2label.items()}
 
 
-def load_datasets(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
+def load_from_file(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
     """
     Load sentiment datasets
     """
+
     features = Features({
         'id': Value('string'),
         'text': Value('string'),
@@ -75,22 +76,31 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
         preserve_index=False
     )
 
-    if limit:
-        """
-        Smoke test
-        """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(
-            range(min(limit, len(train_dataset))))
-        dev_dataset = dev_dataset.select(range(min(limit, len(dev_dataset))))
-        test_dataset = test_dataset.select(
-            range(min(limit, len(test_dataset))))
-
     return DatasetDict(
         train=train_dataset,
         dev=dev_dataset,
         test=test_dataset
     )
+
+
+def load_datasets(lang, preprocess=True, preprocess_args={}):
+    """
+    Load sentiment datasets
+    """
+
+    if lang in {"es", "en"}:
+        ds = load_dataset(f"pysentimiento/{lang}_irony")
+
+    else:
+        raise ValueError(f"Language {lang} not supported for irony detection")
+
+    if preprocess:
+
+        def preprocess_fn(ex):
+            return {"text": preprocess_tweet(ex["text"], lang=lang, **preprocess_args)}
+        ds = ds.map(preprocess_fn, batched=False)
+
+    return ds
 
 
 def train(
