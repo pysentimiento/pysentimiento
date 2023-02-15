@@ -24,6 +24,7 @@ load_fun = {
 
     "irony": {
         "es": load_irony_datasets,
+        "en": load_irony_datasets,
     },
 
     # We use multilingual LinCE dataset here
@@ -45,6 +46,7 @@ load_fun = {
 }
 
 tasks = list(load_fun.keys())
+
 
 def load_datasets(task, lang, **kwargs):
     """

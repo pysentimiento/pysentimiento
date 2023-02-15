@@ -9,7 +9,6 @@ extra_args = {
 }
 
 
-
 special_tokens = ["@usuario", "url", "hashtag", "emoji"]
 
 
@@ -20,6 +19,7 @@ url_regex = re.compile(
 
 hashtag_regex = re.compile(r'\B#(\w*[a-zA-Z]+\w*)')
 start_of_camel = re.compile(r'([A-Z]+)')
+
 
 def camel_to_human(s, lower=True):
     """
@@ -39,7 +39,9 @@ def camel_to_human(s, lower=True):
 
     return ret
 
+
 emoji_regex = re.compile(r"\|([^\|]+)\|")
+
 
 def convert_emoji_to_text(x, emoji_wrapper="[EMOJI]"):
     """
@@ -105,10 +107,9 @@ laughter_conf = {
 }
 
 
-
 def preprocess_tweet(
-    text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None, char_replace=True,
-    demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji"):
+        text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None, char_replace=True,
+        demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", preprocess_handles=True):
     """
     Basic preprocessing
 
@@ -152,7 +153,6 @@ def preprocess_tweet(
         user_token = "@USER"
         url_token = "HTTPURL"
 
-
     if char_replace:
         ret = ""
         for char in text:
@@ -164,11 +164,13 @@ def preprocess_tweet(
                 ret += char
         text = ret
 
-    text = user_regex.sub(user_token, text)
+    if preprocess_handles:
+        text = user_regex.sub(user_token, text)
+
     text = url_regex.sub(url_token, text)
 
     if shorten:
-        repeated_regex = re.compile(r"(.)"+ r"\1" * (shorten-1) + "+")
+        repeated_regex = re.compile(r"(.)" + r"\1" * (shorten-1) + "+")
         text = repeated_regex.sub(r"\1"*shorten, text)
 
     if demoji:
@@ -193,7 +195,6 @@ def preprocess_tweet(
 
         Take first group and decamelize
         """
-
 
         text = x.groups()[0]
 
