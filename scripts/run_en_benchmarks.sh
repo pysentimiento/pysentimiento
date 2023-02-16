@@ -2,26 +2,27 @@
 models=(
     "bert-base-uncased"
     "roberta-base"
-    "vinai/bertweet-base"
+    #"vinai/bertweet-base"
     "pysentimiento/robertuito-base-uncased"
     "google/electra-base-discriminator"
 )
 
 
-tasks = (
-    "sentiment"
-    "emotion"
+tasks=(
     "irony"
-    "hate_speech"
+    #"sentiment"
+    #"emotion"
+    #"hate_speech"
 )
 
 for model in "${models[@]}"
 do
     for task in "${tasks[@]}"
     do
+        echo "Running benchmark for $model and $task"
         python bin/train.py --base_model $model \
-            --lang es \
+            --lang en \
             --task $task \
-            --benchmark --times 10 \
+            --benchmark --times 10
     done
 done

@@ -32,6 +32,7 @@ train_fun = {
 
     "irony": {
         "es": train_irony,
+        "en": train_irony,
     },
 
     # We use multilingual LinCE dataset here
