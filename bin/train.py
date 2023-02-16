@@ -68,7 +68,7 @@ logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
 
-def push_model(trainer, test_results, model, task, lang, push_to):
+def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=True):
     """
     Push model to huggingface
     """
@@ -84,25 +84,36 @@ def push_model(trainer, test_results, model, task, lang, push_to):
 
     print(f"Model macro f1: {model_macro_f1:.2f}")
 
+    trainer.args.overwrite_output_dir = True
+    # Change output to current push_to
+    trainer.args.output_dir = push_to
+
+    push = False
     if model_macro_f1 > mean_macro_f1:
         print("Mean macro f1 is lower than model macro f1. Pushing model")
-        trainer.push_to_hub(
-            push_to
-        )
+        # Push model
+        push = True
     else:
         print("Mean macro f1 is higher than model macro f1.")
-        res = input("Do you want to push the model anyway? (y/n)")
-        if res == "y":
-            trainer.push_to_hub(
-                push_to
-            )
+
+        if ask_to_push:
+            res = input("Do you want to push the model anyway? (y/n)")
+            if res == "y":
+                push = True
+
+    if push:
+        print(f"Pushing model to {push_to}")
+        trainer.model.push_to_hub(push_to)
+        trainer.tokenizer.push_to_hub(push_to)
+    else:
+        print("Not pushing model")
 
 
 def train(
     base_model, task=None, lang="es",
     output_path=None,
     benchmark=False, times=10,
-    push_to=None,
+    push_to=None, ask_to_push=True,
     limit=None, predict=False, **kwargs
 ):
     """
@@ -173,7 +184,8 @@ def train(
         if push_to:
             push_model(
                 trainer=trainer, test_results=test_results,
-                model=base_model, task=task, lang=lang, push_to=push_to
+                model=base_model, task=task, lang=lang,
+                push_to=push_to,
             )
         elif output_path:
             trainer.save_model(output_path)

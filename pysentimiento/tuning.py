@@ -91,6 +91,7 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
         load_best_model_at_end=True,
         metric_for_best_model="macro_f1",
         group_by_length=True,
+        overwrite_output_dir=True,
     )
 
     if dont_report:
