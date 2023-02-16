@@ -76,7 +76,7 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
             raise ValueError(error_msg)
 
     args = TrainingArguments(
-        output_dir='./results',
+        output_dir=f'./results/{task_name}-{lang}-{model_name}',
         num_train_epochs=tuned_params.get("epochs", 3),
         per_device_train_batch_size=tuned_params.get("batch_size", 32),
         per_device_eval_batch_size=tuned_params.get("batch_size", 32),
