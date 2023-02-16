@@ -23,7 +23,8 @@ logger.setLevel(logging.INFO)
 
 
 def load_model(
-        base_model, id2label, max_length=128, auto_class=AutoModelForSequenceClassification):
+    base_model, id2label, lang, max_length=128, auto_class=AutoModelForSequenceClassification
+):
     """
     Loads model and tokenizer
     """
@@ -42,9 +43,10 @@ def load_model(
     model.config.id2label = id2label
     model.config.label2id = label2id
 
-    if base_model not in dont_add_tokens:
-        tokenizer.add_tokens(special_tokens)
-        model.resize_token_embeddings(len(tokenizer))
+    # Add special tokens
+    tokenizer.add_tokens(special_tokens[lang])
+    model.resize_token_embeddings(len(tokenizer))
+
     return model, tokenizer
 
 
@@ -71,7 +73,7 @@ class MultiLabelTrainer(Trainer):
 
 def train_huggingface(
         base_model, dataset, id2label,
-        metrics_fun, training_args,
+        metrics_fun, training_args, lang,
         max_length=128, auto_class=AutoModelForSequenceClassification,
         format_dataset=None, use_dynamic_padding=True, class_weight=None, trainer_class=None,  data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
         **kwargs):
@@ -81,7 +83,7 @@ def train_huggingface(
     padding = False if use_dynamic_padding else 'max_length'
 
     model, tokenizer = load_model(
-        base_model, id2label=id2label,
+        base_model, id2label=id2label, lang=lang,
         max_length=max_length, auto_class=auto_class,
     )
 

@@ -12,13 +12,6 @@ from .tuning import hyperparameter_sweep, get_training_arguments
 
 task_name = "irony"
 
-extra_args = {
-    "vinai/bertweet-base": {
-        "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
-    }
-}
-
-
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
 sentiment_dir = os.path.join(data_dir, "irony")
@@ -110,11 +103,9 @@ def train(
     """
     """
 
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {
-    }
-
     ds = load_datasets(
-        lang=lang, **load_extra_args)
+        lang=lang,
+    )
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
@@ -132,13 +123,13 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
-    ds = load_datasets(lang=lang, **extra_args.get(model_name, {}))
+    ds = load_datasets(lang=lang)
 
     def model_init():
-        model, _ = load_model(model_name, id2label)
+        model, _ = load_model(model_name, id2label, lang=lang)
         return model
 
-    _, tokenizer = load_model(model_name, id2label)
+    _, tokenizer = load_model(model_name, id2label, lang=lang)
 
     config_info = {
         "model": model_name,

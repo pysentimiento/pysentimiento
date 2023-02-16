@@ -42,13 +42,6 @@ paths = {
 }
 
 
-extra_args = {
-    "vinai/bertweet-base": {
-        "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
-    }
-}
-
-
 def load_df(path):
     """
     Load TASS dataset
@@ -106,7 +99,7 @@ def train(
 ):
     """
     """
-    ds = load_datasets(lang=lang, **extra_args.get(base_model, {}))
+    ds = load_datasets(lang=lang)
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
@@ -126,10 +119,10 @@ def hp_tune(model_name, lang, **kwargs):
     ds = load_datasets(lang=lang)
 
     def model_init():
-        model, _ = load_model(model_name, id2label)
+        model, _ = load_model(model_name, id2label, lang=lang)
         return model
 
-    _, tokenizer = load_model(model_name, id2label)
+    _, tokenizer = load_model(model_name, id2label, lang=lang)
 
     config_info = {
         "model": model_name,

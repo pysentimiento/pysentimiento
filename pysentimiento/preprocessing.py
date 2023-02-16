@@ -1,15 +1,11 @@
 import emoji
 import re
 
-extra_args = {
-    "vinai/bertweet-base":  {
-        "user_token": "@USER",
-        "url_token": "HTTPURL",
-    }
+
+special_tokens = {
+    "es": ["@usuario", "url", "hashtag", "emoji"],
+    "en": ["@USER", "HTTPURL", "hashtag", "emoji"]
 }
-
-
-special_tokens = ["@usuario", "url", "hashtag", "emoji"]
 
 
 user_regex = re.compile(r"@[a-zA-Z0-9_]{0,15}")
@@ -106,9 +102,21 @@ laughter_conf = {
     }
 }
 
+default_args = {
+    "es": {
+        "user_token": "@usuario",
+        "url_token": "url",
+    },
+
+    "en": {
+        "user_token": "@USER",
+        "url_token": "HTTPURL",
+    }
+}
+
 
 def preprocess_tweet(
-        text, lang="es", user_token="@usuario", url_token="url", preprocess_hashtags=True, hashtag_token=None, char_replace=True,
+        text, lang="es", user_token=None, url_token=None, preprocess_hashtags=True, hashtag_token=None, char_replace=True,
         demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", preprocess_handles=True):
     """
     Basic preprocessing
@@ -146,12 +154,9 @@ def preprocess_tweet(
     normalize_laughter: boolean (default True)
         Normalizes laughters. Uses different regular expressions depending on the lang argument.
     """
-    if lang == "en" and user_token == "@usuario":
-        """
-        If it is english and we didn't set any defaults, we set the vinai/bertweet-base defaults
-        """
-        user_token = "@USER"
-        url_token = "HTTPURL"
+
+    user_token = user_token or default_args[lang]["user_token"]
+    url_token = url_token or default_args[lang]["url_token"]
 
     if char_replace:
         ret = ""

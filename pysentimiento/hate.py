@@ -11,7 +11,7 @@ import logging
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
 from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
-from .preprocessing import preprocess_tweet, extra_args
+from .preprocessing import preprocess_tweet
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
 
@@ -286,8 +286,7 @@ def train(
     """
 
     ds = load_datasets(
-        lang=lang,
-        preprocessing_args=extra_args.get(base_model, {})
+        lang=lang
     )
 
     if dev:
@@ -338,14 +337,13 @@ def hp_tune(model_name, lang, **kwargs):
     }
     ds = load_datasets(
         lang=lang,
-        preprocessing_args=extra_args.get(model_name, {})
     )
 
     def model_init():
-        model, _ = load_model(model_name, id2label)
+        model, _ = load_model(model_name, id2label, lang=lang)
         return model
 
-    _, tokenizer = load_model(model_name, id2label)
+    _, tokenizer = load_model(model_name, id2label, lang=lang)
 
     def format_dataset(x): return {
         'labels': torch.Tensor([x[k] for k in labels_order])}
