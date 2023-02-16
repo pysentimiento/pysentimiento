@@ -30,7 +30,7 @@ parameters_dict = {
 }
 
 
-def get_training_arguments(model_name, task_name, lang, metric_for_best_model, use_defaults_if_not_tuned=False):
+def get_training_arguments(model_name, task_name, lang, metric_for_best_model, use_defaults_if_not_tuned=False, dont_report=False):
     """
     Get training arguments for a given model and task
 
@@ -75,7 +75,7 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
             error_msg = f"Model {model_name} not tuned for task {task_name} in language {lang}. Use use_defaults_if_not_tuned=True to use default training arguments."
             raise ValueError(error_msg)
 
-    return TrainingArguments(
+    args = TrainingArguments(
         output_dir='./results',
         num_train_epochs=tuned_params.get("epochs", 3),
         per_device_train_batch_size=tuned_params.get("batch_size", 32),
@@ -92,6 +92,11 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
         metric_for_best_model="macro_f1",
         group_by_length=True,
     )
+
+    if dont_report:
+        args.report_to = None
+
+    return args
 
 
 def hyperparameter_sweep(
@@ -112,7 +117,7 @@ def hyperparameter_sweep(
         compute_metrics (function, optional): function to compute metrics. Defaults to None.
         config_info (dict, optional): config info. Defaults to None.
     """
-    sweep_config={
+    sweep_config = {
         'name': name,
         'method': sweep_method,
         'parameters': parameters_dict,
@@ -121,19 +126,19 @@ def hyperparameter_sweep(
     if compute_metrics is None:
         def compute_metrics(preds): return _compute_metrics(preds, id2label)
 
-    tokenized_ds=datasets.map(
+    tokenized_ds = datasets.map(
         lambda batch: tokenizer(batch['text'], padding='max_length', truncation=True), batched=True, batch_size=32)
 
     if format_dataset is not None:
-        tokenized_ds=tokenized_ds.map(format_dataset)
+        tokenized_ds = tokenized_ds.map(format_dataset)
 
-    tokenized_ds=tokenized_ds.remove_columns([
+    tokenized_ds = tokenized_ds.remove_columns([
         x for x in datasets['train'].column_names if x not in ['labels', 'label']
     ])
 
     def train(config=None):
 
-        init_params={
+        init_params = {
             "config": config or {},
             "group": group_name,
             "job_type": "sweep",
@@ -144,10 +149,10 @@ def hyperparameter_sweep(
 
         with wandb.init(**init_params):
             # set sweep configuration
-            config=wandb.config
+            config = wandb.config
 
             # set training arguments
-            training_args=TrainingArguments(
+            training_args = TrainingArguments(
                 output_dir='./tmp/sweeps',
                 report_to='wandb',  # Turn on Weights & Biases logging
                 num_train_epochs=config.epochs,
@@ -166,7 +171,7 @@ def hyperparameter_sweep(
             )
 
             # define training loop
-            trainer=Trainer(
+            trainer = Trainer(
                 # model,
                 model_init=model_init,
                 args=training_args,
@@ -182,6 +187,6 @@ def hyperparameter_sweep(
             trainer.train()
 
     # Initiate sweep
-    sweep_id=wandb.sweep(sweep_config, project=config["WANDB"]["PROJECT"])
+    sweep_id = wandb.sweep(sweep_config, project=config["WANDB"]["PROJECT"])
 
     wandb.agent(sweep_id, train, count=count)
