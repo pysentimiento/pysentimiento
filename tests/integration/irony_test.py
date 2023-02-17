@@ -22,7 +22,8 @@ def test_analyze_ironic_es(analyzer_es):
 
 
 def test_analyze_not_ironic_en(analyzer_en):
-    assert analyzer_en.predict("This is wonderful").output == "not ironic"
+    assert analyzer_en.predict(
+        "I don't really think so").output == "not ironic"
 
 
 def test_analyze_ironic_en(analyzer_en):
