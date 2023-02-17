@@ -105,8 +105,12 @@ def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=Tr
         print(f"Pushing model to {push_to}")
         trainer.model.push_to_hub(push_to)
         trainer.tokenizer.push_to_hub(push_to)
+        # Exit with success
+        sys.exit(0)
     else:
         print("Not pushing model")
+        # Return with error
+        sys.exit(1)
 
 
 def train(
@@ -165,7 +169,7 @@ def train(
         """
         Training!
         """
-
+        set_seed(int(time.time()))
         task_fun = train_fun[task][lang]
 
         logger.info(f"Training {base_model} for {task} in lang {lang}")
