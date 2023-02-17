@@ -179,8 +179,6 @@ def train(
         for k, v in test_results.metrics.items():
             print(f"{k:<16} : {v:.3f}")
 
-        logger.info(f"Saving model to {output_path}")
-
         if push_to:
             push_model(
                 trainer=trainer, test_results=test_results,
@@ -188,6 +186,7 @@ def train(
                 push_to=push_to,
             )
         elif output_path:
+            logger.info(f"Saving model to {output_path}")
             trainer.save_model(output_path)
 
     else:
