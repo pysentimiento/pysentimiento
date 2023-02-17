@@ -406,6 +406,4 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    import ipdb
-    ipdb.set_trace()
     return analyzer_class.from_model_name(model_name, task, preprocessing_args, lang=lang, **kwargs)

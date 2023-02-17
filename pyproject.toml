@@ -13,6 +13,7 @@ transformers = ">=4.13.0"
 emoji = "^1.6.1"
 datasets = ">=1.13.3"
 torch="^1.13.1"
+spacy = "^3.5.0"
 
 [tool.poetry.dev-dependencies]
 fire = "^0.4.0"
