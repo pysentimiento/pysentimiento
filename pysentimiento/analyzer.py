@@ -21,6 +21,10 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/robertuito-hate-speech",
         },
+
+        "irony": {
+            "model_name": "pysentimiento/robertuito-irony",
+        },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
         },
@@ -41,6 +45,10 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/bertweet-hate-speech",
             "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+        },
+
+        "irony": {
+            "model_name": "pysentimiento/bertweet-irony",
         },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
