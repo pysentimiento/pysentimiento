@@ -224,7 +224,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         """
         model = AutoModelForTokenClassification.from_pretrained(model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
+        return cls(model, tokenizer, task, preprocessing_args=preprocessing_args, batch_size=batch_size, **kwargs)
 
     def __init__(self, model, tokenizer, task, lang, preprocessing_args={}, batch_size=32):
         super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
@@ -238,7 +238,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
 
         self.spacy_tokenizer = nlp.tokenizer
 
-    def decode(words, labels):
+    def decode(self, words, labels):
         """
         Convert BIO labels to segments
         Arguments:
@@ -297,13 +297,18 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
                 "type": current_type
             })
 
-        import ipdb
-        ipdb.set_trace()
-
         for segment in entities:
             segment["text"] = "".join(
                 t.text + t.whitespace_ for t in segment["tokens"]
             ).strip()
+
+            first_token = segment["tokens"][0]
+            last_token = segment["tokens"][-1]
+
+            segment["start"] = first_token.idx
+            segment["end"] = last_token.idx + len(last_token.text)
+            segment.pop("tokens")
+
         return entities
 
     def predict(self, inputs):
@@ -330,36 +335,33 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         tokenized_inputs = self.tokenizer(
             tokens, is_split_into_words=True, padding=True, truncation=True)
 
-        outs = self.model(**{k: torch.tensor(v)
+        model_device = next(self.model.parameters()).device
+
+        outs = self.model(**{k: torch.tensor(v).to(model_device)
                           for k, v in tokenized_inputs.items()})
 
+        outs = torch.argmax(outs.logits, dim=2)
         id2label = self.model.config.id2label
 
         labels = []
         # Ignore intermediate tokens
         # Just use the first token of each word
-        for i, (sentence, output) in enumerate(zip(words, outs)):
+        for i, (sentence, output) in enumerate(zip(tokens, outs)):
 
             sentence_labels = [None for _ in sentence]
-            word_ids = inputs.word_ids(i)
+            word_ids = tokenized_inputs.word_ids(i)
 
             for word_id, label in zip(word_ids, output):
                 if word_id is not None and sentence_labels[word_id] is None:
                     sentence_labels[word_id] = id2label[label.item()]
 
-        # Great! Now we only have to decode the labels
-        ret = []
-        for sentence, sentence_labels in zip(spacy_tokens, labels):
+            labels.append(sentence_labels)
 
-        for sent, entities in zip(sentences, ret):
-            for entity in entities:
-                start, end = entity["start"], entity["end"]
-                entity["text"] = sent[start:end].strip()
-                entity["type"] = entity.pop("entity_group")
-
+        entities = [self.decode(sentence, sentence_labels)
+                    for sentence, sentence_labels in zip(spacy_tokens, labels)]
         if len(sentences) == 1:
-            return ret[0]
-        return ret
+            return entities[0]
+        return entities
 
 
 def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}, **kwargs):
@@ -404,4 +406,6 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
+    import ipdb
+    ipdb.set_trace()
     return analyzer_class.from_model_name(model_name, task, preprocessing_args, lang=lang, **kwargs)
