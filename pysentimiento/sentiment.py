@@ -1,12 +1,15 @@
+from .semeval import (
+    load_datasets as load_semeval_datasets,
+    id2label as id2labelsemeval, label2id as label2idsemeval
+)
+from .tuning import hyperparameter_sweep, get_training_arguments
+from .training import train_and_eval, load_model
 import wandb
 from .tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
-from .training import train_and_eval, load_model
-from .tuning import hyperparameter_sweep, get_training_arguments
-from .semeval import (
-    load_datasets as load_semeval_datasets,
-    id2label as id2labelsemeval, label2id as label2idsemeval
+from .sentipolc import (
+    load_datasets as load_sentipolc_datasets
 )
 
 task_name = "sentiment"
@@ -21,6 +24,10 @@ lang_conf = {
         "load_datasets": load_semeval_datasets,
         "id2label": id2labelsemeval,
         "label2id": label2idsemeval,
+    },
+
+    "it": {
+        "load_datasets": load_sentipolc_datasets,
     }
 }
 

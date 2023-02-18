@@ -7,14 +7,9 @@ from .metrics import compute_metrics
 from .config import config
 from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
-    Trainer, TrainingArguments
+    Trainer
 )
-from .tuning import get_training_arguments
 from .preprocessing import special_tokens
-
-dont_add_tokens = {
-    "vinai/bertweet-base"
-}
 
 
 logging.basicConfig()
