@@ -99,6 +99,10 @@ laughter_conf = {
     "en": {
         "regex": re.compile("[ha][ha]+ah[ha]+"),
         "replacement": "haha",
+    },
+    "it": {
+        "regex": re.compile("[ha][ha]+ah[ha]+"),
+        "replacement": "haha",
     }
 }
 
@@ -106,11 +110,19 @@ default_args = {
     "es": {
         "user_token": "@usuario",
         "url_token": "url",
+        "hashtag_token": "hashtag",
     },
 
     "en": {
         "user_token": "@USER",
         "url_token": "HTTPURL",
+        "hashtag_token": "hashtag",
+    },
+
+    "it": {
+        "user_token": "##user",
+        "url_token": "##url",
+        "hashtag_token": "##hashtag",
     }
 }
 
@@ -157,6 +169,29 @@ def preprocess_tweet(
 
     user_token = user_token or default_args[lang]["user_token"]
     url_token = url_token or default_args[lang]["url_token"]
+    hashtag_token = hashtag_token or default_args[lang]["hashtag_token"]
+
+    def process_hashtags(x):
+        """
+        Hashtag preprocessing function
+
+        Take first group and decamelize
+        """
+
+        text = x.groups()[0]
+
+        text = camel_to_human(text)
+
+        if hashtag_token:
+            text = hashtag_token + " " + text
+
+        return text
+
+    if preprocess_hashtags:
+        text = hashtag_regex.sub(
+            process_hashtags,
+            text
+        )
 
     if char_replace:
         ret = ""
@@ -191,28 +226,6 @@ def preprocess_tweet(
 
         text = laughter_regex.sub(
             replacement,
-            text
-        )
-
-    def process_hashtags(x):
-        """
-        Hashtag preprocessing function
-
-        Take first group and decamelize
-        """
-
-        text = x.groups()[0]
-
-        text = camel_to_human(text)
-
-        if hashtag_token:
-            text = hashtag_token + " " + text
-
-        return text
-
-    if preprocess_hashtags:
-        text = hashtag_regex.sub(
-            process_hashtags,
             text
         )
 
