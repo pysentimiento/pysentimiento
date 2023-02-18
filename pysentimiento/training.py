@@ -132,7 +132,7 @@ def train_huggingface(
         class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
         trainer_class = MultiLabelTrainer
-        trainer_args["class_weight"] = class_weight,
+        trainer_args["class_weight"] = class_weight
     else:
         trainer_class = trainer_class or Trainer
 
