@@ -6,7 +6,7 @@ from .irony import load_datasets as load_irony_datasets
 from .lince.ner import load_datasets as load_ner_datasets
 from .lince.pos import load_datasets as load_pos_datasets
 from .lince.sentiment import load_datasets as load_sentiment_datasets
-
+from .sentipolc import load_datasets as load_sentipolc_datasets
 
 load_fun = {
     "hate_speech": {
@@ -16,6 +16,7 @@ load_fun = {
     "sentiment": {
         "es": load_tass_datasets,
         "en": load_semeval_datasets,
+        "it": load_sentipolc_datasets,
     },
     "emotion": {
         "es": load_emotion_datasets,

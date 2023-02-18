@@ -9,7 +9,7 @@ from .tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
 from .sentipolc import (
-    load_datasets as load_sentipolc_datasets
+    load_datasets as load_sentipolc_datasets, id2label as id2labelsentipolc, label2id as label2idsentipolc
 )
 
 task_name = "sentiment"
@@ -28,7 +28,9 @@ lang_conf = {
 
     "it": {
         "load_datasets": load_sentipolc_datasets,
-    }
+        "id2label": id2labelsentipolc,
+        "label2id": label2idsentipolc,
+    },
 }
 
 
