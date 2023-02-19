@@ -32,6 +32,7 @@ train_fun = {
     "irony": {
         "es": train_irony,
         "en": train_irony,
+        "it": train_irony,
     },
 
     # We use multilingual LinCE dataset here
@@ -53,7 +54,7 @@ train_fun = {
 }
 
 lang_fun = {
-    lang: {} for lang in ["es", "en"]
+    lang: {} for lang in ["es", "en", "it"]
 }
 
 for lang in lang_fun:

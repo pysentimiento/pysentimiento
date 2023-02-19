@@ -1,10 +1,6 @@
-import json
 import sys
 import fire
-import os
 import logging
-import time
-import wandb
 import pysentimiento.hate
 import pysentimiento.sentiment
 import pysentimiento.emotion

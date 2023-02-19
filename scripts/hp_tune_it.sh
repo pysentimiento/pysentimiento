@@ -1,16 +1,15 @@
 #/bin/bash
 models=(
-    #"dccuchile/bert-base-spanish-wwm-cased"
-    #"PlanTL-GOB-ES/roberta-base-bne"
-    #"bertin-project/bertin-roberta-base-spanish"
     "m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0"
-    #"mrm8488/electricidad-base-discriminator"
+    "dbmdz/bert-base-italian-xxl-uncased"
+    "Musixmatch/umberto-commoncrawl-cased-v1"
+    "dbmdz/electra-base-italian-xxl-cased-discriminator"
 )
 
 tasks=(
     #"sentiment"
-    "sentiment"
-    #"irony"
+    #"sentiment"
+    "irony"
     #"hate_speech"
 )
 

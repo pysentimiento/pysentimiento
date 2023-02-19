@@ -83,7 +83,9 @@ def load_datasets(lang, preprocess=True, preprocess_args={}):
 
     if lang in {"es", "en"}:
         ds = load_dataset(f"pysentimiento/{lang}_irony")
-
+    elif lang == "it":
+        ds = load_dataset("pysentimiento/it_sentipolc16")
+        ds = ds.map(lambda ex: {"label": ex["iro"]})
     else:
         raise ValueError(f"Language {lang} not supported for irony detection")
 

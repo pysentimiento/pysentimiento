@@ -26,6 +26,7 @@ load_fun = {
     "irony": {
         "es": load_irony_datasets,
         "en": load_irony_datasets,
+        "it": load_irony_datasets,
     },
 
     # We use multilingual LinCE dataset here
