@@ -125,6 +125,21 @@ special_tokens = {
     k: list(v.values()) for k, v in default_args.items()
 }
 
+model_preprocessing_args = {
+    "pysentimiento/robertuito-base-uncased": default_args["es"],
+    "pysentimiento/robertuito-base-cased": default_args["es"],
+    "pysentimiento/robertuito-base-deacc": default_args["es"],
+}
+
+
+def get_preprocessing_args(model_name, lang):
+    """
+    Gets preprocessing args for model_name and lang
+
+    Returns default_args[lang] if model_name has not special params
+    """
+    return model_preprocessing_args.get(model_name, default_args[lang])
+
 
 def preprocess_tweet(
         text, lang="es", user_token=None, url_token=None, preprocess_hashtags=True, hashtag_token=None, char_replace=True,
