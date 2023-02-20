@@ -12,6 +12,7 @@ load_fun = {
     "hate_speech": {
         "es": load_hate_datasets,
         "en": load_hate_datasets,
+        "it": load_hate_datasets,
     },
     "sentiment": {
         "es": load_tass_datasets,

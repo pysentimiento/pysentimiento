@@ -4,13 +4,13 @@ from .semeval import (
 )
 from .tuning import hyperparameter_sweep, get_training_arguments
 from .training import train_and_eval, load_model
-import wandb
 from .tass import (
     load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
 )
 from .sentipolc import (
     load_datasets as load_sentipolc_datasets, id2label as id2labelsentipolc, label2id as label2idsentipolc
 )
+from .preprocessing import get_preprocessing_args
 
 task_name = "sentiment"
 
@@ -47,10 +47,12 @@ def train(
     """
 
     """
+
     load_datasets = lang_conf[lang]["load_datasets"]
     id2label = lang_conf[lang]["id2label"]
 
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang, preprocessing_args=get_preprocessing_args(base_model, lang=lang))
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,

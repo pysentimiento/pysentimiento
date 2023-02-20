@@ -6,23 +6,22 @@ models=(
     "dbmdz/electra-base-italian-xxl-cased-discriminator"
 )
 
+
 tasks=(
-    #"sentiment"
-    #"sentiment"
-    #"irony"
-    "hate_speech"
+    "irony"
+    "sentiment"
+    #"emotion"
+    #"hate_speech"
 )
 
 for model in "${models[@]}"
 do
-
     for task in "${tasks[@]}"
     do
-        echo "Running hyperparameter tuning for $model and $task"
-        # Run hyperparameter tuning
-        python bin/hp_tune.py --model $model \
+        echo "Running benchmark for $model and $task"
+        python bin/train.py --base_model $model \
             --lang it \
             --task $task \
-            --count 40
+            --benchmark --times 10
     done
 done

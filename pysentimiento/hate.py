@@ -8,10 +8,10 @@ import pathlib
 import torch
 import numpy as np
 import logging
-from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
 from transformers import Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, f1_score
-from .preprocessing import preprocess_tweet
+from .preprocessing import preprocess_tweet, get_preprocessing_args
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
 
@@ -26,6 +26,8 @@ task_name = "hate_speech"
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data", "hate")
 
+labels_order = ["HS", "TR", "AG"]
+
 
 def load_datasets(lang,
                   train_path=None, dev_path=None, test_path=None, limit=None,
@@ -34,60 +36,55 @@ def load_datasets(lang,
     Load hate speech datasets
 
     """
+    if lang == "it":
+        ds = load_dataset("pysentimiento/it_haspeede")
+        ds = ds.map(lambda x: {"labels": torch.Tensor(
+            [x["hs"], x["stereotype"]])}, batched=False)
+    else:
+        train_path = train_path or os.path.join(
+            data_dir, f"hateval2019_{lang}_train.csv")
+        dev_path = dev_path or os.path.join(
+            data_dir, f"hateval2019_{lang}_dev.csv")
+        test_path = test_path or os.path.join(
+            data_dir, f"hateval2019_{lang}_test.csv")
 
-    train_path = train_path or os.path.join(
-        data_dir, f"hateval2019_{lang}_train.csv")
-    dev_path = dev_path or os.path.join(
-        data_dir, f"hateval2019_{lang}_dev.csv")
-    test_path = test_path or os.path.join(
-        data_dir, f"hateval2019_{lang}_test.csv")
+        train_df = pd.read_csv(train_path)
+        dev_df = pd.read_csv(dev_path)
+        test_df = pd.read_csv(test_path)
 
-    logger.debug(f"Train path = {train_path}")
-    logger.debug(f"Dev path = {dev_path}")
-    logger.debug(f"Test path = {test_path}")
+        features = Features({
+            'id': Value('int64'),
+            'text': Value('string'),
+            'HS': ClassLabel(num_classes=2, names=["OK", "HATEFUL"]),
+            'TR': ClassLabel(num_classes=2, names=["GROUP", "INDIVIDUAL"]),
+            "AG": ClassLabel(num_classes=2, names=["NOT AGGRESSIVE", "AGGRESSIVE"])
+        })
 
-    train_df = pd.read_csv(train_path)
-    dev_df = pd.read_csv(dev_path)
-    test_df = pd.read_csv(test_path)
+        train_dataset = Dataset.from_pandas(
+            train_df, features=features, preserve_index=False)
+        dev_dataset = Dataset.from_pandas(
+            dev_df, features=features, preserve_index=False)
+        test_dataset = Dataset.from_pandas(
+            test_df, features=features, preserve_index=False)
+
+        ds = DatasetDict(
+            train=train_dataset,
+            dev=dev_dataset,
+            test=test_dataset
+        )
+
+        ds = ds.map(lambda x: {
+            "labels": torch.Tensor([x["HS"], x["TR"], x["AG"]])
+        }, batched=False)
 
     if preprocess:
-        def preprocess_fn(x): return preprocess_tweet(
-            x, lang=lang, **preprocessing_args)
+        def preprocess_fn(x):
+            return {
+                "text": preprocess_tweet(x["text"], lang=lang, **preprocessing_args)
+            }
 
-        for df in [train_df, dev_df, test_df]:
-            df["text"] = df["text"].apply(preprocess_fn)
-
-    features = Features({
-        'id': Value('int64'),
-        'text': Value('string'),
-        'HS': ClassLabel(num_classes=2, names=["OK", "HATEFUL"]),
-        'TR': ClassLabel(num_classes=2, names=["GROUP", "INDIVIDUAL"]),
-        "AG": ClassLabel(num_classes=2, names=["NOT AGGRESSIVE", "AGGRESSIVE"])
-    })
-
-    train_dataset = Dataset.from_pandas(
-        train_df, features=features, preserve_index=False)
-    dev_dataset = Dataset.from_pandas(
-        dev_df, features=features, preserve_index=False)
-    test_dataset = Dataset.from_pandas(
-        test_df, features=features, preserve_index=False)
-
-    if limit:
-        """
-        Smoke test
-        """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(
-            range(min(limit, len(train_dataset))))
-        dev_dataset = dev_dataset.select(range(min(limit, len(dev_dataset))))
-        test_dataset = test_dataset.select(
-            range(min(limit, len(test_dataset))))
-
-    return DatasetDict(
-        train=train_dataset,
-        dev=dev_dataset,
-        test=test_dataset
-    )
+        ds = ds.map(preprocess_fn, batched=False)
+    return ds
 
 
 def _get_b_metrics(preds, labels):
@@ -207,9 +204,6 @@ class HierarchicalTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-labels_order = ["HS", "TR", "AG"]
-
-
 def get_trainer_class(hierarchical=False, gamma=.0):
     """
 
@@ -233,11 +227,17 @@ def get_metrics_fun(task_b, combinatorial):
         return None
 
 
-def get_id2label(task_b, combinatorial):
+def get_id2label(lang, task_b, combinatorial):
     """
     Returns a dictionary that maps the label id to the label name
     """
-    if task_b:
+    if lang == "it":
+        return {
+            0: "hateful",
+            1: "stereotype",
+        }
+
+    elif task_b:
         if combinatorial:
             return {
                 0: "not hateful",
@@ -286,15 +286,15 @@ def train(
     """
 
     ds = load_datasets(
-        lang=lang
-    )
+        lang=lang, preprocessing_args=get_preprocessing_args(base_model, lang=lang))
 
     if dev:
         ds["test"] = ds["dev"]
 
     trainer_class = get_trainer_class(hierarchical, gamma)
     metrics_fun = get_metrics_fun(task_b=task_b, combinatorial=combinatorial)
-    id2label = get_id2label(task_b=task_b, combinatorial=combinatorial)
+    id2label = get_id2label(lang=lang, task_b=task_b,
+                            combinatorial=combinatorial)
 
     def format_dataset(dataset):
         def get_labels(examples):
@@ -329,14 +329,24 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
+    if lang == "it":
+        id2label = {
+            0: "hateful",
+            1: "stereotype",
+        }
 
-    id2label = {
-        0: "hateful",
-        1: "targeted",
-        2: "aggressive",
-    }
+        compute_metrics = None
+    else:
+        id2label = {
+            0: "hateful",
+            1: "targeted",
+            2: "aggressive",
+        }
+        compute_metrics = get_task_b_metrics
+
     ds = load_datasets(
-        lang=lang,
+        lang=lang, preprocessing_args=get_preprocessing_args(
+            model_name, lang=lang)
     )
 
     def model_init():
@@ -344,9 +354,6 @@ def hp_tune(model_name, lang, **kwargs):
         return model
 
     _, tokenizer = load_model(model_name, id2label, lang=lang)
-
-    def format_dataset(x): return {
-        'labels': torch.Tensor([x[k] for k in labels_order])}
 
     config_info = {
         "model": model_name,
@@ -361,8 +368,7 @@ def hp_tune(model_name, lang, **kwargs):
         tokenizer=tokenizer,
         datasets=ds,
         id2label=id2label,
-        format_dataset=format_dataset,
-        compute_metrics=get_task_b_metrics,
+        compute_metrics=compute_metrics,
         config_info=config_info,
         **kwargs
     )

@@ -23,6 +23,7 @@ train_fun = {
     "sentiment": {
         "es": train_sentiment,
         "en": train_sentiment,
+        "it": train_sentiment,
     },
     "emotion": {
         "es": train_emotion,
@@ -220,7 +221,7 @@ def train(
                         project=config["WANDB"]["PROJECT"],
                         # Group by model name
                         group=f"{task_name}-{lang}",
-                        job_type=f"{task_name}-{lang}-{base_model}",
+                        job_type=f"{task_name}-{lang}-{base_model.split('/')[-1]}",
                         # Name run by model name
                         config={
                             "model": base_model,
