@@ -1,15 +1,16 @@
 #/bin/bash
 models=(
-    "m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0"
-    "dbmdz/bert-base-italian-xxl-uncased"
-    "Musixmatch/umberto-commoncrawl-cased-v1"
-    "dbmdz/electra-base-italian-xxl-cased-discriminator"
+    #"m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0"
+    #"dbmdz/bert-base-italian-xxl-uncased"
+    #"Musixmatch/umberto-commoncrawl-cased-v1"
+    #"dbmdz/electra-base-italian-xxl-cased-discriminator"
+    "pysentimiento/robertuito-base-uncased"
 )
 
 tasks=(
     #"sentiment"
-    #"sentiment"
-    #"irony"
+    "sentiment"
+    "irony"
     "hate_speech"
 )
 
