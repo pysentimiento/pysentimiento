@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features, DatasetDict
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
 from sklearn.model_selection import train_test_split
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
-from .preprocessing import preprocess_tweet
+from .preprocessing import preprocess_tweet, get_preprocessing_args
 
 """
 Lo pongo así por huggingface
@@ -13,17 +13,6 @@ Lo pongo así por huggingface
 
 task_name = "emotion"
 
-id2label = {
-    0: 'others',
-    1: 'joy',
-    2: 'sadness',
-    3: 'anger',
-    4: 'surprise',
-    5: 'disgust',
-    6: 'fear',
-}
-
-label2id = {v: k for k, v in id2label.items()}
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -57,47 +46,22 @@ def accepts(lang, **kwargs):
     return lang in paths
 
 
-def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preprocess=True):
+def load_datasets(lang, preprocess=True, preprocessing_args={}):
     """
-    Load emotion recognition datasets
+    Load sentiment datasets
     """
 
-    train_df = load_df(paths[lang]["train"])
-    test_df = load_df(paths[lang]["test"])
-    train_df, dev_df = train_test_split(
-        train_df, stratify=train_df["label"], random_state=random_state)
-
-    for df in [train_df, dev_df, test_df]:
-        for label, idx in label2id.items():
-            df.loc[df["label"] == label, "label"] = idx
-        df["label"] = df["label"].astype(int)
+    if lang in {"es", "en", "it"}:
+        ds = load_dataset(f"pysentimiento/{lang}_emotion")
+    else:
+        raise ValueError(f"Language {lang} not supported for irony detection")
 
     if preprocess:
-        def preprocess_fn(x): return preprocess_tweet(
-            x, lang=lang, **preprocessing_args)
+        def preprocess_fn(ex):
+            return {"text": preprocess_tweet(ex["text"], lang=lang, **preprocessing_args)}
+        ds = ds.map(preprocess_fn, batched=False)
 
-        train_df.loc[:, "text"] = train_df["text"].apply(preprocess_fn)
-        dev_df.loc[:, "text"] = dev_df["text"].apply(preprocess_fn)
-        test_df.loc[:, "text"] = test_df["text"].apply(preprocess_fn)
-
-    features = Features({
-        'id': Value('string'),
-        'text': Value('string'),
-        'label': ClassLabel(num_classes=len(id2label), names=[id2label[k] for k in sorted(id2label.keys())])
-    })
-
-    train_dataset = Dataset.from_pandas(
-        train_df[features.keys()], features=features, preserve_index=False)
-    dev_dataset = Dataset.from_pandas(
-        dev_df[features.keys()], features=features, preserve_index=False)
-    test_dataset = Dataset.from_pandas(
-        test_df[features.keys()], features=features, preserve_index=False)
-
-    return DatasetDict(
-        train=train_dataset,
-        dev=dev_dataset,
-        test=test_dataset
-    )
+    return ds
 
 
 def train(
@@ -106,7 +70,13 @@ def train(
 ):
     """
     """
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang,
+        preprocessing_args=get_preprocessing_args(base_model, lang=lang)
+    )
+
+    id2label = {k: v for k, v in enumerate(
+        ds["train"].features["label"].names)}
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
@@ -123,7 +93,13 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang,
+        preprocessing_args=get_preprocessing_args(base_model, lang=lang)
+    )
+
+    id2label = {k: v for k, v in enumerate(
+        ds["train"].features["label"].names)}
 
     def model_init():
         model, _ = load_model(model_name, id2label, lang=lang)
