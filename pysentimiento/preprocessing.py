@@ -125,9 +125,9 @@ default_args = {
     },
 
     "pt": {
-        "user_token": "USERNAME",
-        "url_token": "URL",
-        "hashtag_token": "HASHTAG",
+        "user_token": "@USER",
+        "url_token": "HTTPURL",
+        "hashtag_token": "hashtag",
     }
 }
 
@@ -140,6 +140,7 @@ model_preprocessing_args = {
     "pysentimiento/robertuito-base-uncased": default_args["es"],
     "pysentimiento/robertuito-base-cased": default_args["es"],
     "pysentimiento/robertuito-base-deacc": default_args["es"],
+    "melll-uff/bertweetbr": default_args["en"],  # Same as BERTweet
 }
 
 

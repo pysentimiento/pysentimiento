@@ -10,6 +10,8 @@ from .tass import (
 from .sentipolc import (
     load_datasets as load_sentipolc_datasets, id2label as id2labelsentipolc, label2id as label2idsentipolc
 )
+
+from .sentiment_pt import load_datasets as load_sentiment_pt_datasets, id2label as id2labelpt, label2id as label2idpt
 from .preprocessing import get_preprocessing_args
 
 task_name = "sentiment"
@@ -31,7 +33,20 @@ lang_conf = {
         "id2label": id2labelsentipolc,
         "label2id": label2idsentipolc,
     },
+
+    "pt": {
+        "load_datasets": load_sentiment_pt_datasets,
+        "id2label": id2labelpt,
+        "label2id": label2idpt,
+    }
 }
+
+
+def accepts(lang):
+    """
+    Check if a language is supported by this task
+    """
+    return lang in lang_conf
 
 
 def load_datasets(lang, **kwargs):
