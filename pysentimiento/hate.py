@@ -227,6 +227,13 @@ def get_metrics_fun(task_b, combinatorial):
         return None
 
 
+def accepts(lang, **kwargs):
+    """
+    Returns whether the task is defined for the given language
+    """
+    return lang in ["it", "en", "es"]
+
+
 def get_id2label(lang, task_b, combinatorial):
     """
     Returns a dictionary that maps the label id to the label name
@@ -336,13 +343,13 @@ def hp_tune(model_name, lang, **kwargs):
         }
 
         compute_metrics = None
-    else:
-        id2label = {
-            0: "hateful",
-            1: "targeted",
-            2: "aggressive",
-        }
-        compute_metrics = get_task_b_metrics
+    elif
+    id2label = {
+        0: "hateful",
+        1: "targeted",
+        2: "aggressive",
+    }
+    compute_metrics = get_task_b_metrics
 
     ds = load_datasets(
         lang=lang, preprocessing_args=get_preprocessing_args(

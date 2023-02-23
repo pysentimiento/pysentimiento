@@ -98,6 +98,13 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}):
     return ds
 
 
+def accepts(lang, **kwargs):
+    """
+    Returns True if the task supports the language
+    """
+    return lang in ["es", "en", "it"]
+
+
 def train(
     base_model, lang="es", use_defaults_if_not_tuned=False,
     **kwargs

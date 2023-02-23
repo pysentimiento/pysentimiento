@@ -50,6 +50,13 @@ def load_df(path):
     return df
 
 
+def accepts(lang, **kwargs):
+    """
+    Returns True if the task supports the language
+    """
+    return lang in paths
+
+
 def load_datasets(lang="es", random_state=2021, preprocessing_args={}, preprocess=True):
     """
     Load emotion recognition datasets
