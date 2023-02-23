@@ -343,12 +343,12 @@ def hp_tune(model_name, lang, **kwargs):
         }
 
         compute_metrics = None
-    elif
-    id2label = {
-        0: "hateful",
-        1: "targeted",
-        2: "aggressive",
-    }
+    else:
+        id2label = {
+            0: "hateful",
+            1: "targeted",
+            2: "aggressive",
+        }
     compute_metrics = get_task_b_metrics
 
     ds = load_datasets(
