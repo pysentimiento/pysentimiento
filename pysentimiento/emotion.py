@@ -43,7 +43,7 @@ def accepts(lang, **kwargs):
     """
     Returns True if the task supports the language
     """
-    return lang in paths
+    return lang in ["es", "en", "it"]
 
 
 def load_datasets(lang, preprocess=True, preprocessing_args={}):
@@ -95,7 +95,7 @@ def hp_tune(model_name, lang, **kwargs):
     """
     ds = load_datasets(
         lang=lang,
-        preprocessing_args=get_preprocessing_args(base_model, lang=lang)
+        preprocessing_args=get_preprocessing_args(model_name, lang=lang)
     )
 
     id2label = {k: v for k, v in enumerate(
