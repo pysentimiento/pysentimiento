@@ -97,6 +97,11 @@ laughter_conf = {
     "it": {
         "regex": re.compile("[ha][ha]+ah[ha]+"),
         "replacement": "haha",
+    },
+
+    "pt": {
+        "regex": re.compile("[ha][ha]+ah[ha]+|kk+"),
+        "replacement": "kk",
     }
 }
 
@@ -117,6 +122,12 @@ default_args = {
         "user_token": "##user",
         "url_token": "##url",
         "hashtag_token": "##hashtag",
+    },
+
+    "pt": {
+        "user_token": "USERNAME",
+        "url_token": "URL",
+        "hashtag_token": "HASHTAG",
     }
 }
 
