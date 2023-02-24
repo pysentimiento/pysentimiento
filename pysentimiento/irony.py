@@ -6,7 +6,7 @@ import os
 import pathlib
 from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
 from sklearn.model_selection import train_test_split
-from .preprocessing import preprocess_tweet
+from .preprocessing import preprocess_tweet, get_preprocessing_args
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
 
@@ -24,7 +24,7 @@ id2label = {
 label2id = {v: k for k, v in id2label.items()}
 
 
-def load_from_file(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
+def load_from_file(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocessing_args={}):
     """
     Load sentiment datasets
     """
@@ -43,7 +43,7 @@ def load_from_file(lang, data_path=None, limit=None, random_state=20202021, prep
     if preprocess:
 
         def preprocess_fn(x): return preprocess_tweet(
-            x, lang=lang, **preprocess_args)
+            x, lang=lang, **preprocessing_args)
         df["text"] = df["text"].apply(preprocess_fn)
     train_df = df[df["split"] == "train"]
     test_df = df[df["split"] == "test"]
@@ -76,24 +76,33 @@ def load_from_file(lang, data_path=None, limit=None, random_state=20202021, prep
     )
 
 
-def load_datasets(lang, preprocess=True, preprocess_args={}):
+def load_datasets(lang, preprocess=True, preprocessing_args={}):
     """
     Load sentiment datasets
     """
 
     if lang in {"es", "en"}:
         ds = load_dataset(f"pysentimiento/{lang}_irony")
-
+    elif lang == "it":
+        ds = load_dataset("pysentimiento/it_sentipolc16")
+        ds = ds.map(lambda ex: {"label": ex["iro"]})
     else:
         raise ValueError(f"Language {lang} not supported for irony detection")
 
     if preprocess:
 
         def preprocess_fn(ex):
-            return {"text": preprocess_tweet(ex["text"], lang=lang, **preprocess_args)}
+            return {"text": preprocess_tweet(ex["text"], lang=lang, **preprocessing_args)}
         ds = ds.map(preprocess_fn, batched=False)
 
     return ds
+
+
+def accepts(lang, **kwargs):
+    """
+    Returns True if the task supports the language
+    """
+    return lang in ["es", "en", "it"]
 
 
 def train(
@@ -105,6 +114,7 @@ def train(
 
     ds = load_datasets(
         lang=lang,
+        preprocessing_args=get_preprocessing_args(base_model, lang=lang)
     )
 
     training_args = get_training_arguments(
@@ -123,7 +133,10 @@ def hp_tune(model_name, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang,
+        preprocessing_args=get_preprocessing_args(model_name, lang=lang)
+    )
 
     def model_init():
         model, _ = load_model(model_name, id2label, lang=lang)

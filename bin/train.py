@@ -23,6 +23,7 @@ train_fun = {
     "sentiment": {
         "es": train_sentiment,
         "en": train_sentiment,
+        "it": train_sentiment,
     },
     "emotion": {
         "es": train_emotion,
@@ -32,6 +33,7 @@ train_fun = {
     "irony": {
         "es": train_irony,
         "en": train_irony,
+        "it": train_irony,
     },
 
     # We use multilingual LinCE dataset here
@@ -53,7 +55,7 @@ train_fun = {
 }
 
 lang_fun = {
-    lang: {} for lang in ["es", "en"]
+    lang: {} for lang in ["es", "en", "it"]
 }
 
 for lang in lang_fun:
@@ -219,7 +221,7 @@ def train(
                         project=config["WANDB"]["PROJECT"],
                         # Group by model name
                         group=f"{task_name}-{lang}",
-                        job_type=f"{task_name}-{lang}-{base_model}",
+                        job_type=f"{task_name}-{lang}-{base_model.split('/')[-1]}",
                         # Name run by model name
                         config={
                             "model": base_model,

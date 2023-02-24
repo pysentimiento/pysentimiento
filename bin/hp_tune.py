@@ -1,15 +1,10 @@
-import json
 import sys
 import fire
-import os
 import logging
-import time
-import wandb
 import pysentimiento.hate
 import pysentimiento.sentiment
 import pysentimiento.emotion
 import pysentimiento.irony
-from pysentimiento.data import load_fun, tasks
 
 logging.basicConfig()
 
@@ -39,12 +34,12 @@ def hyperparameter_tune(
         count (int): Number of runs to perform
     """
 
-    if task not in tasks:
+    if task not in modules:
         logger.error(
-            f"task ({task} was provided) must be one of {list(load_fun.keys())}")
+            f"task ({task} was provided) must be one of {list(modules.keys())}")
         sys.exit(1)
 
-    if task and lang not in load_fun[task]:
+    if not modules[task].accepts(lang):
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 

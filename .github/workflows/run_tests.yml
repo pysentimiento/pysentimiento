@@ -2,6 +2,9 @@ name: run_tests
 
 on: [push, pull_request]
 
+env:
+  WANDB_MODE: disabled
+
 jobs:
   build:
     runs-on: ubuntu-latest
