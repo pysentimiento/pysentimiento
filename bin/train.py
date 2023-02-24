@@ -1,10 +1,10 @@
-import json
 import sys
 import fire
-import os
 import logging
 import time
-import transformers
+import wandb
+import pandas as pd
+from pysentimiento.config import config
 from pysentimiento.hate import train as train_hate
 from pysentimiento.sentiment import train as train_sentiment
 from pysentimiento.emotion import train as train_emotion
@@ -31,15 +31,16 @@ train_fun = {
 
     "irony": {
         "es": train_irony,
+        "en": train_irony,
     },
 
-    #We use multilingual LinCE dataset here
+    # We use multilingual LinCE dataset here
     "ner": {
         "es": train_ner,
         "en": train_ner,
     },
 
-    #We use multilingual LinCE dataset here
+    # We use multilingual LinCE dataset here
     "pos": {
         "es": train_pos,
         "en": train_pos,
@@ -56,10 +57,9 @@ lang_fun = {
 }
 
 for lang in lang_fun:
-    for task, task_funs in train_fun.items():
+    for _task, task_funs in train_fun.items():
         if lang in task_funs:
-            lang_fun[lang][task] = task_funs[lang]
-
+            lang_fun[lang][_task] = task_funs[lang]
 
 
 logging.basicConfig()
@@ -68,12 +68,57 @@ logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
 
+def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=True):
+    """
+    Push model to huggingface
+    """
+    df_results = pd.read_csv(
+        "data/results.csv").set_index(["lang", "model", "task"])
+
+    print(f"Results for {model} at {task} ({lang})")
+    mean_macro_f1 = df_results.loc[(lang, model, task), "mean macro f1"]
+
+    print(f"Mean macro f1: {mean_macro_f1:.2f}")
+
+    model_macro_f1 = test_results.metrics["test_macro_f1"] * 100
+
+    print(f"Model macro f1: {model_macro_f1:.2f}")
+
+    trainer.args.overwrite_output_dir = True
+    # Change output to current push_to
+    trainer.args.output_dir = push_to
+
+    push = False
+    if model_macro_f1 > mean_macro_f1:
+        print("Mean macro f1 is lower than model macro f1. Pushing model")
+        # Push model
+        push = True
+    else:
+        print("Mean macro f1 is higher than model macro f1.")
+
+        if ask_to_push:
+            res = input("Do you want to push the model anyway? (y/n)")
+            if res == "y":
+                push = True
+
+    if push:
+        print(f"Pushing model to {push_to}")
+        trainer.model.push_to_hub(push_to)
+        trainer.tokenizer.push_to_hub(push_to)
+        # Exit with success
+        sys.exit(0)
+    else:
+        print("Not pushing model")
+        # Return with error
+        sys.exit(1)
+
+
 def train(
     base_model, task=None, lang="es",
     output_path=None,
-    benchmark=False, times=10, benchmark_output_path=None,
-    epochs=5, batch_size=32, eval_batch_size=16,
-    warmup_ratio=.1, limit=None, predict=False, overwrite=False, **kwargs
+    benchmark=False, times=10,
+    push_to=None, ask_to_push=True,
+    limit=None, predict=False, **kwargs
 ):
     """
     Script to train models
@@ -97,48 +142,40 @@ def train(
 
     times: int (default 10)
         If benchmark is true, this argument determines the number of times the
+
+    push_to: str, Optional
+        If provided, push the results to huggingface.
     """
     if task is None and not benchmark:
         logger.error(f"Must provide task if not in benchmark mode")
         sys.exit(1)
 
     if task is not None and task not in train_fun:
-        logger.error(f"task ({task} was provided) must be one of {list(train_fun.keys())}")
+        logger.error(
+            f"task ({task} was provided) must be one of {list(train_fun.keys())}")
         sys.exit(1)
 
     if task and lang not in train_fun[task]:
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 
-    if benchmark and not benchmark_output_path:
-        logger.error(f"Must provide benchmark_output_path in benchmark mode")
-        sys.exit(1)
-
     logger.info(kwargs)
 
-    train_args = {
-        **{
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "eval_batch_size": eval_batch_size,
-            "warmup_ratio": warmup_ratio,
-            "limit": limit,
-        },
-        **kwargs
-    }
+    train_args = kwargs.copy()
+    if limit:
+        train_args["limit"] = limit
 
     if not benchmark:
         """
         Training!
         """
-
+        set_seed(int(time.time()))
         task_fun = train_fun[task][lang]
 
         logger.info(f"Training {base_model} for {task} in lang {lang}")
 
-
         trainer, test_results = task_fun(
-            base_model, lang,
+            base_model, lang, dont_report=True,
             **train_args
         )
         logger.info("Test results")
@@ -146,67 +183,70 @@ def train(
         for k, v in test_results.metrics.items():
             print(f"{k:<16} : {v:.3f}")
 
-
-        logger.info(f"Saving model to {output_path}")
-        trainer.save_model(output_path)
-
-        with open(os.path.join(output_path, "test_results.json"), "w+") as f:
-            json.dump(test_results.metrics, f, indent=4)
+        if push_to:
+            push_model(
+                trainer=trainer, test_results=test_results,
+                model=base_model, task=task, lang=lang,
+                push_to=push_to,
+            )
+        elif output_path:
+            logger.info(f"Saving model to {output_path}")
+            trainer.save_model(output_path)
 
     else:
         """
         Benchmark mode
         """
         logger.info(f"Benchmarking {base_model} for {task} in {lang}")
+
         tasks = [task] if task else lang_fun[lang].keys()
-
-        if os.path.exists(benchmark_output_path) and not overwrite:
-            with open(benchmark_output_path, "r") as f:
-                results = json.load(f)
-
-            results["evaluations"][task] = results["evaluations"].get(task, [])
-            if "predictions" in results:
-                results["predictions"][task] = results["predictions"].get(task, [])
-        else:
-
-            results = {
-                "model": base_model,
-                "lang": lang,
-                "train_args": train_args,
-                "evaluations": {k: [] for k in tasks},
-            }
-
-            if predict:
-                results["predictions"] = {k: [] for k in tasks}
-
-        logger.info(results)
 
         for i in range(times):
             logger.info(f"{i+1} Iteration")
+            # if wandb configured
 
             for task_name in tasks:
                 set_seed(int(time.time()))
-                logger.info(f"Training {base_model} for {task_name} in lang {lang}")
+                logger.info(
+                    f"Training {base_model} for {task_name} in lang {lang}")
+
+                """
+                Initialize Wandb
+                """
+                wandb_run = None
+                try:
+                    wandb_run = wandb.init(
+                        project=config["WANDB"]["PROJECT"],
+                        # Group by model name
+                        group=f"{task_name}-{lang}",
+                        job_type=f"{task_name}-{lang}-{base_model}",
+                        # Name run by model name
+                        config={
+                            "model": base_model,
+                            "task": task_name,
+                            "lang": lang,
+                        },
+                        reinit=True,
+                    )
+
+                    train_args["report_to"] = "wandb"
+                except KeyError as e:
+                    logger.info(f"WANDB not configured. Skipping")
+
                 task_fun = lang_fun[lang][task_name]
                 trainer, test_results = task_fun(
                     base_model, lang,
                     **train_args
                 )
 
-                if predict:
-                    results["predictions"][task_name].append(test_results.predictions.tolist())
-
                 metrics = test_results.metrics
-                results["evaluations"][task_name].append(metrics)
 
-                logger.info("Test results")
-                logger.info("=" * 50)
-                for k, v in metrics.items():
-                    logger.info(f"{k:<16} : {v:.3f}")
+                if wandb_run:
+                    for k, v in metrics.items():
+                        wandb.log({k: v})
 
-                with open(benchmark_output_path, "w+") as f:
-                    json.dump(results, f, indent=4)
-        logger.info(f"{times} runs of {tasks} saved to {benchmark_output_path}")
+                wandb_run.finish()
+
 
 if __name__ == "__main__":
     fire.Fire(train)

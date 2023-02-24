@@ -1,21 +1,16 @@
 """
 Run sentiment experiments
 """
-import torch
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features
+from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
 from sklearn.model_selection import train_test_split
 from .preprocessing import preprocess_tweet
-from .training import train_model
+from .training import train_and_eval, load_model
+from .tuning import hyperparameter_sweep, get_training_arguments
 
-extra_args = {
-    "vinai/bertweet-base": {
-        "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
-    }
-}
-
+task_name = "irony"
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -26,14 +21,16 @@ id2label = {
     1: 'ironic',
 }
 
-label2id = {v:k for k, v in id2label.items()}
+label2id = {v: k for k, v in id2label.items()}
 
 
-def load_datasets(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
+def load_from_file(lang, data_path=None, limit=None, random_state=20202021, preprocess=True, preprocess_args={}):
     """
     Load sentiment datasets
     """
+
     features = Features({
+        'id': Value('string'),
         'text': Value('string'),
         'topic': Value('string'),
         'lang': Value('string'),
@@ -43,10 +40,10 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
     df = pd.read_csv(data_path)
     df["label"] = df["is_ironic"]
 
-
     if preprocess:
 
-        preprocess_fn = lambda x: preprocess_tweet(x, lang=lang, **preprocess_args)
+        def preprocess_fn(x): return preprocess_tweet(
+            x, lang=lang, **preprocess_args)
         df["text"] = df["text"].apply(preprocess_fn)
     train_df = df[df["split"] == "train"]
     test_df = df[df["split"] == "test"]
@@ -56,44 +53,97 @@ def load_datasets(lang, data_path=None, limit=None, random_state=20202021, prepr
         test_size=0.25,
     )
 
-    train_dataset = Dataset.from_pandas(train_df, features=features)
-    dev_dataset = Dataset.from_pandas(dev_df, features=features)
-    test_dataset = Dataset.from_pandas(test_df, features=features)
+    train_dataset = Dataset.from_pandas(
+        train_df[features.keys()],
+        features=features,
+        preserve_index=False
+    )
+    dev_dataset = Dataset.from_pandas(
+        dev_df[features.keys()],
+        features=features,
+        preserve_index=False
+    )
+    test_dataset = Dataset.from_pandas(
+        test_df[features.keys()],
+        features=features,
+        preserve_index=False
+    )
+
+    return DatasetDict(
+        train=train_dataset,
+        dev=dev_dataset,
+        test=test_dataset
+    )
 
 
-    if limit:
-        """
-        Smoke test
-        """
-        print("\n\n", f"Limiting to {limit} instances")
-        train_dataset = train_dataset.select(range(min(limit, len(train_dataset))))
-        dev_dataset = dev_dataset.select(range(min(limit, len(dev_dataset))))
-        test_dataset = test_dataset.select(range(min(limit, len(test_dataset))))
+def load_datasets(lang, preprocess=True, preprocess_args={}):
+    """
+    Load sentiment datasets
+    """
 
+    if lang in {"es", "en"}:
+        ds = load_dataset(f"pysentimiento/{lang}_irony")
 
-    return train_dataset, dev_dataset, test_dataset
+    else:
+        raise ValueError(f"Language {lang} not supported for irony detection")
+
+    if preprocess:
+
+        def preprocess_fn(ex):
+            return {"text": preprocess_tweet(ex["text"], lang=lang, **preprocess_args)}
+        ds = ds.map(preprocess_fn, batched=False)
+
+    return ds
 
 
 def train(
-    base_model, lang="es", epochs=5, batch_size=32,
-    limit=None, **kwargs
+    base_model, lang="es", use_defaults_if_not_tuned=False,
+    **kwargs
 ):
     """
     """
 
-    load_extra_args = extra_args[base_model] if base_model in extra_args else {}
+    ds = load_datasets(
+        lang=lang,
+    )
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(lang=lang, **load_extra_args)
+    training_args = get_training_arguments(
+        base_model, task_name=task_name, lang=lang,
+        metric_for_best_model="eval/macro_f1", use_defaults_if_not_tuned=use_defaults_if_not_tuned
+    )
 
-    kwargs = {
-        **kwargs,
-        **{
-            "id2label" : id2label,
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "limit": limit,
-            "lang": lang,
-        }
+    return train_and_eval(
+        base_model=base_model, dataset=ds, id2label=id2label,
+        training_args=training_args, lang=lang, use_defaults_if_not_tuned=use_defaults_if_not_tuned,
+        **kwargs
+    )
+
+
+def hp_tune(model_name, lang, **kwargs):
+    """
+    Hyperparameter tuning with wandb
+    """
+    ds = load_datasets(lang=lang)
+
+    def model_init():
+        model, _ = load_model(model_name, id2label, lang=lang)
+        return model
+
+    _, tokenizer = load_model(model_name, id2label, lang=lang)
+
+    config_info = {
+        "model": model_name,
+        "task": task_name,
+        "lang": lang,
     }
 
-    return train_model(base_model, train_dataset, dev_dataset, test_dataset, **kwargs)
+    return hyperparameter_sweep(
+        name=f"swp-{task_name}-{lang}-{model_name}",
+        group_name=f"swp-{task_name}-{lang}",
+        model_init=model_init,
+        tokenizer=tokenizer,
+        datasets=ds,
+        id2label=id2label,
+        config_info=config_info,
+        **kwargs,
+    )

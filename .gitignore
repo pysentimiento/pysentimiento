@@ -120,3 +120,6 @@ runs/*
 **/lightning_logs/*
 *.zip:wq
 *.zip
+config/*
+**/wandb/*
+tmp/*

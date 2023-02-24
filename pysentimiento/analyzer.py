@@ -21,6 +21,10 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/robertuito-hate-speech",
         },
+
+        "irony": {
+            "model_name": "pysentimiento/robertuito-irony",
+        },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
         },
@@ -41,6 +45,10 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/bertweet-hate-speech",
             "preprocessing_args": {"user_token": "@USER", "url_token": "HTTPURL"}
+        },
+
+        "irony": {
+            "model_name": "pysentimiento/bertweet-irony",
         },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
@@ -82,7 +90,7 @@ class AnalyzerOutput:
 
 
 class BaseAnalyzer:
-    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32):
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, **kwargs):
         """
         Constructor for SentimentAnalyzer class
 
@@ -207,7 +215,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
     @classmethod
     def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
         """
-        Constructor for SentimentAnalyzer class
+        Constructor for AnalyzerForTokenClassification class
 
         Arguments:
 
@@ -216,12 +224,92 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         """
         model = AutoModelForTokenClassification.from_pretrained(model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
+        return cls(model, tokenizer, task, preprocessing_args=preprocessing_args, batch_size=batch_size, **kwargs)
 
-    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, aggregation_strategy="simple"):
+    def __init__(self, model, tokenizer, task, lang, preprocessing_args={}, batch_size=32):
         super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
-        self.pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
-        self.aggregation_strategy = aggregation_strategy
+
+        if lang == "en":
+            from spacy.lang.en import English
+            nlp = English()
+        elif lang == "es":
+            from spacy.lang.es import Spanish
+            nlp = Spanish()
+
+        self.spacy_tokenizer = nlp.tokenizer
+
+    def decode(self, words, labels):
+        """
+        Convert BIO labels to segments
+        Arguments:
+        ----------
+        words: list of str
+
+        labels: list of str
+            BIO labels
+
+
+        Returns:
+        --------
+        entities: list of dict
+            Each dict has keys "tokens" and "type"
+        """
+        entities = []
+        current_words = None
+        current_type = None
+        for token, label in zip(words, labels):
+            if label == 'O':
+                if current_type == "O":
+                    pass
+                else:
+                    # There was something
+                    if current_words:
+                        entities.append({
+                            "tokens": current_words,
+                            "type": current_type
+                        })
+                    current_words = []
+                    current_type = "O"
+            elif label.startswith('B-'):
+                if current_words:
+                    entities.append({
+                        "tokens": current_words,
+                        "type": current_type
+                    })
+                current_words = [token]
+                current_type = label[2:]
+            elif label.startswith('I-'):
+                # If we are in the same type, add the word
+                if current_type == label[2:]:
+                    current_words.append(token)
+                else:
+                    if current_words:
+                        entities.append({
+                            "tokens": current_words,
+                            "type": current_type
+                        })
+                    current_words = [token]
+                    current_type = label[2:]
+
+        if current_words:
+            entities.append({
+                "tokens": current_words,
+                "type": current_type
+            })
+
+        for segment in entities:
+            segment["text"] = "".join(
+                t.text + t.whitespace_ for t in segment["tokens"]
+            ).strip()
+
+            first_token = segment["tokens"][0]
+            last_token = segment["tokens"][-1]
+
+            segment["start"] = first_token.idx
+            segment["end"] = last_token.idx + len(last_token.text)
+            segment.pop("tokens")
+
+        return entities
 
     def predict(self, inputs):
         """
@@ -233,18 +321,47 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         sentences = [
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
         ]
-        ret = self.pipeline(
-            sentences, aggregation_strategy=self.aggregation_strategy)
 
-        for sent, entities in zip(sentences, ret):
-            for entity in entities:
-                start, end = entity["start"], entity["end"]
-                entity["text"] = sent[start:end].strip()
-                entity["type"] = entity.pop("entity_group")
+        # First, tokenize with spacy
+        # This is because the model seems to be working better with this tokenizer
 
+        spacy_tokens = [
+            [token for token in self.spacy_tokenizer(sentence)] for sentence in inputs
+        ]
+
+        tokens = [[token.text for token in sentence]
+                  for sentence in spacy_tokens]
+
+        tokenized_inputs = self.tokenizer(
+            tokens, is_split_into_words=True, padding=True, truncation=True)
+
+        model_device = next(self.model.parameters()).device
+
+        outs = self.model(**{k: torch.tensor(v).to(model_device)
+                          for k, v in tokenized_inputs.items()})
+
+        outs = torch.argmax(outs.logits, dim=2)
+        id2label = self.model.config.id2label
+
+        labels = []
+        # Ignore intermediate tokens
+        # Just use the first token of each word
+        for i, (sentence, output) in enumerate(zip(tokens, outs)):
+
+            sentence_labels = [None for _ in sentence]
+            word_ids = tokenized_inputs.word_ids(i)
+
+            for word_id, label in zip(word_ids, output):
+                if word_id is not None and sentence_labels[word_id] is None:
+                    sentence_labels[word_id] = id2label[label.item()]
+
+            labels.append(sentence_labels)
+
+        entities = [self.decode(sentence, sentence_labels)
+                    for sentence, sentence_labels in zip(spacy_tokens, labels)]
         if len(sentences) == 1:
-            return ret[0]
-        return ret
+            return entities[0]
+        return entities
 
 
 def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}, **kwargs):
@@ -289,4 +406,4 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    return analyzer_class.from_model_name(model_name, task, preprocessing_args, **kwargs)
+    return analyzer_class.from_model_name(model_name, task, preprocessing_args, lang=lang, **kwargs)

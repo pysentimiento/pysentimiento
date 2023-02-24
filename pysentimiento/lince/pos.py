@@ -3,10 +3,10 @@ NER for LinCE dataset
 """
 import numpy as np
 from .ner import tokenize_and_align_labels, preprocess_token
-from datasets import load_dataset, load_metric
+from datasets import load_dataset, load_metric, DatasetDict
 from seqeval.metrics import f1_score
 from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
-from ..training import train_model
+from ..training import train_and_eval
 
 metric = load_metric("seqeval")
 
@@ -15,7 +15,7 @@ TODO: this is a hack to make it work with the current version of seqeval
 As you can see, I add "B-" to each label because it only works with BIO tags
 """
 
-id2label =[
+id2label = [
     'B-VERB',
     'B-PUNCT',
     'B-PRON',
@@ -35,7 +35,7 @@ id2label =[
     'B-X',
 ]
 
-label2id = {v:k for k,v in enumerate(id2label)}
+label2id = {v: k for k, v in enumerate(id2label)}
 
 
 def load_datasets(lang="es", preprocess=True):
@@ -64,9 +64,15 @@ def load_datasets(lang="es", preprocess=True):
             }
         )
 
-    return lince["train"], lince["validation"], lince["test"]
+    return DatasetDict(
+        train=lince["train"],
+        dev=lince["validation"],
+        test=lince["test"],
+    )
+
 
 metric = load_metric("seqeval")
+
 
 def compute_metrics(eval_preds):
     """
@@ -76,12 +82,14 @@ def compute_metrics(eval_preds):
     predictions = np.argmax(logits, axis=-1)
 
     # Remove ignored index (special tokens) and convert to labels
-    true_labels = [[id2label[l] for l in label if l != -100] for label in labels]
+    true_labels = [[id2label[l] for l in label if l != -100]
+                   for label in labels]
     true_predictions = [
         [id2label[p] for (p, l) in zip(prediction, label) if l != -100]
         for prediction, label in zip(predictions, labels)
     ]
-    all_metrics = metric.compute(predictions=true_predictions, references=true_labels)
+    all_metrics = metric.compute(
+        predictions=true_predictions, references=true_labels)
     ret = {
         "precision": all_metrics["overall_precision"],
         "recall": all_metrics["overall_recall"],
@@ -98,18 +106,19 @@ def compute_metrics(eval_preds):
 
     return ret
 
-def train(
-    base_model, lang, epochs=5,
-    metric_for_best_model="accuracy",
-    **kwargs):
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(
+def train(
+        base_model, lang, epochs=5,
+        metric_for_best_model="accuracy",
+        **kwargs):
+
+    ds = load_datasets(
         lang=lang
     )
 
-    return train_model(
+    return train_and_eval(
         base_model,
-        train_dataset=train_dataset, dev_dataset=dev_dataset, test_dataset=dev_dataset,
+        train_dataset=ds["train"], dev_dataset=ds["dev"], test_dataset=ds["dev"],
         id2label=id2label, lang=lang, epochs=epochs,
         # Custom stuff for this thing to work
         tokenize_fun=tokenize_and_align_labels,

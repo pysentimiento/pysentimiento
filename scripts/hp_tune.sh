@@ -16,12 +16,14 @@ tasks=(
 
 for model in "${models[@]}"
 do
+
     for task in "${tasks[@]}"
     do
-        echo "Running benchmark for $model and $task"
-        python bin/train.py --base_model $model \
+        echo "Running hyperparameter tuning for $model and $task"
+        # Run hyperparameter tuning
+        python bin/hp_tune.py --model $model \
             --lang es \
             --task $task \
-            --benchmark --times 10
+            --count 40
     done
 done
