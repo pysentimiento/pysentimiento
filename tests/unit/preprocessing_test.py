@@ -11,6 +11,16 @@ def test_preprocessing_replaces_users():
     assert preprocess_tweet(text) == "@usuario debería cambiar esto"
 
 
+def test_preprocessing_replaces_users_in_italian():
+    """
+    Replaces handles with special token for user
+    """
+    text = "@perezjotaeme dovrebbe cambiare questo"
+
+    assert preprocess_tweet(
+        text, lang="it") == "##user dovrebbe cambiare questo"
+
+
 def test_preprocessing_replaces_users_twice():
     """
     Replaces handles with special token for user
@@ -36,6 +46,15 @@ def test_preprocessing_replaces_urls_with_default_token_for_english():
     text = "this is very good http://bit.ly/sarasa"
 
     assert preprocess_tweet(text, lang="en") == "this is very good HTTPURL"
+
+
+def test_preprocessing_replaces_urls_with_default_token_for_italian():
+    """
+    Replaces urls with special token for url
+    """
+    text = "questo è piu buono http://bit.ly/sarasa"
+
+    assert preprocess_tweet(text, lang="it") == "questo è piu buono ##url"
 
 
 def test_preprocessing_replaces_users_with_default_token_for_english():
@@ -122,7 +141,7 @@ def test_preprocessing_handles_hashtags():
     """
     text = "esto es #UnaGenialidad"
 
-    assert preprocess_tweet(text) == "esto es una genialidad"
+    assert preprocess_tweet(text) == "esto es hashtag una genialidad"
 
 
 def test_camel_to_human_on_simple_camel():

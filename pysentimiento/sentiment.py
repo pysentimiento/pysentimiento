@@ -1,13 +1,18 @@
-import wandb
-from .tass import (
-    load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
-)
-from .training import train_and_eval, load_model
-from .tuning import hyperparameter_sweep, get_training_arguments
 from .semeval import (
     load_datasets as load_semeval_datasets,
     id2label as id2labelsemeval, label2id as label2idsemeval
 )
+from .tuning import hyperparameter_sweep, get_training_arguments
+from .training import train_and_eval, load_model
+from .tass import (
+    load_datasets as load_tass_datasets, id2label as id2labeltass, label2id as label2idtass,
+)
+from .sentipolc import (
+    load_datasets as load_sentipolc_datasets, id2label as id2labelsentipolc, label2id as label2idsentipolc
+)
+
+from .sentiment_pt import load_datasets as load_sentiment_pt_datasets, id2label as id2labelpt, label2id as label2idpt
+from .preprocessing import get_preprocessing_args
 
 task_name = "sentiment"
 
@@ -21,8 +26,27 @@ lang_conf = {
         "load_datasets": load_semeval_datasets,
         "id2label": id2labelsemeval,
         "label2id": label2idsemeval,
+    },
+
+    "it": {
+        "load_datasets": load_sentipolc_datasets,
+        "id2label": id2labelsentipolc,
+        "label2id": label2idsentipolc,
+    },
+
+    "pt": {
+        "load_datasets": load_sentiment_pt_datasets,
+        "id2label": id2labelpt,
+        "label2id": label2idpt,
     }
 }
+
+
+def accepts(lang):
+    """
+    Check if a language is supported by this task
+    """
+    return lang in lang_conf
 
 
 def load_datasets(lang, **kwargs):
@@ -38,10 +62,12 @@ def train(
     """
 
     """
+
     load_datasets = lang_conf[lang]["load_datasets"]
     id2label = lang_conf[lang]["id2label"]
 
-    ds = load_datasets(lang=lang)
+    ds = load_datasets(
+        lang=lang, preprocessing_args=get_preprocessing_args(base_model, lang=lang))
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
