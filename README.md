@@ -164,11 +164,12 @@ Also, pleace cite related pre-trained models and datasets for the specific model
 % Pretrained models      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % RoBERTuito
-@article{perez2021robertuito,
+@inproceedings{perez2022robertuito,
   title={RoBERTuito: a pre-trained language model for social media text in Spanish},
-  author={P{\'e}rez, Juan Manuel and Furman, Dami{\'a}n A and Alemany, Laura Alonso and Luque, Franco},
-  journal={arXiv preprint arXiv:2111.09453},
-  year={2021}
+  author={P{\'e}rez, Juan Manuel and Furman, Dami{\'a}n Ariel and Alemany, Laura Alonso and Luque, Franco M},
+  booktitle={Proceedings of the Thirteenth Language Resources and Evaluation Conference},
+  pages={7235--7243},
+  year={2022}
 }
 % BETO
 @article{canete2020spanish,
