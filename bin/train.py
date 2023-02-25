@@ -15,10 +15,13 @@ from transformers.trainer_utils import set_seed
 """
 Training functions
 """
+
+
 train_fun = {
     "hate_speech": {
         "es": train_hate,
         "en": train_hate,
+        "it": train_hate,
     },
     "sentiment": {
         "es": train_sentiment,
@@ -28,6 +31,7 @@ train_fun = {
     "emotion": {
         "es": train_emotion,
         "en": train_emotion,
+        "it": train_emotion,
     },
 
     "irony": {

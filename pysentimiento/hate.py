@@ -299,26 +299,14 @@ def train(
         ds["test"] = ds["dev"]
 
     trainer_class = get_trainer_class(hierarchical, gamma)
-    metrics_fun = get_metrics_fun(task_b=task_b, combinatorial=combinatorial)
+    metrics_fun = get_metrics_fun(
+        task_b=task_b, combinatorial=combinatorial) if lang != "it" else None
     id2label = get_id2label(lang=lang, task_b=task_b,
                             combinatorial=combinatorial)
 
-    def format_dataset(dataset):
-        def get_labels(examples):
-            if task_b:
-                if combinatorial:
-                    # Convert to a single label
-                    return {'labels': combinatorial_mapping[
-                        tuple(examples[k] for k in labels_order)
-                    ]}
-                return {'labels': torch.Tensor([examples[k] for k in labels_order])}
-            else:
-                return {'labels': examples["HS"]}
-        dataset = dataset.map(get_labels)
-        return dataset
-
     if class_weight:
-        class_weight = torch.Tensor([ds["train"][k] for k in labels_order])
+        class_weight = torch.Tensor([ds["train"][k]
+                                    for k in ds["train"].features["label"].names])
         class_weight = 1 / (2 * class_weight.mean(1))
 
     training_args = get_training_arguments(base_model, task_name=task_name, lang=lang,
@@ -326,7 +314,7 @@ def train(
 
     return train_and_eval(
         base_model=base_model, dataset=ds, id2label=id2label,
-        format_dataset=format_dataset, lang=lang, training_args=training_args,
+        lang=lang, training_args=training_args,
         class_weight=class_weight, metrics_fun=metrics_fun, trainer_class=trainer_class,
         **kwargs
     )
