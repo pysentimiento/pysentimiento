@@ -123,3 +123,4 @@ runs/*
 config/*
 **/wandb/*
 tmp/*
+notebooks/**/*.csv
