@@ -54,6 +54,12 @@ models = {
             "model_name": "pysentimiento/robertuito-ner",
         }
     },
+
+    "it": {
+        "sentiment": {
+            "model_name": "pysentimiento/bert-it-sentiment",
+        },
+    }
 }
 
 
@@ -371,17 +377,17 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
     Arguments:
     ----------
     task: str
-        Task name (sentiment or emotion)
+        Task name ("sentiment", "emotion", "hate_speech", "irony", "ner", "pos")
     lang: str
-        Language code (es or en)
+        Language code (accepts "en", "es", "it")
     model_name: str
         Model name or path
     preprocessing_args: dict
-        Preprocessing arguments
+        Preprocessing arguments for `preprocess_tweet` function
 
     Returns:
     --------
-        SentimentAnalyzer or EmotionAnalyzer
+        Analyzer object for the given task and language
     """
     if not (model_name or (lang and task)):
         raise ValueError("model_name or (lang and task) must be provided")
@@ -393,6 +399,7 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         analyzer_class = AnalyzerForSequenceClassification
 
     if not model_name:
+        # Default models
         if lang not in models:
             raise ValueError(
                 f"Language {lang} not supported -- only supports {models.keys()}")

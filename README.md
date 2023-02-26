@@ -15,7 +15,7 @@ A Transformer-based library for SocialNLP tasks.
 
 Currently supports:
 
-- Sentiment Analysis (Spanish, English)
+- Sentiment Analysis (Spanish, English, Italian)
 - Emotion Analysis (Spanish, English)
 - Hate Speech Detection (Spanish, English)
 - Named Entity Recognition (Spanish + English)

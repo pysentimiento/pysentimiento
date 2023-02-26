@@ -6,16 +6,24 @@ from pysentimiento import create_analyzer
 def analyzer_es():
     return create_analyzer(task="sentiment", lang="es")
 
+
 @pytest.fixture
 def analyzer_en():
     return create_analyzer(task="sentiment", lang="en")
 
 
+@pytest.fixture
+def analyzer_it():
+    return create_analyzer(task="sentiment", lang="it")
+
+
 def test_analyze_negative_sent(analyzer_es):
     assert analyzer_es.predict("Esto es pésimo").output == "NEG"
 
+
 def test_analyze_neu_sent(analyzer_es):
     assert analyzer_es.predict("Qué es esto?").output == "NEU"
+
 
 def test_multiple_sentences(analyzer_es):
     sentences = [
@@ -30,11 +38,14 @@ def test_multiple_sentences(analyzer_es):
 
     assert outputs == ["POS", "NEG", "NEU", "POS", "NEG", "NEU"]
 
+
 def test_analyze_negative_sent_en(analyzer_en):
     assert analyzer_en.predict("This is shitty").output == "NEG"
 
+
 def test_analyze_neu_sent_en(analyzer_en):
     assert analyzer_en.predict("What's this?").output == "NEU"
+
 
 def test_multiple_sentences_en(analyzer_en):
     sentences = [
@@ -48,3 +59,15 @@ def test_multiple_sentences_en(analyzer_en):
     outputs = [r.output for r in ret]
 
     assert outputs == ["POS", "NEG", "NEU", "POS", "NEG", "NEU"]
+
+
+def test_analyze_negative_sent_it(analyzer_it):
+    assert analyzer_it.predict("Questo è pessimo").output == ["neg"]
+
+
+def test_analyze_neu_sent_it(analyzer_it):
+    assert analyzer_it.predict("Cosa è questo?").output == []
+
+
+def test_analyze_pos_sent_it(analyzer_it):
+    assert analyzer_it.predict("Questo è fantastico").output == ["pos"]

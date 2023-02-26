@@ -74,20 +74,33 @@ logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
 
 
+def get_mean_performance(model, task, lang):
+    df_results = pd.read_csv(
+        f"data/results_{lang}.csv").set_index(["model", "task"])
+
+    mean_macro_f1 = df_results.loc[(model, task), "mean macro f1"]
+
+    return mean_macro_f1
+
+
 def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=True):
     """
     Push model to huggingface
     """
-    df_results = pd.read_csv(
-        "data/results.csv").set_index(["lang", "model", "task"])
+    try:
+        mean_macro_f1 = get_mean_performance(model, task, lang)
+        print(f"Results for {model} at {task} ({lang})")
+        print(f"Mean macro f1: {mean_macro_f1:.2f}")
 
-    print(f"Results for {model} at {task} ({lang})")
-    mean_macro_f1 = df_results.loc[(lang, model, task), "mean macro f1"]
-
-    print(f"Mean macro f1: {mean_macro_f1:.2f}")
+    # File does not exist
+    except FileNotFoundError as e:
+        print(f"No results file found {e}")
+        mean_macro_f1 = None
+    except KeyError as e:
+        print(f"Model {model} and {task} not found in results file")
+        mean_macro_f1 = None
 
     model_macro_f1 = test_results.metrics["test_macro_f1"] * 100
-
     print(f"Model macro f1: {model_macro_f1:.2f}")
 
     trainer.args.overwrite_output_dir = True
@@ -96,16 +109,21 @@ def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=Tr
 
     push = False
     if model_macro_f1 > mean_macro_f1:
-        print("Mean macro f1 is lower than model macro f1. Pushing model")
+        print("Model macro f1 is better than average. Our Pushing model")
         # Push model
         push = True
-    else:
-        print("Mean macro f1 is higher than model macro f1.")
+    elif mean_macro_f1:
+        print("Model macro f1 is lower than average.")
 
         if ask_to_push:
             res = input("Do you want to push the model anyway? (y/n)")
             if res == "y":
                 push = True
+    else:
+        print("No mean macro f1 found to compare with")
+        res = input("Do you want to push the model anyway? (y/n)")
+        if res == "y":
+            push = True
 
     if push:
         print(f"Pushing model to {push_to}")
