@@ -59,6 +59,9 @@ models = {
         "sentiment": {
             "model_name": "pysentimiento/bert-it-sentiment",
         },
+        "emotion": {
+            "model_name": "pysentimiento/bert-it-emotion",
+        },
     }
 }
 
