@@ -1,0 +1,21 @@
+model,task,mean macro f1,std macro f1
+PlanTL-GOB-ES/roberta-base-bne,emotion,53.108637983148746,2.2411756659150397
+PlanTL-GOB-ES/roberta-base-bne,hate_speech,73.07666540145874,2.7520512507963106
+PlanTL-GOB-ES/roberta-base-bne,irony,71.90038681030273,0.8532173835989902
+PlanTL-GOB-ES/roberta-base-bne,sentiment,67.32724249362946,0.2593806283693046
+bertin-project/bertin-roberta-base-spanish,emotion,50.179562270641334,2.937297591139834
+bertin-project/bertin-roberta-base-spanish,hate_speech,68.71949017047882,1.4548268184077962
+bertin-project/bertin-roberta-base-spanish,irony,69.31252777576447,1.3939094127541347
+bertin-project/bertin-roberta-base-spanish,sentiment,65.26135981082916,0.5337748410499565
+dccuchile/bert-base-spanish-wwm-cased,emotion,52.157550752162926,1.3623334986836522
+dccuchile/bert-base-spanish-wwm-cased,hate_speech,73.29564869403839,0.8484534594275583
+dccuchile/bert-base-spanish-wwm-cased,irony,71.47645950317383,0.5472559277775453
+dccuchile/bert-base-spanish-wwm-cased,sentiment,67.22280979156494,0.5615531391277648
+mrm8488/electricidad-base-discriminator,emotion,46.292695701122284,2.2756635570413843
+mrm8488/electricidad-base-discriminator,hate_speech,71.83211048444113,0.9791583934611954
+mrm8488/electricidad-base-discriminator,irony,67.0680907037523,2.0628980701794104
+mrm8488/electricidad-base-discriminator,sentiment,65.34535752402412,0.5230142429859025
+pysentimiento/robertuito-base-uncased,emotion,55.294351577758796,0.838795519798851
+pysentimiento/robertuito-base-uncased,hate_speech,76.05883717536926,0.528594651640131
+pysentimiento/robertuito-base-uncased,irony,74.07301366329193,0.6883313564506375
+pysentimiento/robertuito-base-uncased,sentiment,70.22898859447903,0.15001467761595066

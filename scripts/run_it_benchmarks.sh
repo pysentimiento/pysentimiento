@@ -4,14 +4,14 @@ models=(
     #"dbmdz/bert-base-italian-xxl-uncased"
     #"Musixmatch/umberto-commoncrawl-cased-v1"
     #"dbmdz/electra-base-italian-xxl-cased-discriminator"
-    "pysentimiento/robertuito-base-uncased"
+    #"pysentimiento/robertuito-base-uncased"
 )
 
 
 tasks=(
     "irony"
     "sentiment"
-    #"emotion"
+    "emotion"
     #"hate_speech"
 )
 

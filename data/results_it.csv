@@ -1,0 +1,21 @@
+model,task,mean macro f1,std macro f1
+Musixmatch/umberto-commoncrawl-cased-v1,emotion,69.7245717048645,4.60015000910689
+Musixmatch/umberto-commoncrawl-cased-v1,hate_speech,87.26205706596375,0.3639109861272798
+Musixmatch/umberto-commoncrawl-cased-v1,irony,60.035865306854255,2.183472825813482
+Musixmatch/umberto-commoncrawl-cased-v1,sentiment,62.60156512260438,1.0637189813147354
+dbmdz/bert-base-italian-xxl-uncased,emotion,73.58896315097809,4.019143768784718
+dbmdz/bert-base-italian-xxl-uncased,hate_speech,92.38316833972931,0.40921729659906086
+dbmdz/bert-base-italian-xxl-uncased,irony,61.97480916976929,4.378350394548165
+dbmdz/bert-base-italian-xxl-uncased,sentiment,61.39109492301941,0.8638271430722329
+dbmdz/electra-base-italian-xxl-cased-discriminator,emotion,64.68250811100006,7.675118388406895
+dbmdz/electra-base-italian-xxl-cased-discriminator,hate_speech,87.75134861469269,2.9631746912780326
+dbmdz/electra-base-italian-xxl-cased-discriminator,irony,49.95816349983215,6.492524627815337
+dbmdz/electra-base-italian-xxl-cased-discriminator,sentiment,62.26598739624023,0.704774510851371
+m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0,emotion,72.02079117298126,1.338999706362269
+m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0,hate_speech,88.05185973644257,0.40696533708672583
+m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0,irony,53.66418719291687,0.6263338244910229
+m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0,sentiment,57.77144968509674,0.6650714014514978
+pysentimiento/robertuito-base-uncased,emotion,64.05466397603354,2.957687539424112
+pysentimiento/robertuito-base-uncased,hate_speech,92.63222098350525,0.2713255707228883
+pysentimiento/robertuito-base-uncased,irony,55.60053139925003,3.5607962065235608
+pysentimiento/robertuito-base-uncased,sentiment,55.161192682054306,2.842375728392732
