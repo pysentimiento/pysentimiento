@@ -17,6 +17,11 @@ def analyzer_it():
     return create_analyzer(task="sentiment", lang="it")
 
 
+@pytest.fixture
+def analyzer_pt():
+    return create_analyzer(task="sentiment", lang="pt")
+
+
 def test_analyze_negative_sent(analyzer_es):
     assert analyzer_es.predict("Esto es pésimo").output == "NEG"
 
@@ -71,3 +76,13 @@ def test_analyze_neu_sent_it(analyzer_it):
 
 def test_analyze_pos_sent_it(analyzer_it):
     assert analyzer_it.predict("Questo è fantastico").output == ["pos"]
+
+
+def test_analyze_negative_sent_pt(analyzer_pt):
+    assert analyzer_pt.predict("Isso é péssimo").output == "NEG"
+
+
+def test_analyze_neu_sent_pt(analyzer_pt):
+    # Translate "Esta es una noticia acerca del clima"
+    assert analyzer_pt.predict(
+        "Esta é uma notícia sobre o clima").output == "NEU"

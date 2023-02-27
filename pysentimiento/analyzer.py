@@ -69,6 +69,16 @@ models = {
         "irony": {
             "model_name": "pysentimiento/bert-it-irony",
         },
+    },
+
+    "pt": {
+        "sentiment": {
+            "model_name": "pysentimiento/bertweet-pt-sentiment",
+        },
+
+        "hate_speech": {
+            "model_name": "pysentimiento/bertabaporu-pt-hate-speech",
+        },
     }
 }
 
