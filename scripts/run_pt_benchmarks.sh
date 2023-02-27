@@ -8,9 +8,9 @@ models=(
 )
 
 tasks=(
-    #"sentiment"
-    #"sentiment"
     #"irony"
+    "sentiment"
+    #"emotion"
     "hate_speech"
 )
 
@@ -18,11 +18,10 @@ for model in "${models[@]}"
 do
     for task in "${tasks[@]}"
     do
-        echo "Running hyperparameter tuning for $model and $task (pt)"
-        # Run hyperparameter tuning
-        python bin/hp_tune.py --model $model \
+        echo "Running benchmark for $model and $task"
+        python bin/train.py --base_model $model \
             --lang pt \
             --task $task \
-            --count 30
+            --benchmark --times 10
     done
 done

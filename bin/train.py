@@ -16,17 +16,20 @@ from transformers.trainer_utils import set_seed
 Training functions
 """
 
-
+# TODO: remove this
+# Use modules instead
 train_fun = {
     "hate_speech": {
         "es": train_hate,
         "en": train_hate,
         "it": train_hate,
+        "pt": train_hate,
     },
     "sentiment": {
         "es": train_sentiment,
         "en": train_sentiment,
         "it": train_sentiment,
+        "pt": train_sentiment,
     },
     "emotion": {
         "es": train_emotion,
@@ -59,7 +62,7 @@ train_fun = {
 }
 
 lang_fun = {
-    lang: {} for lang in ["es", "en", "it"]
+    lang: {} for lang in ["es", "en", "it", "pt"]
 }
 
 for lang in lang_fun:
