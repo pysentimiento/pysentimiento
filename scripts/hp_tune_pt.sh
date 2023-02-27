@@ -10,8 +10,8 @@ models=(
 tasks=(
     #"sentiment"
     #"sentiment"
-    #"irony"
-    "hate_speech"
+    "irony"
+    #"hate_speech"
 )
 
 for model in "${models[@]}"

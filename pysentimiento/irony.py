@@ -81,7 +81,7 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}):
     Load sentiment datasets
     """
 
-    if lang in {"es", "en"}:
+    if lang in {"es", "en", "pt"}:
         ds = load_dataset(f"pysentimiento/{lang}_irony")
     elif lang == "it":
         ds = load_dataset("pysentimiento/it_sentipolc16")
@@ -102,7 +102,7 @@ def accepts(lang, **kwargs):
     """
     Returns True if the task supports the language
     """
-    return lang in ["es", "en", "it"]
+    return lang in ["es", "en", "it", "pt"]
 
 
 def train(
