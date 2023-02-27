@@ -28,6 +28,9 @@ data_dir = os.path.join(project_dir, "data", "hate")
 
 labels_order = ["HS", "TR", "AG"]
 
+# Labels for the Portuguese dataset
+pt_labels = ['Sexism', 'Body', 'Racism', 'Ideology', 'Homophobia']
+
 
 def load_datasets(lang,
                   train_path=None, dev_path=None, test_path=None, limit=None,
@@ -40,6 +43,10 @@ def load_datasets(lang,
         ds = load_dataset("pysentimiento/it_haspeede")
         ds = ds.map(lambda x: {"labels": torch.Tensor(
             [x["hs"], x["stereotype"]])}, batched=False)
+    elif lang == "pt":
+        ds = load_dataset("pysentimiento/pt_hate_speech")
+        ds = ds.map(lambda x: {"labels": torch.Tensor(
+            [x[l] for l in pt_labels])}, batched=False)
     else:
         train_path = train_path or os.path.join(
             data_dir, f"hateval2019_{lang}_train.csv")
@@ -231,7 +238,7 @@ def accepts(lang, **kwargs):
     """
     Returns whether the task is defined for the given language
     """
-    return lang in ["it", "en", "es"]
+    return lang in ["it", "en", "es", "pt"]
 
 
 def get_id2label(lang, task_b, combinatorial):
@@ -243,7 +250,8 @@ def get_id2label(lang, task_b, combinatorial):
             0: "hateful",
             1: "stereotype",
         }
-
+    elif lang == "pt":
+        return dict(enumerate(pt_labels))
     elif task_b:
         if combinatorial:
             return {
@@ -331,13 +339,17 @@ def hp_tune(model_name, lang, **kwargs):
         }
 
         compute_metrics = None
+
+    elif lang == "pt":
+        id2label = dict(enumerate(pt_labels))
+        compute_metrics = None
     else:
         id2label = {
             0: "hateful",
             1: "targeted",
             2: "aggressive",
         }
-    compute_metrics = get_task_b_metrics
+        compute_metrics = get_task_b_metrics
 
     ds = load_datasets(
         lang=lang, preprocessing_args=get_preprocessing_args(
