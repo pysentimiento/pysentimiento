@@ -308,7 +308,7 @@ def train(
 
     trainer_class = get_trainer_class(hierarchical, gamma)
     metrics_fun = get_metrics_fun(
-        task_b=task_b, combinatorial=combinatorial) if lang != "it" else None
+        task_b=task_b, combinatorial=combinatorial) if lang not in {"it", "pt"} else None
     id2label = get_id2label(lang=lang, task_b=task_b,
                             combinatorial=combinatorial)
 

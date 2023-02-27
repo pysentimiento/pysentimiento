@@ -1,0 +1,9 @@
+model,task,mean macro f1,std macro f1
+melll-uff/bertweetbr,hate_speech,55.641053120295204,5.467567615441792
+melll-uff/bertweetbr,sentiment,75.29541015625,0.48663796210293553
+neuralmind/bert-base-portuguese-cased,hate_speech,64.14700031280518,1.0991258051378061
+neuralmind/bert-base-portuguese-cased,sentiment,69.97350454330444,0.3373013104488294
+pablocosta/bertabaporu-base-uncased,hate_speech,70.31050026416779,3.2605162504019116
+pablocosta/bertabaporu-base-uncased,sentiment,73.77788543701172,0.404984606340668
+pysentimiento/robertuito-base-uncased,hate_speech,69.95333909988403,2.428643181669893
+pysentimiento/robertuito-base-uncased,sentiment,71.66111409664154,0.42712626388048747

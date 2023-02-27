@@ -1,6 +1,6 @@
 #/bin/bash
 models=(
-    "melll-uff/bertweetbr"
+    #"melll-uff/bertweetbr"
     "neuralmind/bert-base-portuguese-cased"
     "pablocosta/bertabaporu-base-uncased"
     "pysentimiento/robertuito-base-uncased"
