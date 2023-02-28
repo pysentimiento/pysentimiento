@@ -403,7 +403,7 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
     task: str
         Task name ("sentiment", "emotion", "hate_speech", "irony", "ner", "pos")
     lang: str
-        Language code (accepts "en", "es", "it")
+        Language code (accepts "en", "es", "it", "pt". See documentation for further information)
     model_name: str
         Model name or path
     preprocessing_args: dict

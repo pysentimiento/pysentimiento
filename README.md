@@ -15,11 +15,14 @@ A Transformer-based library for SocialNLP tasks.
 
 Currently supports:
 
-- Sentiment Analysis (Spanish, English, Italian)
-- Emotion Analysis (Spanish, English, Italian)
-- Hate Speech Detection (Spanish, English, Italian)
-- Named Entity Recognition (Spanish + English)
-- POS Tagging (Spanish + English)
+
+| Task                 | Languages                             |
+|:---------------------|:---------------------------------------|
+| Sentiment Analysis   | es, en, it, pt                        |
+| Hate Speech Detection| es, en, it, pt                        |
+| Irony Detection      | es, en, it, pt                        |
+| Emotion Analysis     | es, en, it                            |
+| NER & POS tagging    | es, en                                |
 
 
 Just do `pip install pysentimiento` and start using it:
