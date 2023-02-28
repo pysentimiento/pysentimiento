@@ -41,6 +41,7 @@ train_fun = {
         "es": train_irony,
         "en": train_irony,
         "it": train_irony,
+        "pt": train_irony,
     },
 
     # We use multilingual LinCE dataset here
@@ -111,7 +112,7 @@ def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=Tr
     trainer.args.output_dir = push_to
 
     push = False
-    if model_macro_f1 > mean_macro_f1:
+    if mean_macro_f1 and model_macro_f1 > mean_macro_f1:
         print("Model macro f1 is better than average. Our Pushing model")
         # Push model
         push = True
