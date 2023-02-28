@@ -102,7 +102,7 @@ preprocess_tweet("🎉🎉", lang="en")
 # 'emoji party popper emoji emoji party popper emoji'
 ```
 
-## Trained models so far
+## Tasks
 
 Check [CLASSIFIERS.md](CLASSIFIERS.md) for details on the reported performances of each model.
 
@@ -124,7 +124,9 @@ Open an issue or email us if you are not able to get the it.
 
 2. Run script to train models
 
-Check [TRAIN.md](TRAIN.md) for further information on how to train your models
+Check [TRAIN.md](docs/TRAIN.md) for further information on how to train your models
+
+Note: you need access to the datasets, which are not public for the time being.
 
 3. Upload models to Huggingface's Model Hub
 
