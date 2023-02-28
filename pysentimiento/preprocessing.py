@@ -191,6 +191,9 @@ def preprocess_tweet(
 
     normalize_laughter: boolean (default True)
         Normalizes laughters. Uses different regular expressions depending on the lang argument.
+
+    preprocess_handles: boolean (default True)
+        If true, replaces user handles with user_token
     """
 
     user_token = user_token or default_args[lang]["user_token"]
