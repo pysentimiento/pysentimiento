@@ -17,6 +17,11 @@ def analyzer_it():
     return create_analyzer(task="irony", lang="it")
 
 
+@pytest.fixture
+def analyzer_pt():
+    return create_analyzer(task="irony", lang="pt")
+
+
 def test_analyze_not_ironic_es(analyzer_es):
     assert analyzer_es.predict("Esto es muy bueno").output == "not ironic"
 
@@ -44,3 +49,13 @@ def test_analyze_not_ironic_it(analyzer_it):
 def test_analyze_ironic_it(analyzer_it):
     assert analyzer_it.predict(
         "formato il nuovo governo Monti. Che Dio ce la mandi tecnicamente buona").output == "ironic"
+
+
+def test_analyze_not_ironic_pt(analyzer_pt):
+    assert analyzer_pt.predict(
+        "Economia é a ciência que estuda a produção, distribuição e consumo de bens e serviços").output == "not ironic"
+
+
+def test_analyze_ironic_pt(analyzer_pt):
+    assert analyzer_pt.predict(
+        "Ah, sério? Olha, te juro que não sabia, obrigado por me iluminar").output == "ironic"

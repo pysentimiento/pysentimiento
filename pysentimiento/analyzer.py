@@ -79,6 +79,10 @@ models = {
         "hate_speech": {
             "model_name": "pysentimiento/bertabaporu-pt-hate-speech",
         },
+
+        "irony": {
+            "model_name": "pysentimiento/bertabaporu-pt-irony",
+        }
     }
 }
 
