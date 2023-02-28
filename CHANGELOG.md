@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.6.1rc4
+
+- Add support for Portuguese and Italian
+- Fix NER issues
+- Major refactor of the codebase
+
 ## 0.5.2
 
 - Drop unnecessary dependencies (such as sklearn)
