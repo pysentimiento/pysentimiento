@@ -69,6 +69,12 @@ hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es XXXX!")
 
 See [TASKS](docs/TASKS.md) for more details on the supported tasks and languages, and also for reported performance for each benchmarked model.
 
+Also, check these notebooks with examples of how to use `pysentimiento` for each language:
+
+- [Spanish + English](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
+- [Italian](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_italian.ipynb)
+- [Portuguese](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_portuguese.ipynb)
+
 ## Preprocessing
 
 `pysentimiento` features a tweet preprocessor specially suited for tweet classification with transformer-based models.
