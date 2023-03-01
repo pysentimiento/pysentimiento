@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pysentimiento"
-version = "0.6.1rc2"
+version = "0.6.1"
 description = "A Transformer-based library for SocialNLP tasks"
 authors = ["Juan Manuel Pérez <jmperez@dc.uba.ar>", "Juan Carlos Giudici <jgiudici@dc.uba.ar>", ]
 readme = "README.md"

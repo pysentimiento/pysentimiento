@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## 0.6.1rc4
+## 0.6.1
 
 - Add support for Portuguese and Italian
 - Fix NER issues
 - Major refactor of the codebase
+- wandb integration and hyperparameter tuned models
 
 ## 0.5.2
 
