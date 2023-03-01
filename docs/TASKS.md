@@ -11,7 +11,7 @@
 | Emotion Analysis     | es, en, it                            |
 | NER & POS tagging    | es, en                                |
 
-For each task and language, however, please note that we used different datasets, and thus the models have some differences. Roughly, for classification tasks we have two different models:
+For each task and language, please note that we used different datasets and thus the models have some differences. Roughly, for classification tasks, `pysentimiento` have two different types of models:
 
 - Binary or multi-class classifiers: these models return a single variable (e.g. `POS`, `NEG`, `NEU` for Sentiment Analysis in es & en, or `ironic` `not ironic` for irony detection).
 - Multi-label classifiers: these models return a list of labels (e.g. `hateful`, `targeted`, `aggressive` for Hate Speech Detection in es & en; or the attacked characteristics for Hate Speech Detection), corresponding to several binary variables being predicted.
