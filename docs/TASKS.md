@@ -32,6 +32,9 @@ Concretely, we have the following models:
 
 
 # Results
+
+Results are the expressed as percentages of mean Macro F1 for each task plus/minus the standard deviation.
+
 ## Spanish
 
 
