@@ -1,5 +1,37 @@
-# Reported performances
+# Supported tasks
 
+`pysentimiento` supports several opinion-mining and other NLP tasks for social media,in
+
+
+| Task                 | Languages                             |
+|:---------------------|:--------------------------------------|
+| Sentiment Analysis   | es, en, it, pt                        |
+| Hate Speech Detection| es, en, it, pt                        |
+| Irony Detection      | es, en, it, pt                        |
+| Emotion Analysis     | es, en, it                            |
+| NER & POS tagging    | es, en                                |
+
+For each task and language, however, please note that we used different datasets, and thus the models have some differences. Roughly, for classification tasks we have two different models:
+
+- Binary or multi-class classifiers: these models return a single variable (e.g. `POS`, `NEG`, `NEU` for Sentiment Analysis in es & en, or `ironic` `not ironic` for irony detection).
+- Multi-label classifiers: these models return a list of labels (e.g. `hateful`, `targeted`, `aggressive` for Hate Speech Detection in es & en; or the attacked characteristics for Hate Speech Detection), corresponding to several binary variables being predicted.
+
+Concretely, we have the following models:
+
+| Language      | Task                 | Output      | Classes       |
+|:-----------   |:---------------------|:----------- |:--------------|
+| es, en, pt    | Sentiment            | Multiclass  | POS, NEG, NEU     |
+| es, en        | Emotion              | Multiclass  | anger, joy, sadness, fear, surprise, disgust, neutral|
+| es, en        | Hate Speech          | Multilabel  | hateful, targeted, aggressive |
+| es, en, it, pt| Irony                | Binary      | ironic, not ironic |
+| it            | Sentiment            | Multilabel  | pos, neg*      |
+| it            | Emotion              | Multiclass  | joy, anger, sadness, fear      |
+
+
+* In Sentiment Analysis for Italian, neutral is represented by the absence of both labels. The presence of both labels is considered a mixed sentiment.
+
+
+# Results
 ## Spanish
 
 

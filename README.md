@@ -77,6 +77,8 @@ tokenizer = AutoTokenizer.from_pretrained("pysentimiento/robertuito-sentiment-an
 model = AutoModelForSequenceClassification.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
 ```
 
+See [TASKS](docs/TASKS.md) for more details on the supported tasks and languages.
+
 ## Preprocessing
 
 `pysentimiento` features a tweet preprocessor specially suited for tweet classification with transformer-based models.
@@ -104,7 +106,7 @@ preprocess_tweet("🎉🎉", lang="en")
 
 ## Tasks
 
-Check [CLASSIFIERS.md](CLASSIFIERS.md) for details on the reported performances of each model.
+Check [TASKS.md](docs/TASKS.md) for details on the reported performances of each model.
 
 
 ## Instructions for developers
