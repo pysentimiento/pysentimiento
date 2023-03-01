@@ -59,6 +59,17 @@
     organization = {Citeseer}
 }
 
+% BERTabaporu
+
+@misc {pablo_botton_da_costa_2022,
+author = { {Pablo Botton da Costa} },
+title = { bertabaporu-base-uncased (Revision 1982d0f) },
+year = 2022,
+url = { https://huggingface.co/pablocosta/bertabaporu-base-uncased },
+doi = { 10.57967/hf/0019 },
+publisher = { Hugging Face }
+}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Datasets               %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
