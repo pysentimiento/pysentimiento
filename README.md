@@ -67,17 +67,7 @@ hate_speech_analyzer.predict("Vaya guarra barata y de poca monta es XXXX!")
 # returns AnalyzerOutput(output=['hateful', 'targeted', 'aggressive'], probas={hateful: 0.987, targeted: 0.978, aggressive: 0.969})
 ```
 
-Also, you might use pretrained models directly with [`transformers`](https://github.com/huggingface/transformers) library.
-
-```python
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-tokenizer = AutoTokenizer.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
-
-model = AutoModelForSequenceClassification.from_pretrained("pysentimiento/robertuito-sentiment-analysis")
-```
-
-See [TASKS](docs/TASKS.md) for more details on the supported tasks and languages.
+See [TASKS](docs/TASKS.md) for more details on the supported tasks and languages, and also for reported performance for each benchmarked model.
 
 ## Preprocessing
 
@@ -104,10 +94,6 @@ preprocess_tweet("🎉🎉", lang="en")
 # 'emoji party popper emoji emoji party popper emoji'
 ```
 
-## Tasks
-
-Check [TASKS.md](docs/TASKS.md) for details on the reported performances of each model.
-
 
 ## Instructions for developers
 
@@ -120,17 +106,13 @@ poetry shell
 poetry install
 ```
 
-1. Get the data and put it under `data/`
-
-Open an issue or email us if you are not able to get the it.
-
-2. Run script to train models
+1. Run script to train models
 
 Check [TRAIN.md](docs/TRAIN.md) for further information on how to train your models
 
-Note: you need access to the datasets, which are not public for the time being.
+Note: you need access to the datasets, which are not public for the time being. Send us an email to get access to them.
 
-3. Upload models to Huggingface's Model Hub
+2. Upload models to Huggingface's Model Hub
 
 Check ["Model sharing and upload"](https://huggingface.co/transformers/model_sharing.html) instructions in `huggingface` docs.
 
