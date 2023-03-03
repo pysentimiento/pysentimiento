@@ -9,8 +9,8 @@ models=(
 
 tasks=(
     #"sentiment"
-    #"sentiment"
-    "irony"
+    "emotion"
+    #"irony"
     #"hate_speech"
 )
 
@@ -23,6 +23,6 @@ do
         python bin/hp_tune.py --model $model \
             --lang pt \
             --task $task \
-            --count 30
+            --count 25
     done
 done

@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 import pathlib
-from datasets import Dataset, Value, ClassLabel, Features, DatasetDict, load_dataset
-from sklearn.model_selection import train_test_split
+import torch
+from datasets import ClassLabel, load_dataset
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
 from .preprocessing import preprocess_tweet, get_preprocessing_args
@@ -43,7 +43,7 @@ def accepts(lang, **kwargs):
     """
     Returns True if the task supports the language
     """
-    return lang in ["es", "en", "it"]
+    return lang in ["es", "en", "it", "pt"]
 
 
 def load_datasets(lang, preprocess=True, preprocessing_args={}):
@@ -53,6 +53,19 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}):
 
     if lang in {"es", "en", "it"}:
         ds = load_dataset(f"pysentimiento/{lang}_emotion")
+    elif lang == "pt":
+        ds = load_dataset("pysentimiento/pt_emotion")
+
+        label_names = [
+            k for k, v in ds["train"].features.items()
+            if isinstance(v, ClassLabel)
+        ]
+
+        ds = ds.map(
+            lambda ex: {"labels": torch.Tensor(
+                [ex[label] for label in label_names])},
+            batched=False
+        )
     else:
         raise ValueError(f"Language {lang} not supported for irony detection")
 
@@ -75,8 +88,17 @@ def train(
         preprocessing_args=get_preprocessing_args(base_model, lang=lang)
     )
 
-    id2label = {k: v for k, v in enumerate(
-        ds["train"].features["label"].names)}
+    if lang != "pt":
+
+        id2label = {k: v for k, v in enumerate(
+            ds["train"].features["label"].names)}
+    else:
+        label_names = [
+            k for k, v in ds["train"].features.items()
+            if isinstance(v, ClassLabel)
+        ]
+
+        id2label = {k: v for k, v in enumerate(label_names)}
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
@@ -98,8 +120,17 @@ def hp_tune(model_name, lang, **kwargs):
         preprocessing_args=get_preprocessing_args(model_name, lang=lang)
     )
 
-    id2label = {k: v for k, v in enumerate(
-        ds["train"].features["label"].names)}
+    if lang != "pt":
+
+        id2label = {k: v for k, v in enumerate(
+            ds["train"].features["label"].names)}
+    else:
+        label_names = [
+            k for k, v in ds["train"].features.items()
+            if isinstance(v, ClassLabel)
+        ]
+
+        id2label = {k: v for k, v in enumerate(label_names)}
 
     def model_init():
         model, _ = load_model(model_name, id2label, lang=lang)
