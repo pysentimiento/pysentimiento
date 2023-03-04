@@ -5,77 +5,26 @@ import time
 import wandb
 import pandas as pd
 from pysentimiento.config import config
-from pysentimiento.hate import train as train_hate
-from pysentimiento.sentiment import train as train_sentiment
-from pysentimiento.emotion import train as train_emotion
-from pysentimiento.irony import train as train_irony
-from pysentimiento.lince import train_ner, train_pos, train_sentiment as train_sentiment_lince
 from transformers.trainer_utils import set_seed
-
-"""
-Training functions
-"""
-
-# TODO: remove this
-# Use modules instead
-train_fun = {
-    "hate_speech": {
-        "es": train_hate,
-        "en": train_hate,
-        "it": train_hate,
-        "pt": train_hate,
-    },
-    "sentiment": {
-        "es": train_sentiment,
-        "en": train_sentiment,
-        "it": train_sentiment,
-        "pt": train_sentiment,
-    },
-    "emotion": {
-        "es": train_emotion,
-        "en": train_emotion,
-        "it": train_emotion,
-    },
-
-    "irony": {
-        "es": train_irony,
-        "en": train_irony,
-        "it": train_irony,
-        "pt": train_irony,
-    },
-
-    # We use multilingual LinCE dataset here
-    "ner": {
-        "es": train_ner,
-        "en": train_ner,
-    },
-
-    # We use multilingual LinCE dataset here
-    "pos": {
-        "es": train_pos,
-        "en": train_pos,
-    },
-
-    "lince_sentiment": {
-        "es": train_sentiment_lince,
-        "en": train_sentiment_lince,
-    },
-}
-
-lang_fun = {
-    lang: {} for lang in ["es", "en", "it", "pt"]
-}
-
-for lang in lang_fun:
-    for _task, task_funs in train_fun.items():
-        if lang in task_funs:
-            lang_fun[lang][_task] = task_funs[lang]
-
+import pysentimiento.hate
+import pysentimiento.sentiment
+import pysentimiento.emotion
+import pysentimiento.irony
+import pysentimiento.lince.ner
 
 logging.basicConfig()
 
 logger = logging.getLogger('pysentimiento')
 logger.setLevel(logging.INFO)
+
+
+modules = {
+    "hate_speech": pysentimiento.hate,
+    "sentiment": pysentimiento.sentiment,
+    "emotion": pysentimiento.emotion,
+    "irony": pysentimiento.irony,
+    "ner": pysentimiento.lince.ner,
+}
 
 
 def get_mean_performance(model, task, lang):
@@ -145,8 +94,8 @@ def train(
     base_model, task=None, lang="es",
     output_path=None,
     benchmark=False, times=10,
-    push_to=None, ask_to_push=True,
-    limit=None, predict=False, **kwargs
+    push_to=None,
+    limit=None, **kwargs
 ):
     """
     Script to train models
@@ -174,16 +123,16 @@ def train(
     push_to: str, Optional
         If provided, push the results to huggingface.
     """
-    if task is None and not benchmark:
-        logger.error(f"Must provide task if not in benchmark mode")
+    if task is None:
+        logger.error(f"Must provide task")
         sys.exit(1)
 
-    if task is not None and task not in train_fun:
+    if task is not None and task not in modules:
         logger.error(
-            f"task ({task} was provided) must be one of {list(train_fun.keys())}")
+            f"task ({task} was provided) must be one of {list(modules.keys())}")
         sys.exit(1)
 
-    if task and lang not in train_fun[task]:
+    if task and not modules[task].accepts(lang):
         logger.error(f"Lang {lang} not available for {task}")
         sys.exit(1)
 
@@ -198,7 +147,7 @@ def train(
         Training!
         """
         set_seed(int(time.time()))
-        task_fun = train_fun[task][lang]
+        task_fun = modules[task].train
 
         logger.info(f"Training {base_model} for {task} in lang {lang}")
 
@@ -227,53 +176,50 @@ def train(
         """
         logger.info(f"Benchmarking {base_model} for {task} in {lang}")
 
-        tasks = [task] if task else lang_fun[lang].keys()
-
         for i in range(times):
             logger.info(f"{i+1} Iteration")
             # if wandb configured
 
-            for task_name in tasks:
-                set_seed(int(time.time()))
-                logger.info(
-                    f"Training {base_model} for {task_name} in lang {lang}")
+            set_seed(int(time.time()))
+            logger.info(
+                f"Training {base_model} for {task} in lang {lang}")
 
-                """
-                Initialize Wandb
-                """
-                wandb_run = None
-                try:
-                    wandb_run = wandb.init(
-                        project=config["WANDB"]["PROJECT"],
-                        # Group by model name
-                        group=f"{task_name}-{lang}",
-                        job_type=f"{task_name}-{lang}-{base_model.split('/')[-1]}",
-                        # Name run by model name
-                        config={
-                            "model": base_model,
-                            "task": task_name,
-                            "lang": lang,
-                        },
-                        reinit=True,
-                    )
-
-                    train_args["report_to"] = "wandb"
-                except KeyError as e:
-                    logger.info(f"WANDB not configured. Skipping")
-
-                task_fun = lang_fun[lang][task_name]
-                trainer, test_results = task_fun(
-                    base_model, lang,
-                    **train_args
+            """
+            Initialize Wandb
+            """
+            wandb_run = None
+            try:
+                wandb_run = wandb.init(
+                    project=config["WANDB"]["PROJECT"],
+                    # Group by model name
+                    group=f"{task}-{lang}",
+                    job_type=f"{task}-{lang}-{base_model.split('/')[-1]}",
+                    # Name run by model name
+                    config={
+                        "model": base_model,
+                        "task": task,
+                        "lang": lang,
+                    },
+                    reinit=True,
                 )
 
-                metrics = test_results.metrics
+                train_args["report_to"] = "wandb"
+            except KeyError as e:
+                logger.info(f"WANDB not configured. Skipping")
 
-                if wandb_run:
-                    for k, v in metrics.items():
-                        wandb.log({k: v})
+            task_fun = modules[task].train
+            trainer, test_results = task_fun(
+                base_model, lang=lang,
+                **train_args
+            )
 
-                wandb_run.finish()
+            metrics = test_results.metrics
+
+            if wandb_run:
+                for k, v in metrics.items():
+                    wandb.log({k: v})
+
+            wandb_run.finish()
 
 
 if __name__ == "__main__":
