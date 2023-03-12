@@ -1,6 +1,6 @@
 # Supported tasks
 
-`pysentimiento` supports several opinion-mining and other NLP tasks for social media,in
+`pysentimiento` supports several opinion-mining and other NLP tasks for social media, in four languages: Spanish, English, Italian and Portuguese.
 
 
 | Task                 | Languages                             |
