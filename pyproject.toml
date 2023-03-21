@@ -8,7 +8,7 @@ repository = "https://github.com/pysentimiento/pysentimiento/"
 homepage = "https://github.com/pysentimiento/pysentimiento/"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.8,<4.0"
 transformers = ">=4.13.0"
 emoji = "^1.6.1"
 datasets = ">=1.13.3"
