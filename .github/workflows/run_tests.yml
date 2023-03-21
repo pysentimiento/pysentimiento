@@ -22,4 +22,5 @@ jobs:
           pip install poetry
           poetry config installer.modern-installation false
           poetry install
+          poetry config installer.modern-installation false
           poetry run pytest
