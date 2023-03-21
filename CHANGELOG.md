@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.2
+
+- Support for 3.11
+- Remove unused dependencies in dev
+
 ## 0.6.1
 
 - Add support for Portuguese and Italian
