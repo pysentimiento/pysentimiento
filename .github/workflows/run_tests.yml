@@ -20,5 +20,6 @@ jobs:
       - name: Run tests
         run: |
           pip install poetry
+          poetry config installer.modern-installation false
           poetry install
           poetry run pytest
