@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Add support for targeted sentiment analysis
+
 ## 0.6.2
 
 - Support for 3.11
