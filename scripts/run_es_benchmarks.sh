@@ -2,16 +2,17 @@
 models=(
     "dccuchile/bert-base-spanish-wwm-cased"
     "PlanTL-GOB-ES/roberta-base-bne"
-    #"bertin-project/bertin-roberta-base-spanish"
-    #"pysentimiento/robertuito-base-uncased"
-    #"mrm8488/electricidad-base-discriminator"
+    "bertin-project/bertin-roberta-base-spanish"
+    "pysentimiento/robertuito-base-uncased"
+    "mrm8488/electricidad-base-discriminator"
 )
 
 tasks=(
     #"sentiment"
-    "emotion"
+    #"emotion"
     #"irony"
     #"hate_speech"
+    "targeted_sa"
 )
 
 for model in "${models[@]}"

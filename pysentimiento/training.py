@@ -54,17 +54,17 @@ class MultiLabelTrainer(Trainer):
 
     def __init__(self, class_weight, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.class_weight=class_weight
+        self.class_weight = class_weight
 
     def compute_loss(self, model, inputs, return_outputs=False):
-        labels=inputs.pop("labels")
-        outputs=model(**inputs)
-        logits=outputs.logits
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
         if self.model.config.problem_type == "multi_label_classification":
-            loss_fct=torch.nn.BCEWithLogitsLoss(pos_weight=self.class_weight)
+            loss_fct = torch.nn.BCEWithLogitsLoss(pos_weight=self.class_weight)
         else:
-            loss_fct=torch.nn.CrossEntropyLoss(weight=self.class_weight)
-        loss=loss_fct(logits, labels)
+            loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weight)
+        loss = loss_fct(logits, labels)
         return (loss, outputs) if return_outputs else loss
 
 
@@ -77,16 +77,16 @@ def train_huggingface(
     """
     Run experiments experiments
     """
-    padding=False if use_dynamic_padding else 'max_length'
+    padding = False if use_dynamic_padding else 'max_length'
 
-    model, tokenizer=load_model(
+    model, tokenizer = load_model(
         base_model, id2label=id2label, lang=lang,
         max_length=max_length, auto_class=auto_class,
     )
 
-    device="cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model=model.to(device)
+    model = model.to(device)
     model.train()
 
     def _tokenize_fun(x):
@@ -95,12 +95,12 @@ def train_huggingface(
         else:
             return tokenizer(x['text'], padding=padding, truncation=True)
 
-    dataset=dataset.map(
+    dataset = dataset.map(
         _tokenize_fun, batched=True
     )
 
     if use_dynamic_padding:
-        data_collator=data_collator_class(tokenizer, padding="longest")
+        data_collator = data_collator_class(tokenizer, padding="longest")
     else:
         if not format_dataset:
             raise ValueError(
@@ -108,19 +108,19 @@ def train_huggingface(
 
     if format_dataset:
         for split in dataset.keys():
-            dataset[split]=format_dataset(dataset[split])
+            dataset[split] = format_dataset(dataset[split])
 
     try:
-        tmp_path=config["PYSENTIMIENTO"]["TMP_DIR"]
+        tmp_path = config["PYSENTIMIENTO"]["TMP_DIR"]
     except KeyError:
-        tmp_path=None
+        tmp_path = None
 
-    output_path=tempfile.mkdtemp(
+    output_path = tempfile.mkdtemp(
         prefix="pysentimiento",
         dir=tmp_path
     )
 
-    trainer_args={
+    trainer_args = {
         "model": model,
         "args": training_args,
         "compute_metrics": metrics_fun,
@@ -131,18 +131,18 @@ def train_huggingface(
     }
 
     if class_weight is not None:
-        class_weight=class_weight.to(device)
+        class_weight = class_weight.to(device)
         print(f"Using class weight = {class_weight}")
-        trainer_class=MultiLabelTrainer
-        trainer_args["class_weight"]=class_weight
+        trainer_class = MultiLabelTrainer
+        trainer_args["class_weight"] = class_weight
     else:
-        trainer_class=trainer_class or Trainer
+        trainer_class = trainer_class or Trainer
 
-    trainer=trainer_class(**trainer_args)
+    trainer = trainer_class(**trainer_args)
 
     trainer.train()
 
-    test_results=trainer.predict(dataset["test"])
+    test_results = trainer.predict(dataset["test"])
     os.system(f"rm -Rf {output_path}")
 
     return trainer, test_results
@@ -158,12 +158,12 @@ def train_and_eval(base_model, dataset, id2label,
         """
         Smoke test
         """
-        dataset=dataset.select(range(limit))
+        dataset = dataset.select(range(limit))
 
     if type(id2label) is list:
-        id2label={i: label for i, label in enumerate(id2label)}
+        id2label = {i: label for i, label in enumerate(id2label)}
 
-    label2id={v: k for k, v in id2label.items()}
+    label2id = {v: k for k, v in id2label.items()}
 
     if not metrics_fun:
         def metrics_fun(x): return compute_metrics(x, id2label=id2label)

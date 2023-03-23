@@ -5,6 +5,7 @@ import pysentimiento.hate
 import pysentimiento.sentiment
 import pysentimiento.emotion
 import pysentimiento.irony
+import pysentimiento.targeted_sa
 
 logging.basicConfig()
 
@@ -17,6 +18,7 @@ modules = {
     "sentiment": pysentimiento.sentiment,
     "emotion": pysentimiento.emotion,
     "irony": pysentimiento.irony,
+    "targeted_sa": pysentimiento.targeted_sa,
 }
 
 

@@ -101,7 +101,7 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
 
 
 def hyperparameter_sweep(
-        name, group_name, model_init, tokenizer, datasets, id2label, sweep_method="random", format_dataset=None, compute_metrics=None, config_info=None,
+        name, group_name, model_init, tokenizer, datasets, id2label, sweep_method="random", format_dataset=None, compute_metrics=None, config_info=None, tokenize_fun=None,
         metric_for_best_model="eval_macro_f1", count=None):
     """
     Hyperparameter sweep with wandb
@@ -110,7 +110,7 @@ def hyperparameter_sweep(
 
         model_init (function): function that returns a model
         tokenizer (transformers.PreTrainedTokenizer): tokenizer
-        datasets (DatasetDict): dataset dictionary
+        dataset (DatasetDict): dataset dictionary
         id2label (dict): dictionary with id to label mapping
 
         sweep_method (str): sweep method, e.g. random, bayesian, grid, etc. Defaults to "random".
@@ -127,8 +127,15 @@ def hyperparameter_sweep(
     if compute_metrics is None:
         def compute_metrics(preds): return _compute_metrics(preds, id2label)
 
+    def _tokenize_fun(x):
+        if tokenize_fun:
+            return tokenize_fun(x)
+        else:
+            return tokenizer(x['text'], padding=False, truncation=True)
+
     tokenized_ds = datasets.map(
-        lambda batch: tokenizer(batch['text'], padding='max_length', truncation=True), batched=True, batch_size=32)
+        _tokenize_fun, batched=True
+    )
 
     if format_dataset is not None:
         tokenized_ds = tokenized_ds.map(format_dataset)
