@@ -1,4 +1,5 @@
 import random
+from .config import config
 from datasets import load_dataset, concatenate_datasets, DatasetDict, Dataset
 from sklearn.model_selection import train_test_split
 from .preprocessing import get_preprocessing_args
@@ -59,6 +60,7 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}, randomize=True):
         df_test = df[df["id_noticia"].isin(test_ids.index)]
 
         columns = ["titulo", "id_noticia", "target", "label"]
+
         features = dataset.features
 
         train_dataset = Dataset.from_pandas(
@@ -73,6 +75,28 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}, randomize=True):
             dev=dev_dataset,
             test=test_dataset,
         )
+
+
+def get_wandb_run_info(base_model, task, lang, untargeted=True, **kwargs):
+    # Check if task module has a get_wandb_run_info method
+
+    if untargeted:
+        model_name = base_model + "_untargeted"
+    else:
+        model_name = base_model
+
+    return {
+        "project": config["WANDB"]["PROJECT"],
+        # Group by model name
+        "group": f"{task}-{lang}",
+        "job_type": f"{task}-{lang}-{model_name.split('/')[-1]}",
+        # Name run by model name
+        "config": {
+            "model": model_name,
+            "task": task,
+            "lang": lang,
+        }
+    }
 
 
 def hp_tune(model_name, lang, **kwargs):
@@ -122,7 +146,7 @@ def hp_tune(model_name, lang, **kwargs):
 
 def train(
     base_model, lang="es", use_defaults_if_not_tuned=False, randomize=True,
-    **kwargs
+    untargeted=False, **kwargs
 ):
 
     ds = load_datasets(
@@ -145,8 +169,12 @@ def train(
     _, tokenizer = load_model(base_model, id2label, lang=lang)
 
     def tokenize_fun(batch):
-        return tokenizer(
-            batch['titulo'], batch["target"], padding=False, truncation=True)
+        if not untargeted:
+            return tokenizer(
+                batch['titulo'], batch["target"], padding=False, truncation=True)
+        else:
+            return tokenizer(
+                batch['titulo'], padding=False, truncation=True)
 
     return train_and_eval(
         base_model=base_model, dataset=ds, id2label=id2label,

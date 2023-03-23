@@ -92,6 +92,26 @@ def push_model(trainer, test_results, model, task, lang, push_to, ask_to_push=Tr
         sys.exit(1)
 
 
+def get_wandb_run_info(base_model, task, lang, **kwargs):
+    # Check if task module has a get_wandb_run_info method
+
+    if hasattr(modules[task], "get_wandb_run_info"):
+        return modules[task].get_wandb_run_info(base_model, task, lang, **kwargs)
+    else:
+        return {
+            "project": config["WANDB"]["PROJECT"],
+            # Group by model name
+            "group": f"{task}-{lang}",
+            "job_type": f"{task}-{lang}-{base_model.split('/')[-1]}",
+            # Name run by model name
+            "config": {
+                "model": base_model,
+                "task": task,
+                "lang": lang,
+            }
+        }
+
+
 def train(
     base_model, task=None, lang="es",
     output_path=None,
@@ -191,18 +211,12 @@ def train(
             """
             wandb_run = None
             try:
+                wandb_run_info = get_wandb_run_info(
+                    base_model, task, lang, **kwargs
+                )
                 wandb_run = wandb.init(
-                    project=config["WANDB"]["PROJECT"],
-                    # Group by model name
-                    group=f"{task}-{lang}",
-                    job_type=f"{task}-{lang}-{base_model.split('/')[-1]}",
-                    # Name run by model name
-                    config={
-                        "model": base_model,
-                        "task": task,
-                        "lang": lang,
-                    },
                     reinit=True,
+                    **wandb_run_info
                 )
 
                 train_args["report_to"] = "wandb"

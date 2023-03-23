@@ -23,9 +23,13 @@ do
         python bin/train.py --base_model $model \
             --lang es \
             --task $task \
-            --benchmark --times 10
-    done
-    rm -Rf results/*
-    rm -Rf tmp/*
+            --benchmark --times 10 --untargeted
 
+        python bin/train.py --base_model $model \
+            --lang es \
+            --task $task \
+            --benchmark --times 10
+        rm -Rf tmp/*
+        rm -Rf results/*
+    done
 done
