@@ -144,7 +144,7 @@ class TokenClassificationOutput:
             formatted_entities = ", ".join(
                 f'{entity["text"]} ({entity["type"]})' for entity in self.entities
             )
-            ret += f"(entities=[{formatted_entities}])"
+            ret += f"(entities=[{formatted_entities}], tokens={self.tokens}, labels={self.labels})"
         else:
             ret += f"(tokens={self.tokens}, labels={self.labels})"
 
