@@ -52,6 +52,9 @@ models = {
         },
         "ner": {
             "model_name": "pysentimiento/robertuito-ner",
+        },
+        "pos": {
+            "model_name": "pysentimiento/robertuito-pos",
         }
     },
 
@@ -139,9 +142,9 @@ class TokenClassificationOutput:
 
         if self.entities:
             formatted_entities = ", ".join(
-                [f"{k}: {v}" for k, v in self.entities.items()]
+                f'{entity["text"]} ({entity["type"]})' for entity in self.entities
             )
-            ret += f"(entities={{{formatted_entities}}})"
+            ret += f"(entities=[{formatted_entities}])"
         else:
             ret += f"(tokens={self.tokens}, labels={self.labels})"
 
@@ -420,7 +423,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
                     continue
                 token = sentence[word_id]
                 # If it starts with "@" => it is a user
-                if self.chunk and token.startswith("@"):
+                if token.startswith("@"):
                     sentence_labels[word_id] = "B-USER"
                 elif sentence_labels[word_id] is None:
                     sentence_labels[word_id] = id2label[label.item()]
@@ -431,6 +434,10 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
             entities = [self.decode(sentence, sentence_labels)
                         for sentence, sentence_labels in zip(spacy_tokens, labels)]
         else:
+            # TODO: fix this to avoid issues for other tasks
+            # Remove "B-" from labels
+            labels = [[label[2:] if label.startswith(
+                "B-") else label for label in sent_labels] for sent_labels in labels]
             entities = [None for _ in labels]
 
         outputs = []
@@ -498,4 +505,9 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         preprocessing_args.update(model_info.get("preprocessing_args", {}))
 
     preprocessing_args["lang"] = lang
-    return analyzer_class.from_model_name(model_name, task, preprocessing_args, lang=lang, **kwargs)
+    return analyzer_class.from_model_name(
+        model_name=model_name,
+        task=task,
+        preprocessing_args=preprocessing_args,
+        lang=lang,
+        **kwargs)
