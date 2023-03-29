@@ -77,7 +77,7 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}, randomize=True):
         )
 
 
-def get_wandb_run_info(base_model, task, lang, untargeted=True, **kwargs):
+def get_wandb_run_info(base_model, task, lang, untargeted=False, **kwargs):
     # Check if task module has a get_wandb_run_info method
 
     if untargeted:
