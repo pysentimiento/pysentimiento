@@ -37,7 +37,7 @@ def convert_emoji_to_text(x, emoji_wrapper="emoji"):
     """
     Converts emoji to text
     """
-    wrapper = f" {emoji_wrapper} ".strip()
+    wrapper = f" {emoji_wrapper} ".replace("  ", " ")
     return wrapper + " ".join(x.groups()[0].split("_")) + wrapper
 
 
