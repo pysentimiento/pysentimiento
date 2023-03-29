@@ -119,6 +119,35 @@ class AnalyzerOutput:
         return ret
 
 
+class TokenClassificationOutput:
+    """
+    Output for token classification
+    """
+
+    def __init__(self, sentence, tokens, labels, probas, entities=None):
+        """
+        Constructor
+        """
+        self.sentence = sentence
+        self.tokens = tokens
+        self.labels = labels
+        self.entities = entities
+        self.probas = probas
+
+    def __repr__(self):
+        ret = f"{self.__class__.__name__}"
+
+        if self.entities:
+            formatted_entities = ", ".join(
+                [f"{k}: {v}" for k, v in self.entities.items()]
+            )
+            ret += f"(entities={{{formatted_entities}}})"
+        else:
+            ret += f"(tokens={self.tokens}, labels={self.labels})"
+
+        return ret
+
+
 class BaseAnalyzer:
     def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, **kwargs):
         """
@@ -257,6 +286,10 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         return cls(model, tokenizer, task, preprocessing_args=preprocessing_args, batch_size=batch_size, **kwargs)
 
     def __init__(self, model, tokenizer, task, lang, preprocessing_args={}, batch_size=32):
+        # Update preprocessing args if not provided
+
+        preprocessing_args["preprocess_handles"] = preprocessing_args.get(
+            "preprocess_handles", False)
         super().__init__(model, tokenizer, task, preprocessing_args, batch_size)
 
         if lang == "en":
@@ -367,14 +400,14 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
 
         model_device = next(self.model.parameters()).device
 
-        outs = self.model(**{k: torch.tensor(v).to(model_device)
-                          for k, v in tokenized_inputs.items()})
+        model_output = self.model(**{k: torch.tensor(v).to(model_device)
+                                     for k, v in tokenized_inputs.items()})
 
-        outs = torch.argmax(outs.logits, dim=2)
+        outs = torch.argmax(model_output.logits, dim=2)
         id2label = self.model.config.id2label
 
         labels = []
-        # Ignore intermediate tokens
+        # Ignore subword tokens in the middle of the word
         # Just use the first token of each word
         for i, (sentence, output) in enumerate(zip(tokens, outs)):
 
@@ -382,16 +415,36 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
             word_ids = tokenized_inputs.word_ids(i)
 
             for word_id, label in zip(word_ids, output):
-                if word_id is not None and sentence_labels[word_id] is None:
+                if word_id is None:
+                    continue
+                token = sentence[word_id]
+                # If it starts with "@" => it is a user
+                if token.startswith("@"):
+                    sentence_labels[word_id] = "B-USER"
+                elif sentence_labels[word_id] is None:
                     sentence_labels[word_id] = id2label[label.item()]
 
             labels.append(sentence_labels)
 
         entities = [self.decode(sentence, sentence_labels)
                     for sentence, sentence_labels in zip(spacy_tokens, labels)]
+
+        outputs = []
+
+        for sentence, sent_tokens, sent_labels, sent_entities, sent_outs in zip(inputs, tokens, labels, entities, model_output.logits):
+            outputs.append(
+                TokenClassificationOutput(
+                    sentence=sentence,
+                    tokens=sent_tokens,
+                    labels=sent_labels,
+                    entities=sent_entities,
+                    probas=torch.softmax(
+                        sent_outs, dim=-1).detach().cpu().numpy(),
+                ))
+
         if len(sentences) == 1:
-            return entities[0]
-        return entities
+            return outputs[0]
+        return outputs
 
 
 def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}, **kwargs):

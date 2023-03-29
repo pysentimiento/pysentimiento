@@ -33,10 +33,12 @@ def camel_to_human(s, lower=True):
 emoji_regex = re.compile(r"\|([^\|]+)\|")
 
 
-def convert_emoji_to_text(x, emoji_wrapper="[EMOJI]"):
+def convert_emoji_to_text(x, emoji_wrapper="emoji"):
     """
+    Converts emoji to text
     """
-    return f" {emoji_wrapper} " + " ".join(x.groups()[0].split("_")) + f" {emoji_wrapper} "
+    wrapper = f" {emoji_wrapper} ".strip()
+    return wrapper + " ".join(x.groups()[0].split("_")) + wrapper
 
 
 replacements = {
