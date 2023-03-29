@@ -272,7 +272,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
 
 class AnalyzerForTokenClassification(BaseAnalyzer):
     @classmethod
-    def from_model_name(cls, model_name, task, preprocessing_args={}, batch_size=32, **kwargs):
+    def from_model_name(cls, model_name, task, chunk, preprocessing_args={}, batch_size=32, **kwargs):
         """
         Constructor for AnalyzerForTokenClassification class
 
@@ -283,9 +283,9 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         """
         model = AutoModelForTokenClassification.from_pretrained(model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return cls(model, tokenizer, task, preprocessing_args=preprocessing_args, batch_size=batch_size, **kwargs)
+        return cls(model, tokenizer, task, preprocessing_args=preprocessing_args, batch_size=batch_size, chunk=chunk, **kwargs)
 
-    def __init__(self, model, tokenizer, task, lang, preprocessing_args={}, batch_size=32):
+    def __init__(self, model, tokenizer, task, lang, chunk, preprocessing_args={}, batch_size=32):
         # Update preprocessing args if not provided
 
         preprocessing_args["preprocess_handles"] = preprocessing_args.get(
@@ -300,6 +300,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
             nlp = Spanish()
 
         self.spacy_tokenizer = nlp.tokenizer
+        self.chunk = chunk
 
     def decode(self, words, labels):
         """
@@ -419,15 +420,18 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
                     continue
                 token = sentence[word_id]
                 # If it starts with "@" => it is a user
-                if token.startswith("@"):
+                if self.chunk and token.startswith("@"):
                     sentence_labels[word_id] = "B-USER"
                 elif sentence_labels[word_id] is None:
                     sentence_labels[word_id] = id2label[label.item()]
 
             labels.append(sentence_labels)
 
-        entities = [self.decode(sentence, sentence_labels)
-                    for sentence, sentence_labels in zip(spacy_tokens, labels)]
+        if self.chunk:
+            entities = [self.decode(sentence, sentence_labels)
+                        for sentence, sentence_labels in zip(spacy_tokens, labels)]
+        else:
+            entities = [None for _ in labels]
 
         outputs = []
 
@@ -437,7 +441,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
                     sentence=sentence,
                     tokens=sent_tokens,
                     labels=sent_labels,
-                    entities=sent_entities,
+                    entities=sent_entities if self.chunk else None,
                     probas=torch.softmax(
                         sent_outs, dim=-1).detach().cpu().numpy(),
                 ))
@@ -470,8 +474,12 @@ def create_analyzer(task=None, lang=None, model_name=None, preprocessing_args={}
         raise ValueError("model_name or (lang and task) must be provided")
 
     preprocessing_args = preprocessing_args or {}
-    if task in {"ner", "pos"}:
+    if task == "ner":
         analyzer_class = AnalyzerForTokenClassification
+        kwargs["chunk"] = True
+    elif task == "pos":
+        analyzer_class = AnalyzerForTokenClassification
+        kwargs["chunk"] = False
     else:
         analyzer_class = AnalyzerForSequenceClassification
 
