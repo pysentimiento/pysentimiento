@@ -1,6 +1,14 @@
 # CHANGELOG
 
+## NEXT:
+
 - Add support for targeted sentiment analysis
+
+## 0.6.3
+
+- Add "USER" tag for NER and POS
+- Improved NER & POS output
+
 
 ## 0.6.2
 
