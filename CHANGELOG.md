@@ -4,9 +4,10 @@
 
 - Add support for targeted sentiment analysis
 
-## 0.6.4
+## 0.6.5
 
 - NER bugfix when sequence is too long
+- NER bugfix: preprocessing was missing
 
 ## 0.6.3
 
