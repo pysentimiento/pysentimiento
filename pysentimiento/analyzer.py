@@ -399,7 +399,7 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         # This is because the model seems to be working better with this tokenizer
 
         spacy_tokens = [
-            [token for token in self.spacy_tokenizer(sentence)] for sentence in inputs
+            [token for token in self.spacy_tokenizer(sentence)] for sentence in sentences
         ]
 
         tokens = [[token.text for token in sentence]
