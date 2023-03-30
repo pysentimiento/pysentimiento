@@ -1,5 +1,6 @@
 import torch
 from .preprocessing import preprocess_tweet
+import transformers
 from transformers import (
     AutoTokenizer, AutoModelForSequenceClassification, AutoModelForTokenClassification,
     DataCollatorWithPadding,
@@ -9,6 +10,8 @@ from transformers import (
 from datasets import Dataset
 from torch.nn import functional as F
 
+
+transformers.logging.set_verbosity_error()
 
 models = {
     "es": {
