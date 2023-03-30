@@ -4,6 +4,10 @@
 
 - Add support for targeted sentiment analysis
 
+## 0.6.4
+
+- NER bugfix when sequence is too long
+
 ## 0.6.3
 
 - Add "USER" tag for NER and POS
