@@ -328,7 +328,10 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         current_words = None
         current_type = None
         for token, label in zip(words, labels):
-            if label == 'O':
+            if label is None:
+                # Perhaps it is too long
+                continue
+            elif label == 'O':
                 if current_type == "O":
                     pass
                 else:
