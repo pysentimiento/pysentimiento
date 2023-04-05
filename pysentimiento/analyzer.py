@@ -38,6 +38,11 @@ models = {
         "targeted_sentiment": {
             "model_name": "pysentimiento/roberta-targeted-sentiment-analysis"
         },
+
+        # TODO: this model has no benchmark
+        "context_hate_speech": {
+            "model_name": "piuba-bigdata/beto-contextualized-hate-speech"
+        }
     },
     "en": {
         "sentiment": {
