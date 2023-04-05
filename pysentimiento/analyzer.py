@@ -33,7 +33,11 @@ models = {
         },
         "pos": {
             "model_name": "pysentimiento/robertuito-pos",
-        }
+        },
+
+        "targeted_sentiment": {
+            "model_name": "pysentimiento/roberta-targeted-sentiment-analysis"
+        },
     },
     "en": {
         "sentiment": {

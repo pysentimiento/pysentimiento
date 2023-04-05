@@ -17,6 +17,7 @@ def analyzer_it():
     return create_analyzer(task="sentiment", lang="it")
 
 
+
 @pytest.fixture
 def analyzer_pt():
     return create_analyzer(task="sentiment", lang="pt")
