@@ -146,6 +146,7 @@ def hp_tune(model_name, lang, **kwargs):
 
 def train(
     base_model, lang="es", use_defaults_if_not_tuned=False, randomize=True,
+    benchmark=True,
     untargeted=False, **kwargs
 ):
 

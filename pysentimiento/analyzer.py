@@ -33,6 +33,15 @@ models = {
         },
         "pos": {
             "model_name": "pysentimiento/robertuito-pos",
+        },
+
+        "targeted_sentiment": {
+            "model_name": "pysentimiento/roberta-targeted-sentiment-analysis"
+        },
+
+        # TODO: this model has no benchmark
+        "context_hate_speech": {
+            "model_name": "piuba-bigdata/beto-contextualized-hate-speech"
         }
     },
     "en": {
@@ -98,12 +107,13 @@ class AnalyzerOutput:
     Base class for classification output
     """
 
-    def __init__(self, sentence, probas, is_multilabel=False):
+    def __init__(self, sentence, context, probas, is_multilabel=False):
         """
         Constructor
         """
         self.sentence = sentence
         self.probas = probas
+        self.context = context
         self.is_multilabel = is_multilabel
         if not is_multilabel:
             self.output = max(probas.items(), key=lambda x: x[1])[0]
@@ -185,8 +195,14 @@ class BaseAnalyzer:
         )
 
     def _tokenize(self, batch):
+        # If context is present, use it
+        if "context" in batch:
+            inputs = [batch["text"], batch["context"]]
+        else:
+            inputs = [batch["text"]]
         return self.tokenizer(
-            batch["text"], padding=False, truncation=True
+            *inputs, padding=False, truncation=True,
+            max_length=self.tokenizer.model_max_length
         )
 
 
@@ -209,7 +225,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
 
-    def _get_output(self, sentence, logits):
+    def _get_output(self, sentence, logits, context=None):
         """
         Get output from logits
 
@@ -223,9 +239,9 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
             probs = torch.softmax(logits, dim=1).view(-1)
 
         probas = {self.id2label[i]: probs[i].item() for i in self.id2label}
-        return AnalyzerOutput(sentence, probas=probas, is_multilabel=is_multilabel)
+        return AnalyzerOutput(sentence, probas=probas, is_multilabel=is_multilabel, context=context)
 
-    def _predict_single(self, sentence):
+    def _predict_single(self, sentence, context, preprocess_context):
         """
         Predict single
 
@@ -233,9 +249,16 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         """
         device = self.eval_trainer.args.device
         sentence = preprocess_tweet(sentence, **self.preprocessing_args)
+        inputs = [sentence]
+
+        if context:
+            if preprocess_context:
+                context = preprocess_tweet(context, **self.preprocessing_args)
+            inputs.append(context)
         idx = torch.LongTensor(
             self.tokenizer.encode(
-                sentence, truncation=True,
+                *inputs,
+                truncation=True,
                 max_length=self.tokenizer.model_max_length,
             )
         ).view(1, -1).to(device)
@@ -243,7 +266,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         logits = output.logits
         return self._get_output(sentence, logits)
 
-    def predict(self, inputs):
+    def predict(self, inputs, context=None, target=None, preprocess_context=True):
         """
         Return most likely class for the sentence
 
@@ -252,26 +275,58 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         inputs: string or list of strings
             A single or a list of sentences to be predicted
 
+        context: string or list of strings
+            A single or a list of context to be used for the prediction
+
+        target: string or list of strings
+            A rename of context
+
+        preprocess_context: bool
+            Whether to preprocess the context or not
+
         Returns:
         --------
-            List or single output with probabilities
+            List or single AnalyzerOutput
         """
+
+        context = context or target
 
         # If single string => predict it single
         if isinstance(inputs, str):
-            return self._predict_single(inputs)
+            if context and not isinstance(context, str):
+                raise ValueError("Context must be a string")
+            return self._predict_single(inputs, context=context, preprocess_context=preprocess_context)
+        elif context and not isinstance(context, list):
+            raise ValueError("Context must be a list of strings")
+        elif context and len(context) != len(inputs):
+            raise ValueError("Context and inputs must have the same length")
 
-        sentences = [
-            preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
-        ]
-        dataset = Dataset.from_dict({"text": sentences})
+        data = {
+            "text": [preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs]
+        }
+
+        if context:
+            data["context"] = [
+                preprocess_tweet(
+                    sent, **self.preprocessing_args
+                ) if preprocess_context else sent
+                for sent in context
+            ]
+
+        dataset = Dataset.from_dict(data)
         dataset = dataset.map(self._tokenize, batched=True,
                               batch_size=self.batch_size)
 
         output = self.eval_trainer.predict(dataset)
         logits = torch.tensor(output.predictions)
-        rets = [self._get_output(sent, logits_row.view(1, -1))
-                for sent, logits_row in zip(sentences, logits)]
+
+        if context is None:
+            # Just to make this clearer
+            data["context"] = [None] * len(data["text"])
+
+        rets = [
+            self._get_output(sent, logits_row.view(1, -1), context=context)
+            for sent, context, logits_row in zip(data["text"], data["context"], logits)]
 
         return rets
 
