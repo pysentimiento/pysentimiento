@@ -2,7 +2,10 @@
 
 ## NEXT:
 
+## 0.6.6
+
 - Add support for targeted sentiment analysis
+- Add support for contextualized hate speech detection
 
 ## 0.6.5
 

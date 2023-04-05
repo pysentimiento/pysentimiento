@@ -16,13 +16,15 @@ A Transformer-based library for SocialNLP tasks.
 Currently supports:
 
 
-| Task                 | Languages                             |
-|:---------------------|:---------------------------------------|
-| Sentiment Analysis   | es, en, it, pt                        |
-| Hate Speech Detection| es, en, it, pt                        |
-| Irony Detection      | es, en, it, pt                        |
-| Emotion Analysis     | es, en, it                            |
-| NER & POS tagging    | es, en                                |
+| Task                                 | Languages                             |
+|:---------------------                |:---------------------------------------|
+| Sentiment Analysis                   | es, en, it, pt                        |
+| Hate Speech Detection                | es, en, it, pt                        |
+| Irony Detection                      | es, en, it, pt                        |
+| Emotion Analysis                     | es, en, it                            |
+| NER & POS tagging                    | es, en                                |
+| Contextualized Hate Speech Detection | es                                    |
+| Targeted Sentiment Analysis          | es                                    |
 
 
 Just do `pip install pysentimiento` and start using it:
