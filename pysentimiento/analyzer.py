@@ -185,8 +185,13 @@ class BaseAnalyzer:
         )
 
     def _tokenize(self, batch):
+        # If context is present, use it
+        if "context" in batch:
+            inputs = [batch["text"], batch["context"]]
+        else:
+            inputs = [batch["text"]]
         return self.tokenizer(
-            batch["text"], padding=False, truncation=True
+            *inputs, padding=False, truncation=True
         )
 
 
@@ -225,7 +230,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         probas = {self.id2label[i]: probs[i].item() for i in self.id2label}
         return AnalyzerOutput(sentence, probas=probas, is_multilabel=is_multilabel)
 
-    def _predict_single(self, sentence):
+    def _predict_single(self, sentence, context, preprocess_context):
         """
         Predict single
 
@@ -233,9 +238,15 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         """
         device = self.eval_trainer.args.device
         sentence = preprocess_tweet(sentence, **self.preprocessing_args)
+        inputs = [sentence]
+        if context and preprocess_context:
+            context = preprocess_tweet(context, **self.preprocessing_args)
+            inputs.append(context)
+
         idx = torch.LongTensor(
             self.tokenizer.encode(
-                sentence, truncation=True,
+                *inputs,
+                truncation=True,
                 max_length=self.tokenizer.model_max_length,
             )
         ).view(1, -1).to(device)
@@ -243,7 +254,7 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         logits = output.logits
         return self._get_output(sentence, logits)
 
-    def predict(self, inputs):
+    def predict(self, inputs, context=None, preprocess_context=True):
         """
         Return most likely class for the sentence
 
@@ -259,8 +270,9 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
 
         # If single string => predict it single
         if isinstance(inputs, str):
-            return self._predict_single(inputs)
-
+            return self._predict_single(inputs, context=context, preprocess_context=preprocess_context)
+        elif context and not isinstance(context, list):
+            raise ValueError("Context must be a list of strings")
         sentences = [
             preprocess_tweet(sent, **self.preprocessing_args) for sent in inputs
         ]
