@@ -2,6 +2,10 @@
 
 ## NEXT:
 
+## 0.6.7
+
+- Add support for NER models that do not have BIO labels
+
 ## 0.6.6
 
 - Add support for targeted sentiment analysis
