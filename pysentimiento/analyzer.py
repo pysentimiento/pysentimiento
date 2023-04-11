@@ -418,6 +418,19 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
                         })
                     current_words = [token]
                     current_type = label[2:]
+            else:
+                # Handling non BIO labels
+                if label != current_type:
+                    if current_words:
+                        entities.append({
+                            "tokens": current_words,
+                            "type": current_type
+                        })
+                    current_words = [token]
+                    current_type = label
+                else:
+                    current_words.append(token)
+                    current_type = label
 
         if current_words:
             entities.append({
