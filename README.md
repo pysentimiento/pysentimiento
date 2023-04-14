@@ -76,6 +76,7 @@ Also, check these notebooks with examples of how to use `pysentimiento` for each
 - [Spanish + English](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
 - [Italian](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_italian.ipynb)
 - [Portuguese](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_portuguese.ipynb)
+- [Contextualized Hate Speech - Spanish](https://colab.research.google.com/drive/1nktGLswbVeEas2_xCU0S_BhmH8tPBJ02#scrollTo=Z5DeW-UrcI_E)
 
 ## Preprocessing
 
