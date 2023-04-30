@@ -6,10 +6,11 @@ import pysentimiento.sentiment
 import pysentimiento.emotion
 import pysentimiento.irony
 import pysentimiento.targeted_sa
+import pysentimiento.context_hate
 
 logging.basicConfig()
 
-logger = logging.getLogger('pysentimiento')
+logger = logging.getLogger("pysentimiento")
 logger.setLevel(logging.INFO)
 
 
@@ -19,13 +20,11 @@ modules = {
     "emotion": pysentimiento.emotion,
     "irony": pysentimiento.irony,
     "targeted_sa": pysentimiento.targeted_sa,
+    "context_hate_speech": pysentimiento.context_hate,
 }
 
 
-def hyperparameter_tune(
-    model, task, lang, count=42,
-    **kwargs
-):
+def hyperparameter_tune(model, task, lang, count=42, **kwargs):
     """
     Hyperparameter tuning
 
@@ -38,7 +37,8 @@ def hyperparameter_tune(
 
     if task not in modules:
         logger.error(
-            f"task ({task} was provided) must be one of {list(modules.keys())}")
+            f"task ({task} was provided) must be one of {list(modules.keys())}"
+        )
         sys.exit(1)
 
     if not modules[task].accepts(lang):
