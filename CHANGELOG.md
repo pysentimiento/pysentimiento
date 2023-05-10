@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## NEXT:
+## 0.7.0
+
+- Move torch to 2.0.0
 
 ## 0.6.7
 
