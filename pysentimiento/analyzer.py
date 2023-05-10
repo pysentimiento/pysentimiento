@@ -1,4 +1,5 @@
 import torch
+import logging
 from .preprocessing import preprocess_tweet
 import transformers
 from transformers import (
@@ -10,6 +11,10 @@ from transformers import (
 from datasets import Dataset
 from torch.nn import functional as F
 
+logger = logging.getLogger(__name__)
+
+# Set logging level to error
+logger.setLevel(logging.WARNING)
 
 transformers.logging.set_verbosity_error()
 
@@ -165,16 +170,24 @@ class TokenClassificationOutput:
 
 
 class BaseAnalyzer:
-    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, **kwargs):
+    def __init__(self, model, tokenizer, task, preprocessing_args={}, batch_size=32, compile=False, **kwargs):
         """
         Constructor for SentimentAnalyzer class
 
         Arguments:
 
-        model_name: str or path
-            Model name or
+        model (nn.Module): HuggingFace model
+        tokenizer (PretrainedTokenizer): HuggingFace tokenizer
+        task (string): task to perform (string)
+        preprocessing_args (dict): dict with preprocessing arguments used in the preprocess_tweet function
+        batch_size: batch size for inference
+        compile (bool): whether to compile the model or not using pytorch compile (default: True)
+
+
         """
         self.model = model
+
+
         self.tokenizer = tokenizer
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
@@ -193,6 +206,18 @@ class BaseAnalyzer:
             data_collator=DataCollatorWithPadding(
                 self.tokenizer, padding="longest"),
         )
+
+
+        if compile:
+            try:
+                self.model = torch.compile(model)
+                # Just a test to check if it works
+                self.predict("This is a test")
+            except:
+                logger.warning(
+                    "Could not compile model. Falling back to regular inference"
+                )
+                self.model = model
 
     def _tokenize(self, batch):
         # If context is present, use it
