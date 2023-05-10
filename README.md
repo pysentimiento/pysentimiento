@@ -1,12 +1,8 @@
 # pysentimiento: A Python toolkit for Sentiment Analysis and Social NLP tasks
 
-![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg)
-
-[![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
-
-<p>
+![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg) [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
 <a href="https://console.tiyaro.ai/explore?q=pysentimiento/robertuito-&pub=pysentimiento"> <img src="https://tiyaro-public-docs.s3.us-west-2.amazonaws.com/assets/try_on_tiyaro_badge.svg"></a>
-</p>
+
 
 
 
@@ -76,6 +72,7 @@ Also, check these notebooks with examples of how to use `pysentimiento` for each
 - [Spanish + English](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
 - [Italian](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_italian.ipynb)
 - [Portuguese](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/sentiment_analysis_in_portuguese.ipynb)
+- [Contextualized Hate Speech - Spanish](https://colab.research.google.com/drive/1nktGLswbVeEas2_xCU0S_BhmH8tPBJ02#scrollTo=Z5DeW-UrcI_E)
 
 ## Preprocessing
 
