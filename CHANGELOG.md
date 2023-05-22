@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.7.1
+
+- Allow torch >= 2.0.0
+
 ## 0.7.0
 
 - Move torch to 2.0.0
