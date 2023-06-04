@@ -139,7 +139,7 @@ Please use the repository [issue tracker](https://github.com/pysentimiento/pysen
 
 If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.org/abs/2106.09462)
 
-```
+```bibtex
 @misc{perez2021pysentimiento,
       title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks},
       author={Juan Manuel Pérez and Juan Carlos Giudici and Franco Luque},
@@ -151,4 +151,3 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 ```
 
 Also, pleace cite related pre-trained models and datasets for the specific models you use. Check [REFERENCES](docs/REFERENCES.md) for details.
-
