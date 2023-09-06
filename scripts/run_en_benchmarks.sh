@@ -1,19 +1,32 @@
 #/bin/bash
-models=(
-    "bert-base-uncased"
-    "roberta-base"
-    #"vinai/bertweet-base"
-    "pysentimiento/robertuito-base-uncased"
-    "google/electra-base-discriminator"
-)
+if [ -z "$1" ]
+then
+    tasks=(
+        "irony"
+        "sentiment"
+        "emotion"
+        "hate_speech"
+    )
+else
+    tasks=("$1")
+fi
 
 
-tasks=(
-    "irony"
-    #"sentiment"
-    #"emotion"
-    #"hate_speech"
-)
+# if model is empty, run all models
+
+if [ -z "$2" ]
+then
+    models=(
+        "bert-base-uncased"
+        "roberta-base"
+        "vinai/bertweet-base"
+        "pysentimiento/robertuito-base-uncased"
+        "google/electra-base-discriminator"
+    )
+else
+    models=("$2")
+fi
+
 
 for model in "${models[@]}"
 do

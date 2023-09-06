@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import pathlib
 import torch
 from datasets import ClassLabel, load_dataset, VerificationMode
 from .training import train_and_eval, load_model
@@ -14,29 +13,6 @@ Lo pongo así por huggingface
 task_name = "emotion"
 
 
-project_dir = pathlib.Path(os.path.dirname(__file__)).parent
-data_dir = os.path.join(project_dir, "data")
-emotion_dir = os.path.join(data_dir, "emotion")
-
-
-paths = {
-    "es": {
-        "train": os.path.join(emotion_dir, "train_es.csv"),
-        "test": os.path.join(emotion_dir, "test_es.csv"),
-    },
-    "en": {
-        "train": os.path.join(emotion_dir, "train_en.csv"),
-        "test": os.path.join(emotion_dir, "test_en.csv"),
-    }
-}
-
-
-def load_df(path):
-    """
-    Load TASS dataset
-    """
-    df = pd.read_csv(path)
-    return df
 
 
 def accepts(lang, **kwargs):
@@ -76,17 +52,26 @@ def train(
         preprocessing_args=get_preprocessing_args(base_model, lang=lang)
     )
 
-    if lang != "pt":
 
+    if "labels" in ds["train"].features:
+        emotions = ds["train"].features["labels"].feature.names
+        id2label = {i: label for i, label in enumerate(emotions)}
+
+        def _convert_labels(ex):
+            labels = [.0] * len(emotions)
+            for l in ex["labels"]:
+                labels[l] = 1.0
+            return {"labels": labels, "foo": labels}
+
+        feature_names = ds["train"].features["labels"]
+
+        ds = ds.map(_convert_labels, batched=False)
+        ds = ds.remove_columns("labels")
+        ds = ds.rename_column("foo", "labels")
+        problem_type = "multi_label_classification"
+    else:
         id2label = {k: v for k, v in enumerate(
             ds["train"].features["label"].names)}
-    else:
-        label_names = [
-            k for k, v in ds["train"].features.items()
-            if isinstance(v, ClassLabel)
-        ]
-
-        id2label = {k: v for k, v in enumerate(label_names)}
 
     training_args = get_training_arguments(
         base_model, task_name=task_name, lang=lang,
@@ -95,45 +80,56 @@ def train(
 
     return train_and_eval(
         base_model=base_model, dataset=ds, id2label=id2label,
-        training_args=training_args, lang=lang, **kwargs
+        training_args=training_args, lang=lang, problem_type=problem_type,
+        **kwargs
     )
 
 
-def hp_tune(model_name, lang, **kwargs):
+def hp_tune(base_model, lang, **kwargs):
     """
     Hyperparameter tuning with wandb
     """
     ds = load_datasets(
         lang=lang,
-        preprocessing_args=get_preprocessing_args(model_name, lang=lang)
+        preprocessing_args=get_preprocessing_args(base_model, lang=lang)
     )
 
-    if lang != "pt":
 
+    if "labels" in ds["train"].features:
+        emotions = ds["train"].features["labels"].feature.names
+        id2label = {i: label for i, label in enumerate(emotions)}
+
+        def _convert_labels(ex):
+            labels = [.0] * len(emotions)
+            for l in ex["labels"]:
+                labels[l] = 1.0
+            return {"labels": labels, "foo": labels}
+
+        feature_names = ds["train"].features["labels"]
+
+        ds = ds.map(_convert_labels, batched=False)
+        ds = ds.remove_columns("labels")
+        ds = ds.rename_column("foo", "labels")
+        problem_type = "multi_label_classification"
+    else:
         id2label = {k: v for k, v in enumerate(
             ds["train"].features["label"].names)}
-    else:
-        label_names = [
-            k for k, v in ds["train"].features.items()
-            if isinstance(v, ClassLabel)
-        ]
 
-        id2label = {k: v for k, v in enumerate(label_names)}
 
     def model_init():
-        model, _ = load_model(model_name, id2label, lang=lang)
+        model, _ = load_model(base_model, id2label, lang=lang)
         return model
 
-    _, tokenizer = load_model(model_name, id2label, lang=lang)
+    _, tokenizer = load_model(base_model, id2label, lang=lang)
 
     config_info = {
-        "model": model_name,
+        "model": base_model,
         "task": task_name,
         "lang": lang,
     }
 
     return hyperparameter_sweep(
-        name=f"swp-{task_name}-{lang}-{model_name}",
+        name=f"swp-{task_name}-{lang}-{base_model}",
         group_name=f"swp-{task_name}-{lang}",
         model_init=model_init,
         tokenizer=tokenizer,
