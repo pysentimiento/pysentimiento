@@ -1,18 +1,30 @@
 #/bin/bash
-models=(
-    "melll-uff/bertweetbr"
-    "neuralmind/bert-base-portuguese-cased"
-    "pablocosta/bertabaporu-base-uncased"
-    "pysentimiento/robertuito-base-uncased"
-    #"rdenadai/BR_BERTo"
-)
+if [ -z "$1" ]
+then
+    tasks=(
+        "irony"
+        "sentiment"
+        "emotion"
+        "hate_speech"
+    )
+else
+    tasks=("$1")
+fi
 
-tasks=(
-    #"sentiment"
-    "emotion"
-    #"irony"
-    #"hate_speech"
-)
+# if model is empty, run all models
+
+if [ -z "$2" ]
+then
+    models=(
+        "melll-uff/bertweetbr"
+        "neuralmind/bert-base-portuguese-cased"
+        "pablocosta/bertabaporu-base-uncased"
+        "pysentimiento/robertuito-base-uncased"
+        #"rdenadai/BR_BERTo" Not a good model
+    )
+else
+    models=("$2")
+fi
 
 for model in "${models[@]}"
 do
@@ -23,6 +35,6 @@ do
         python bin/hp_tune.py --model $model \
             --lang pt \
             --task $task \
-            --count 25
+            --count 20
     done
 done

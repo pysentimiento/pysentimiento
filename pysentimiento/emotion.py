@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import pathlib
 import torch
-from datasets import ClassLabel, load_dataset
+from datasets import ClassLabel, load_dataset, VerificationMode
 from .training import train_and_eval, load_model
 from .tuning import hyperparameter_sweep, get_training_arguments
 from .preprocessing import preprocess_tweet, get_preprocessing_args
@@ -51,21 +51,9 @@ def load_datasets(lang, preprocess=True, preprocessing_args={}):
     Load sentiment datasets
     """
 
-    if lang in {"es", "en", "it"}:
-        ds = load_dataset(f"pysentimiento/{lang}_emotion")
-    elif lang == "pt":
-        ds = load_dataset("pysentimiento/pt_emotion")
-
-        label_names = [
-            k for k, v in ds["train"].features.items()
-            if isinstance(v, ClassLabel)
-        ]
-
-        ds = ds.map(
-            lambda ex: {"labels": torch.Tensor(
-                [ex[label] for label in label_names])},
-            batched=False
-        )
+    if lang in {"es", "en", "it", "pt"}:
+        # I add VerificationMode.NO_CHECKS to avoid the error
+        ds = load_dataset(f"pysentimiento/{lang}_emotion", verification_mode=VerificationMode.NO_CHECKS)
     else:
         raise ValueError(f"Language {lang} not supported for irony detection")
 
