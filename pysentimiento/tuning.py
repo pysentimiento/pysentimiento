@@ -87,6 +87,7 @@ def get_training_arguments(model_name, task_name, lang, metric_for_best_model, u
         learning_rate=tuned_params.get("learning_rate", 5e-5),
         do_eval=False,
         weight_decay=tuned_params.get("weight_decay", 0.01),
+        fp16=True,
         logging_dir='./logs',
         load_best_model_at_end=True,
         metric_for_best_model="macro_f1",
