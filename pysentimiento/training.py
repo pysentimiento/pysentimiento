@@ -18,14 +18,16 @@ logger.setLevel(logging.INFO)
 
 
 def load_model(
-    base_model, id2label, lang, max_length=128, auto_class=AutoModelForSequenceClassification
+    base_model, id2label, lang, max_length=128, auto_class=AutoModelForSequenceClassification,
+    problem_type=None,
 ):
     """
     Loads model and tokenizer
     """
     logger.debug(f"Loading model {base_model}")
     model = auto_class.from_pretrained(
-        base_model, return_dict=True, num_labels=len(id2label)
+        base_model, return_dict=True, num_labels=len(id2label),
+        problem_type=problem_type
     )
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)
@@ -72,7 +74,7 @@ def train_huggingface(
         base_model, dataset, id2label,
         metrics_fun, training_args, lang,
         max_length=128, auto_class=AutoModelForSequenceClassification,
-        format_dataset=None, use_dynamic_padding=True, class_weight=None, trainer_class=None,  data_collator_class=DataCollatorWithPadding, tokenize_fun=None,
+        format_dataset=None, use_dynamic_padding=True, class_weight=None, trainer_class=None,  data_collator_class=DataCollatorWithPadding, tokenize_fun=None, problem_type=None,
         **kwargs):
     """
     Run experiments experiments
@@ -82,6 +84,7 @@ def train_huggingface(
     model, tokenizer = load_model(
         base_model, id2label=id2label, lang=lang,
         max_length=max_length, auto_class=auto_class,
+        problem_type=problem_type
     )
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

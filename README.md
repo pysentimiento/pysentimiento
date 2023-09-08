@@ -17,7 +17,7 @@ Currently supports:
 | Sentiment Analysis                   | es, en, it, pt                        |
 | Hate Speech Detection                | es, en, it, pt                        |
 | Irony Detection                      | es, en, it, pt                        |
-| Emotion Analysis                     | es, en, it                            |
+| Emotion Analysis                     | es, en, it, pt                        |
 | NER & POS tagging                    | es, en                                |
 | Contextualized Hate Speech Detection | es                                    |
 | Targeted Sentiment Analysis          | es                                    |

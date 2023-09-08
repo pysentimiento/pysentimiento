@@ -51,6 +51,10 @@ def get_metrics(preds, labels, id2label):
         ret["micro_f1"] = micro_f1
         ret["acc"] = accuracy_score(labels, preds)
     else:
+        _, _, micro_f1, _ = precision_recall_fscore_support(
+            labels, preds > 0, average="micro"
+        )
+        ret["micro_f1"] = micro_f1
         ret["emr"] = accuracy_score(labels, preds > 0)
 
     ret["macro_f1"] = torch.Tensor(f1s).mean()
