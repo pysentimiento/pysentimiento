@@ -8,7 +8,7 @@
 | Sentiment Analysis   | es, en, it, pt                        |
 | Hate Speech Detection| es, en, it, pt                        |
 | Irony Detection      | es, en, it, pt                        |
-| Emotion Analysis     | es, en, it                            |
+| Emotion Analysis     | es, en, it, pt                        |
 | NER & POS tagging    | es, en                                |
 
 For each task and language, please note that we used different datasets and thus the models have some differences. Roughly, for classification tasks, `pysentimiento` have two different types of models:
@@ -21,7 +21,8 @@ Concretely, we have the following models:
 | Language      | Task                 | Output      | Classes       |
 |:-----------   |:---------------------|:----------- |:--------------|
 | es, en, pt    | Sentiment            | Multiclass  | POS, NEG, NEU     |
-| es, en        | Emotion              | Multiclass  | anger, joy, sadness, fear, surprise, disgust, neutral|
+| es            | Emotion              | Multiclass  | anger, joy, sadness, fear, surprise, disgust, neutral|
+| en, pt        | Emotion              | Multilabel  | admiration,amusement,anger,annoyance,approval,caring,confusion,curiosity,desire,disappointment,disapproval,disgust,embarrassment,excitement,fear,gratitude,grief,joy,love,nervousness,optimism,pride,realization,relief,remorse,sadness,surprise,neutral|
 | es, en        | Hate Speech          | Multilabel  | hateful, targeted, aggressive |
 | es, en, it, pt| Irony                | Binary      | ironic, not ironic |
 | it            | Sentiment            | Multilabel  | pos, neg*      |
