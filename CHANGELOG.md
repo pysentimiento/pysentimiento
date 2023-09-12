@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.7.2
+
+- Add accelerate as dependency
+- Add emotion detection in Portuguese
+
 ## 0.7.1
 
 - Allow torch >= 2.0.0
