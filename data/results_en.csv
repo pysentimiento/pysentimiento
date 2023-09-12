@@ -1,21 +1,21 @@
 model,task,mean macro f1,std macro f1
-bert-base-uncased,emotion,42.73247182369232,0.6081278355016139
+bert-base-uncased,emotion,48.02625268697739,0.518994454899818
 bert-base-uncased,hate_speech,55.966784358024604,0.7761149998709129
 bert-base-uncased,irony,68.11051726341248,2.194008305673429
 bert-base-uncased,sentiment,69.56615328788757,0.3897550283228013
-google/electra-base-discriminator,emotion,37.19519029061,2.933112291803766
+google/electra-base-discriminator,emotion,46.373432874679565,0.6522180167413456
 google/electra-base-discriminator,hate_speech,55.56614473462105,0.5900120361175782
 google/electra-base-discriminator,irony,71.26548422707451,1.8297076361023332
 google/electra-base-discriminator,sentiment,70.94862535595894,0.44220515820733103
-pysentimiento/robertuito-base-uncased,emotion,43.0360934138298,3.3222893274538383
+pysentimiento/robertuito-base-uncased,emotion,44.21150196682323,6.068734912252581
 pysentimiento/robertuito-base-uncased,hate_speech,57.52481520175934,0.2407453447946086
 pysentimiento/robertuito-base-uncased,irony,73.94300235642326,1.3987050231000986
 pysentimiento/robertuito-base-uncased,sentiment,69.61811602115631,0.5174072785233064
-roberta-base,emotion,45.0482177734375,0.9116061173924677
+roberta-base,emotion,47.94410943984985,1.1518929690267845
 roberta-base,hate_speech,55.102649331092834,0.3613249121519271
 roberta-base,irony,70.38837340142992,2.916009633703528
 roberta-base,sentiment,70.39363145828247,0.3054790750322797
-vinai/bertweet-base,emotion,43.12381446361542,1.767333211171989
+vinai/bertweet-base,emotion,44.32304700215657,1.1026486699372835
 vinai/bertweet-base,hate_speech,57.72765815258026,0.6865878481736352
 vinai/bertweet-base,irony,80.76638102531433,0.706470653307684
 vinai/bertweet-base,sentiment,72.04255044460297,0.35160406497792723
