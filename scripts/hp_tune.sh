@@ -1,10 +1,10 @@
 #/bin/bash
 models=(
-    #"dccuchile/bert-base-spanish-wwm-cased"
-    #"PlanTL-GOB-ES/roberta-base-bne"
-    #"bertin-project/bertin-roberta-base-spanish"
     "pysentimiento/robertuito-base-uncased"
-    "mrm8488/electricidad-base-discriminator"
+    "dccuchile/bert-base-spanish-wwm-cased"
+    "PlanTL-GOB-ES/roberta-base-bne"
+    #"bertin-project/bertin-roberta-base-spanish"
+    #"mrm8488/electricidad-base-discriminator"
 )
 
 tasks=(
@@ -12,7 +12,8 @@ tasks=(
     #"emotion"
     #"irony"
     #"hate_speech"
-    targeted_sa
+    #targeted_sa
+    "context_hate_speech"
 )
 
 for model in "${models[@]}"
@@ -22,9 +23,9 @@ do
     do
         echo "Running hyperparameter tuning for $model and $task"
         # Run hyperparameter tuning
-        CUDA_VISIBLE_DEVICES=2 python bin/hp_tune.py --model $model \
+        python bin/hp_tune.py --model $model \
             --lang es \
             --task $task \
-            --count 50
+            --count 30
     done
 done
