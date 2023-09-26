@@ -8,7 +8,7 @@
 | Sentiment Analysis   | es, en, it, pt                        |
 | Hate Speech Detection| es, en, it, pt                        |
 | Irony Detection      | es, en, it, pt                        |
-| Emotion Analysis     | es, en, it                            |
+| Emotion Analysis     | es, en, it, pt                        |
 | NER & POS tagging    | es, en                                |
 
 For each task and language, please note that we used different datasets and thus the models have some differences. Roughly, for classification tasks, `pysentimiento` have two different types of models:
@@ -21,7 +21,8 @@ Concretely, we have the following models:
 | Language      | Task                 | Output      | Classes       |
 |:-----------   |:---------------------|:----------- |:--------------|
 | es, en, pt    | Sentiment            | Multiclass  | POS, NEG, NEU     |
-| es, en        | Emotion              | Multiclass  | anger, joy, sadness, fear, surprise, disgust, neutral|
+| es            | Emotion              | Multiclass  | anger, joy, sadness, fear, surprise, disgust, neutral|
+| en, pt        | Emotion              | Multilabel  | admiration,amusement,anger,annoyance,approval,caring,confusion,curiosity,desire,disappointment,disapproval,disgust,embarrassment,excitement,fear,gratitude,grief,joy,love,nervousness,optimism,pride,realization,relief,remorse,sadness,surprise,neutral|
 | es, en        | Hate Speech          | Multilabel  | hateful, targeted, aggressive |
 | es, en, it, pt| Irony                | Binary      | ironic, not ironic |
 | it            | Sentiment            | Multilabel  | pos, neg*      |
@@ -49,13 +50,13 @@ Results are the expressed as percentages of mean Macro F1 for each task plus/min
 
 ## English
 
-| Model      | Sentiment       | Emotion        | Hate Speech       | Irony       |
-|:-----------|:------------    |:------------   |:--------------    |:------------|
-| BERT       | 69.6 +- 0.4     | 42.7 +- 0.6    | 56.0 +- 0.8       | 68.1 +- 2.2 |
-| Electra    | 70.9 +- 0.4     | 37.2 +- 2.9    | 55.6 +- 0.6       | 71.3 +- 1.8 |
-| RoBERTa    | 70.4 +- 0.3     |**45.0 +- 0.9** | 55.1 +- 0.4       | 70.4 +- 2.9 |
-| RoBERTuito | 69.6 +- 0.5     | 43.0 +- 3.3    | **57.5 +- 0.2**   | 73.9 +- 1.4 |
-| BERTweet   | **72.0 +- 0.4** | 43.1 +- 1.8    | **57.7 +- 0.7**   |**80.8 +- 0.7** |
+| Model      | Sentiment       | emotion         | Hate Speech       | Irony       |
+|:-----------|:------------    |:------------    |:--------------    |:------------|
+| BERT       | 69.6 +- 0.4     | **48.0 +- 0.5** | 56.0 +- 0.8       | 68.1 +- 2.2 |
+| Electra    | 70.9 +- 0.4     | 46.4 +- 0.7     | 55.6 +- 0.6       | 71.3 +- 1.8 |
+| RoBERTa    | 70.4 +- 0.3     | 47.9 +- 1.2     | 55.1 +- 0.4       | 70.4 +- 2.9 |
+| RoBERTuito | 69.6 +- 0.5     | 44.2 +- 6.1     | **57.5 +- 0.2**   | 73.9 +- 1.4 |
+| BERTweet   | **72.0 +- 0.4** | 44.3 +- 1.1     | **57.7 +- 0.7**   |**80.8 +- 0.7** |
 
 ## Italian
 
@@ -69,11 +70,10 @@ Results are the expressed as percentages of mean Macro F1 for each task plus/min
 
 ## Portuguese
 
-| model       | Sentiment       | Hate Speech   | Irony          |
-|:------------|:------------    |:--------------|----------------|
-| BERT-pt     | 70.0 +- 0.3     | 64.1 +- 1.1   |   ---          |
-| BERTabaporu | 73.8 +- 0.4     |**70.3 +- 3.3**|   ---          |
-| BERTweet-BR | **75.3 +- 0.5** | 55.6 +- 5.5   |   ---          |
-| RoBERTuito  | 71.7 +- 0.4     | 70.0 +- 2.4   |   ---          |
-
+| model        | Sentiment       | Emotion    | Hate Speech       |
+|:-------------|:------------    |:-----------|:--------------    |
+| BERT-pt      | 70.0 +- 0.3     | 44.4 +- 0.6| 64.1 +- 1.1       |
+| BERTabaporu  | 73.8 +- 0.4     | 43.9 +- 0.5| **70.3 +- 3.3**   |
+| BERTweet-BR  | **75.3 +- 0.5** | 43.2 +- 1.1| 55.6 +- 5.5       |
+| RoBERTuito   | 71.7 +- 0.4     | 45.2 +- 0.6| 70.0 +- 2.4       |
 * Test results are not yet reported for the irony detection task

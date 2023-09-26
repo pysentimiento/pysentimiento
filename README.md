@@ -1,7 +1,6 @@
 # pysentimiento: A Python toolkit for Sentiment Analysis and Social NLP tasks
 
 ![Tests](https://github.com/finiteautomata/pysentimiento/workflows/run_tests/badge.svg) [![Test it in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pysentimiento/pysentimiento/blob/master/notebooks/examples/pysentimiento_sentiment_analysis_in_spanish.ipynb)
-<a href="https://console.tiyaro.ai/explore?q=pysentimiento/robertuito-&pub=pysentimiento"> <img src="https://tiyaro-public-docs.s3.us-west-2.amazonaws.com/assets/try_on_tiyaro_badge.svg"></a>
 
 
 
@@ -17,7 +16,7 @@ Currently supports:
 | Sentiment Analysis                   | es, en, it, pt                        |
 | Hate Speech Detection                | es, en, it, pt                        |
 | Irony Detection                      | es, en, it, pt                        |
-| Emotion Analysis                     | es, en, it                            |
+| Emotion Analysis                     | es, en, it, pt                        |
 | NER & POS tagging                    | es, en                                |
 | Contextualized Hate Speech Detection | es                                    |
 | Targeted Sentiment Analysis          | es                                    |
@@ -139,7 +138,7 @@ Please use the repository [issue tracker](https://github.com/pysentimiento/pysen
 
 If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.org/abs/2106.09462)
 
-```
+```bibtex
 @misc{perez2021pysentimiento,
       title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks},
       author={Juan Manuel Pérez and Juan Carlos Giudici and Franco Luque},
@@ -151,4 +150,3 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 ```
 
 Also, pleace cite related pre-trained models and datasets for the specific models you use. Check [REFERENCES](docs/REFERENCES.md) for details.
-
