@@ -140,10 +140,10 @@ If you use `pysentimiento` in your work, please cite [this paper](https://arxiv.
 
 ```bibtex
 @misc{perez2021pysentimiento,
-      title={pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP tasks},
-      author={Juan Manuel Pérez and Juan Carlos Giudici and Franco Luque},
-      year={2021},
-      eprint={2106.09462},
+      title={pysentimiento: A Python Toolkit for Opinion Mining and Social NLP tasks}, 
+      author={Juan Manuel Pérez and Mariela Rajngewerc and Juan Carlos Giudici and Damián A. Furman and Franco Luque and Laura Alonso Alemany and María Vanina Martínez},
+      year={2023},
+      eprint={2106.09462},a
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
