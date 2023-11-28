@@ -136,3 +136,54 @@ def hp_tune(
         tokenize_fun=tokenize_fun,
         **kwargs,
     )
+
+
+def train(
+    model_name, lang="es", use_defaults_if_not_tuned=False, context=True, **kwargs
+):
+    ds = load_datasets(
+        lang=lang,
+        preprocessing_args=get_preprocessing_args(model_name, lang=lang),
+    )
+
+    logger.info(ds)
+
+    def tokenize_fun(batch):
+        max_len = tokenizer.model_max_length
+        if context:
+            return tokenizer(
+                batch["text"],
+                batch["context_tweet"],
+                padding=False,
+                truncation=True,
+                max_length=min(max_len, 256),
+            )
+        return tokenizer(
+            batch["text"],
+            batch["target"],
+            padding=False,
+            truncation=True,
+            max_length=min(max_len, 128),
+        )
+
+    id2label = {k: v for k, v in enumerate(ds["train"].features["label"].names)}
+
+    training_args = get_training_arguments(
+        model_name,
+        task_name=task_name,
+        lang=lang,
+        metric_for_best_model="eval/macro_f1",
+        use_defaults_if_not_tuned=use_defaults_if_not_tuned,
+    )
+
+    _, tokenizer = load_model(model_name, id2label, lang=lang)
+
+    return train_and_eval(
+        base_model=model_name,
+        dataset=ds,
+        id2label=id2label,
+        tokenize_fun=tokenize_fun,
+        training_args=training_args,
+        lang=lang,
+        **kwargs,
+    )

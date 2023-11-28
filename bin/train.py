@@ -12,6 +12,7 @@ import pysentimiento.emotion
 import pysentimiento.irony
 import pysentimiento.lince.ner
 import pysentimiento.targeted_sa
+import pysentimiento.context_hate
 
 logging.basicConfig()
 
@@ -26,6 +27,7 @@ modules = {
     "irony": pysentimiento.irony,
     "ner": pysentimiento.lince.ner,
     "targeted_sa": pysentimiento.targeted_sa,
+    "context_hate_speech": pysentimiento.context_hate,
 }
 
 
