@@ -166,8 +166,6 @@ def train(
             max_length=min(max_len, 128),
         )
 
-    id2label = {k: v for k, v in enumerate(ds["train"].features["label"].names)}
-
     training_args = get_training_arguments(
         model_name,
         task_name=task_name,
