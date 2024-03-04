@@ -1,18 +1,15 @@
 """
 NER for LinCE dataset
 """
-from emoji import is_emoji, demojize
+from emoji import is_emoji
 import numpy as np
-from seqeval.metrics import f1_score
-from datasets import load_dataset, load_metric, Dataset, DatasetDict
+from datasets import load_dataset, Dataset, DatasetDict
 from transformers import (
     DataCollatorForTokenClassification,
     AutoModelForTokenClassification,
 )
 from ..preprocessing import preprocess_tweet
 from ..training import train_and_eval
-
-metric = load_metric("seqeval")
 
 id2label = [
     "O",
@@ -102,6 +99,10 @@ def compute_metrics(eval_preds):
     """
     Compute metrics for NER
     """
+    from seqeval.metrics import f1_score
+    import evaluate
+
+    metric = evaluate.load("seqeval")
     logits, labels = eval_preds
     predictions = np.argmax(logits, axis=-1)
 
