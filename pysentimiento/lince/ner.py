@@ -1,36 +1,39 @@
 """
 NER for LinCE dataset
 """
-from emoji import emoji_lis, demojize
+from emoji import is_emoji, demojize
 import numpy as np
 from seqeval.metrics import f1_score
 from datasets import load_dataset, load_metric, Dataset, DatasetDict
-from transformers import DataCollatorForTokenClassification, AutoModelForTokenClassification
+from transformers import (
+    DataCollatorForTokenClassification,
+    AutoModelForTokenClassification,
+)
 from ..preprocessing import preprocess_tweet
 from ..training import train_and_eval
 
 metric = load_metric("seqeval")
 
 id2label = [
-    'O',
-    'B-EVENT',
-    'I-EVENT',
-    'B-GROUP',
-    'I-GROUP',
-    'B-LOC',
-    'I-LOC',
-    'B-ORG',
-    'I-ORG',
-    'B-OTHER',
-    'I-OTHER',
-    'B-PER',
-    'I-PER',
-    'B-PROD',
-    'I-PROD',
-    'B-TIME',
-    'I-TIME',
-    'B-TITLE',
-    'I-TITLE',
+    "O",
+    "B-EVENT",
+    "I-EVENT",
+    "B-GROUP",
+    "I-GROUP",
+    "B-LOC",
+    "I-LOC",
+    "B-ORG",
+    "I-ORG",
+    "B-OTHER",
+    "I-OTHER",
+    "B-PER",
+    "I-PER",
+    "B-PROD",
+    "I-PROD",
+    "B-TIME",
+    "I-TIME",
+    "B-TITLE",
+    "I-TITLE",
 ]
 
 label2id = {v: k for k, v in enumerate(id2label)}
@@ -103,14 +106,12 @@ def compute_metrics(eval_preds):
     predictions = np.argmax(logits, axis=-1)
 
     # Remove ignored index (special tokens) and convert to labels
-    true_labels = [[id2label[l] for l in label if l != -100]
-                   for label in labels]
+    true_labels = [[id2label[l] for l in label if l != -100] for label in labels]
     true_predictions = [
         [id2label[p] for (p, l) in zip(prediction, label) if l != -100]
         for prediction, label in zip(predictions, labels)
     ]
-    all_metrics = metric.compute(
-        predictions=true_predictions, references=true_labels)
+    all_metrics = metric.compute(predictions=true_predictions, references=true_labels)
     ret = {
         "precision": all_metrics["overall_precision"],
         "recall": all_metrics["overall_recall"],
@@ -138,10 +139,8 @@ def tokenize_and_align_labels(examples, tokenizer):
     all_labels = examples["labels"]
     new_labels = []
     word_ids = [tokenized_inputs.word_ids(i) for i in range(len(all_labels))]
-    for (labels, wids) in zip(all_labels, word_ids):
-        new_labels.append(
-            align_labels_with_tokens(labels, wids)
-        )
+    for labels, wids in zip(all_labels, word_ids):
+        new_labels.append(align_labels_with_tokens(labels, wids))
 
     tokenized_inputs["labels"] = new_labels
     tokenized_inputs["word_ids"] = word_ids
@@ -159,23 +158,24 @@ def preprocess_token(t, lang, demoji=True, preprocess_hashtags=False, **kwargs):
         TODO: this is a patch for preprocess_tweet, but it should be fixed in the future
         """
         token = "url"
-    else:
-        if demoji:
-            emojis = emoji_lis(t, language=lang)
-            if emojis:
-                """
-                Put special token
-                """
-                token = "emoji"
+    elif demoji and all(is_emoji(x) for x in t):
+        """
+        Put special token
+        """
+        token = "emoji"
 
-        if not token:
-            if len(t) == 1 and not t.isascii():
-                token = "."
-            else:
-                token = preprocess_tweet(
-                    t, lang=lang, demoji=False, preprocess_hashtags=preprocess_hashtags,
-                    char_replace=False, **kwargs
-                )
+    elif not token:
+        if len(t) == 1 and not t.isascii():
+            token = "."
+        else:
+            token = preprocess_tweet(
+                t,
+                lang=lang,
+                demoji=False,
+                preprocess_hashtags=preprocess_hashtags,
+                char_replace=False,
+                **kwargs
+            )
 
     if not token:
         """
@@ -219,11 +219,13 @@ def load_dataset_from_conll(path):
     for w, l in zip(words, ner):
         assert len(w) == len(l)
 
-    return Dataset.from_dict({
-        "words": words,
-        "lang": langs,
-        "ner": ner,
-    })
+    return Dataset.from_dict(
+        {
+            "words": words,
+            "lang": langs,
+            "ner": ner,
+        }
+    )
 
 
 def load_datasets(lang="es", preprocess=True):
@@ -243,9 +245,7 @@ def load_datasets(lang="es", preprocess=True):
 
     if preprocess:
         lince_ner = lince_ner.map(
-            lambda x: {
-                "words": [preprocess_token(word, lang) for word in x["words"]]
-            }
+            lambda x: {"words": [preprocess_token(word, lang) for word in x["words"]]}
         )
 
     return DatasetDict(
@@ -255,19 +255,17 @@ def load_datasets(lang="es", preprocess=True):
     )
 
 
-def train(
-        base_model, lang, epochs=5,
-        metric_for_best_model="micro_f1",
-        **kwargs):
-
-    ds = load_datasets(
-        lang=lang
-    )
+def train(base_model, lang, epochs=5, metric_for_best_model="micro_f1", **kwargs):
+    ds = load_datasets(lang=lang)
 
     return train_model(
         base_model,
-        train_dataset=ds["train"], dev_dataset=ds["dev"], test_dataset=ds["dev"],
-        id2label=id2label, lang=lang, epochs=epochs,
+        train_dataset=ds["train"],
+        dev_dataset=ds["dev"],
+        test_dataset=ds["dev"],
+        id2label=id2label,
+        lang=lang,
+        epochs=epochs,
         # Custom stuff for this thing to work
         tokenize_fun=tokenize_and_align_labels,
         auto_class=AutoModelForTokenClassification,
