@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pysentimiento"
-version = "0.7.2"
+version = "0.7.3rc2"
 description = "A Transformer-based library for SocialNLP tasks"
 authors = ["Juan Manuel Pérez <jmperez@dc.uba.ar>", "Juan Carlos Giudici <jgiudici@dc.uba.ar>", ]
 readme = "README.md"
@@ -10,11 +10,11 @@ homepage = "https://github.com/pysentimiento/pysentimiento/"
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
 transformers = ">=4.13.0"
-emoji = "^1.6.1"
-datasets = "^2.10.1"
+emoji = ">=1.6.1"
+datasets = ">=2.10.1"
 torch = ">=2.0.0, !=2.0.1"
-spacy = "^3.5.0"
-accelerate = "^0.22.0"
+spacy = ">=3.5.0"
+accelerate = ">=0.27.2"
 
 [tool.poetry.dev-dependencies]
 fire = "^0.4.0"
