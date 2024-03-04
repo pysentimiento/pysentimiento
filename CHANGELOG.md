@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.7.3
+
+- Update accelerate version to fix #62
+- Remove deprecated `emoji` and `datasets` functionalities
+
+
 ## 0.7.2
 
 - Add accelerate as dependency
