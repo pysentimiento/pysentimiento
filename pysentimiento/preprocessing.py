@@ -40,51 +40,51 @@ def convert_emoji_to_text(x, emoji_wrapper="emoji"):
     wrapper = f" {emoji_wrapper} ".replace("  ", " ")
     return wrapper + " ".join(x.groups()[0].split("_")) + wrapper
 
-
+# En vez de sustituir los caracteres raros por None (lo cual puede hacer que strings con emojis se vuelvan vacios) 
+# vamos a sustituirlos por emojis/palabras con sentido
 replacements = {
-    "~": None,
-    "£": None,
-    "¥": None,
+    "~": "-",
+    "£": "$",
+    "¥": "$",
     "¨": '"',
-    "©": None,
+    "©": "©️",
     "«": '"',
-    "°": None,
-    "´": None,
-    "¶": None,
-    "·": None,
-    "º": None,
+    "°": " grados",  
+    "´": "'",         # Acento agudo a comilla simple
+    "¶": "\n",        # Símbolo de párrafo a salto de línea 
+    "·": ".",         # Punto medio a punto normal
+    "º": "o",         # Indicador ordinal
     "»": '"',
-    "×": None,
-    "ا": None,
-    "–": None,
-    "—": None,
-    "‘": None,
-    "’": None,
+    "×": "x",         # Signo de multiplicación a letra x
+    "ا": "a",         # Alif árabe a letra 'a' latina
+    "–": "-",         # Guion corto
+    "—": "-",         # Guion largo
+    "‘": "'",         # Comilla simple de apertura
+    "’": "'",         # Comilla simple de cierre
     "“": '"',
     "”": '"',
-    "•": None,
-    "…": None,
-    "‼": "!",
+    "•": "-",         # Viñeta a guion (o "*")
+    "…": "...",       # Puntos suspensivos especiales a 3 puntos normales
+    "‼": "!",         
     "€": "$",
-    "™": None,
-    "●": None,
-    "☠": None,
-    "☹": None,
-    "☺": None,
+    "™": "™️",        # Trademark a su versión emoji (o "TM" en texto)
+    "●": "⚫",        # Círculo negro a emoji de círculo (o "-" para listas)
+    "☠": "☠️",        # A emoji
+    "☹": "🙁",        # Cara triste a emoji
+    "☺": "🙂",        # Cara sonriente a emoji
     "☻": "😃",
-    "♀": None,
-    "♂": None,
+    "♀": "♀️",        # Símbolo femenino a emoji
+    "♂": "♂️",        # Símbolo masculino a emoji
     "♡": "❤️",
     "♥": "❤️",
-    "⚰": None,
-    "⛱": None,
-    "⛹": None,
-    "✈": None,
-    "✓": None,
-    "❤": None,
-    "ー": None,
-    "🕯": None,
-    "🛰": None,
+    "⚰": "⚰️",        # Ataúd a emoji
+    "⛱": "⛱️",        # Sombrilla a emoji
+    "⛹": "⛹️",        # Persona botando balón a emoji
+    "✈": "✈️",        # Avión a emoji
+    "✓": "✅",        # Check mark a emoji (o "v" / "OK" en texto normal)
+    "ー": "-",         # Guion largo japonés a guion normal
+    "🕯": "🕯️",        # Vela a emoji
+    "🛰": "🛰️",        # Satélite a emoji
 }
 
 laughter_conf = {
