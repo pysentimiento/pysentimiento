@@ -240,7 +240,7 @@ def preprocess_tweet(
         text = user_regex.sub(user_token, text)
 
     if preprocess_urls:
-        text = url_regex.sub(replace_url, text)
+        text = url_regex.sub(lambda m: replace_url(m, url_token), text)
 
     if shorten:
         repeated_regex = re.compile(r"(.)" + r"\1" * (shorten-1) + "+")

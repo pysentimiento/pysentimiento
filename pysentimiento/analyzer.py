@@ -190,7 +190,10 @@ class BaseAnalyzer:
 
         """
         self.model = model
-
+        # Detectamos si tenemos cuda y metemos el modelo alli
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Device: {self.device}")
+        self.model = model.to(self.device)
         self.tokenizer = tokenizer
         self.preprocessing_args = preprocessing_args
         self.batch_size = batch_size
@@ -205,6 +208,8 @@ class BaseAnalyzer:
             args=TrainingArguments(
                 output_dir=".",
                 per_device_eval_batch_size=batch_size,
+                dataloader_pin_memory=True,
+                fp16=torch.cuda.is_available(),
             ),
             data_collator=DataCollatorWithPadding(self.tokenizer, padding="longest"),
         )
@@ -234,6 +239,19 @@ class BaseAnalyzer:
         )
 
 
+from functools import partial
+
+
+def tokenize_batch(batch, tokenizer, preprocessing_args):
+    texts = [preprocess_tweet(t, **preprocessing_args) for t in batch["text"]]
+
+    return tokenizer(
+        texts,
+        padding=True,
+        truncation=True,
+    )
+
+
 class AnalyzerForSequenceClassification(BaseAnalyzer):
     """
     Wrapper to use sentiment analysis models as black-box
@@ -251,7 +269,9 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
         model_name: str or path
             Model name or
         """
-        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name, device_map="auto"
+        )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         return cls(model, tokenizer, task, preprocessing_args, batch_size, **kwargs)
 
@@ -347,14 +367,27 @@ class AnalyzerForSequenceClassification(BaseAnalyzer):
 
         if context:
             data["context"] = [
-                preprocess_tweet(sent, **self.preprocessing_args)
-                if preprocess_context
-                else sent
+                (
+                    preprocess_tweet(sent, **self.preprocessing_args)
+                    if preprocess_context
+                    else sent
+                )
                 for sent in context
             ]
 
         dataset = Dataset.from_dict(data)
-        dataset = dataset.map(self._tokenize, batched=True, batch_size=self.batch_size)
+        tokenize_fn = partial(
+            tokenize_batch,
+            tokenizer=self.tokenizer,
+            preprocessing_args=self.preprocessing_args,
+        )
+
+        dataset = dataset.map(
+            tokenize_fn,
+            batched=True,
+            batch_size=self.batch_size,
+            load_from_cache_file=True,
+        )
 
         output = self.eval_trainer.predict(dataset)
         logits = torch.tensor(output.predictions)
@@ -384,7 +417,9 @@ class AnalyzerForTokenClassification(BaseAnalyzer):
         model_name: str or path
             Model name or
         """
-        model = AutoModelForTokenClassification.from_pretrained(model_name)
+        model = AutoModelForTokenClassification.from_pretrained(
+            model_name, device="auto"
+        )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         return cls(
             model,
