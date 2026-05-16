@@ -3,9 +3,7 @@ import re
 
 
 user_regex = re.compile(r"@[a-zA-Z0-9_]{0,15}")
-url_regex = re.compile(
-    r"((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|co|org|edu|gov|uk|net|ca|de|jp|fr|au|us|ru|ch|it|nl|se|no|es|mil|iq|io|ac|ly|sm){1}(?:\/[a-zA-Z0-9]{1,})*)"
-)
+url_regex = re.compile(r'https?://[^\s]+|www\.[^\s]+')
 
 hashtag_regex = re.compile(r'\B#(\w*[a-zA-Z]+\w*)')
 start_of_camel = re.compile(r'([A-Z]+)')
@@ -40,51 +38,51 @@ def convert_emoji_to_text(x, emoji_wrapper="emoji"):
     wrapper = f" {emoji_wrapper} ".replace("  ", " ")
     return wrapper + " ".join(x.groups()[0].split("_")) + wrapper
 
-
+# En vez de sustituir los caracteres raros por None (lo cual puede hacer que strings con emojis se vuelvan vacios) 
+# vamos a sustituirlos por emojis/palabras con sentido
 replacements = {
-    "~": None,
-    "£": None,
-    "¥": None,
+    "~": "-",
+    "£": "$",
+    "¥": "$",
     "¨": '"',
-    "©": None,
+    "©": "©️",
     "«": '"',
-    "°": None,
-    "´": None,
-    "¶": None,
-    "·": None,
-    "º": None,
+    "°": " grados",  
+    "´": "'",         # Acento agudo a comilla simple
+    "¶": "\n",        # Símbolo de párrafo a salto de línea 
+    "·": ".",         # Punto medio a punto normal
+    "º": "o",         # Indicador ordinal
     "»": '"',
-    "×": None,
-    "ا": None,
-    "–": None,
-    "—": None,
-    "‘": None,
-    "’": None,
+    "×": "x",         # Signo de multiplicación a letra x
+    "ا": "a",         # Alif árabe a letra 'a' latina
+    "–": "-",         # Guion corto
+    "—": "-",         # Guion largo
+    "‘": "'",         # Comilla simple de apertura
+    "’": "'",         # Comilla simple de cierre
     "“": '"',
     "”": '"',
-    "•": None,
-    "…": None,
-    "‼": "!",
+    "•": "-",         # Viñeta a guion (o "*")
+    "…": "...",       # Puntos suspensivos especiales a 3 puntos normales
+    "‼": "!",         
     "€": "$",
-    "™": None,
-    "●": None,
-    "☠": None,
-    "☹": None,
-    "☺": None,
+    "™": "™️",        # Trademark a su versión emoji (o "TM" en texto)
+    "●": "⚫",        # Círculo negro a emoji de círculo (o "-" para listas)
+    "☠": "☠️",        # A emoji
+    "☹": "🙁",        # Cara triste a emoji
+    "☺": "🙂",        # Cara sonriente a emoji
     "☻": "😃",
-    "♀": None,
-    "♂": None,
+    "♀": "♀️",        # Símbolo femenino a emoji
+    "♂": "♂️",        # Símbolo masculino a emoji
     "♡": "❤️",
     "♥": "❤️",
-    "⚰": None,
-    "⛱": None,
-    "⛹": None,
-    "✈": None,
-    "✓": None,
-    "❤": None,
-    "ー": None,
-    "🕯": None,
-    "🛰": None,
+    "⚰": "⚰️",        # Ataúd a emoji
+    "⛱": "⛱️",        # Sombrilla a emoji
+    "⛹": "⛹️",        # Persona botando balón a emoji
+    "✈": "✈️",        # Avión a emoji
+    "✓": "✅",        # Check mark a emoji (o "v" / "OK" en texto normal)
+    "ー": "-",         # Guion largo japonés a guion normal
+    "🕯": "🕯️",        # Vela a emoji
+    "🛰": "🛰️",        # Satélite a emoji
 }
 
 laughter_conf = {
@@ -154,10 +152,21 @@ def get_preprocessing_args(model_name, lang):
     """
     return model_preprocessing_args.get(model_name, default_args[lang])
 
+def replace_url(match, url_token):
+    # Dado un substring con una URL, lo sustituimos por url_token dominio url_token 
+    url = match.group(0)
+
+    # Extraer dominio
+    domain_match = re.search(r'(?:https?://)?(?:www\.)?([^/\s]+)', url)
+    domain = domain_match.group(1) if domain_match else 'unknown'
+
+    return f"{url_token} {domain} {url_token}"
+
+
 
 def preprocess_tweet(
         text, lang="es", user_token=None, url_token=None, preprocess_hashtags=True, hashtag_token=None, char_replace=True,
-        demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", preprocess_handles=True):
+        demoji=True, shorten=3, normalize_laughter=True, emoji_wrapper="emoji", preprocess_handles=True, preprocess_urls = True):
     """
     Basic preprocessing
 
@@ -196,6 +205,9 @@ def preprocess_tweet(
 
     preprocess_handles: boolean (default True)
         If true, replaces user handles with user_token
+
+    preprocess_urls: boolean (default True)
+        If true, replaces the URL with the url_token
     """
 
     user_token = user_token or default_args[lang]["user_token"]
@@ -224,6 +236,16 @@ def preprocess_tweet(
             text
         )
 
+    if preprocess_handles:
+        text = user_regex.sub(user_token, text)
+
+    if preprocess_urls:
+        text = url_regex.sub(replace_url, text)
+
+    if shorten:
+        repeated_regex = re.compile(r"(.)" + r"\1" * (shorten-1) + "+")
+        text = repeated_regex.sub(r"\1"*shorten, text)
+
     if char_replace:
         ret = ""
         for char in text:
@@ -235,15 +257,8 @@ def preprocess_tweet(
                 ret += char
         text = ret
 
-    if preprocess_handles:
-        text = user_regex.sub(user_token, text)
-
-    text = url_regex.sub(url_token, text)
-
-    if shorten:
-        repeated_regex = re.compile(r"(.)" + r"\1" * (shorten-1) + "+")
-        text = repeated_regex.sub(r"\1"*shorten, text)
-
+    # Solucionamos los emojis después de solucioanr los caracteres unicode raros
+    # de esta manera nos aseguramos de que no hay emojis en el texto
     if demoji:
         text = emoji.demojize(text, language=lang, delimiters=("|", "|"))
         text = emoji_regex.sub(
